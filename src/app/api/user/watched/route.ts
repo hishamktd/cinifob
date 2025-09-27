@@ -50,17 +50,27 @@ export async function POST(request: Request) {
       );
     }
 
-    const { tmdbId, title, posterPath, overview, releaseDate, voteAverage, runtime, genres, rating, comment } = await request.json();
+    const body = await request.json();
+    console.log('POST /api/user/watched - Request body:', body);
+
+    const { tmdbId, title, posterPath, overview, releaseDate, voteAverage, runtime, genres, rating, comment } = body;
+
+    if (!tmdbId || !title) {
+      return NextResponse.json(
+        { error: 'Missing required fields: tmdbId and title' },
+        { status: 400 }
+      );
+    }
 
     // First, ensure the movie exists in our database
     const movie = await prisma.movie.upsert({
       where: { tmdbId },
       update: {
         title,
-        posterPath,
-        overview,
+        posterPath: posterPath || null,
+        overview: overview || null,
         releaseDate: releaseDate ? new Date(releaseDate) : null,
-        voteAverage,
+        voteAverage: voteAverage || null,
         runtime: runtime || null,
         genres: genres ? JSON.stringify(genres) : '[]',
         cachedAt: new Date(),
@@ -68,14 +78,16 @@ export async function POST(request: Request) {
       create: {
         tmdbId,
         title,
-        posterPath,
-        overview,
+        posterPath: posterPath || null,
+        overview: overview || null,
         releaseDate: releaseDate ? new Date(releaseDate) : null,
-        voteAverage,
+        voteAverage: voteAverage || null,
         runtime: runtime || null,
         genres: genres ? JSON.stringify(genres) : '[]',
       },
     });
+
+    console.log('Movie upserted:', movie);
 
     // Check if already exists
     const existing = await prisma.userMovie.findUnique({

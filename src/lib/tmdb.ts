@@ -32,7 +32,13 @@ class TMDbService {
       });
     }
 
-    const response = await fetch(url.toString());
+    let response;
+    try {
+      response = await fetch(url.toString());
+    } catch (error) {
+      console.error('TMDb fetch error:', error);
+      throw new Error(`Failed to connect to TMDb API: ${(error as Error).message}`);
+    }
 
     if (!response.ok) {
       throw new Error(`TMDb API error: ${response.status}`);
