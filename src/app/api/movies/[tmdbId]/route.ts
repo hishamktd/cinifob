@@ -135,16 +135,29 @@ async function storeMovieDataInBackground(tmdbMovie: Any, tmdbId: number) {
             });
 
             // Then create cast relation
-            await prisma.cast.create({
-              data: {
+            await prisma.cast.upsert({
+              where: {
+                movieId_personId_character: {
+                  movieId: updatedMovie.id,
+                  personId: member.id,
+                  character: member.character || 'Unknown',
+                },
+              },
+              update: {
+                order: member.order,
+              },
+              create: {
                 movieId: updatedMovie.id,
                 personId: member.id,
-                character: member.character,
+                character: member.character || 'Unknown',
                 order: member.order,
               },
             });
-          } catch {
-            console.log('Cast member relation already exists or failed');
+          } catch (error) {
+            // Only log if it's not a unique constraint violation
+            if (!error || !String(error).includes('Unique constraint')) {
+              console.log('Cast member error:', error);
+            }
           }
         });
 
@@ -177,16 +190,29 @@ async function storeMovieDataInBackground(tmdbMovie: Any, tmdbId: number) {
               });
 
               // Then create crew relation
-              await prisma.crew.create({
-                data: {
+              await prisma.crew.upsert({
+                where: {
+                  movieId_personId_job: {
+                    movieId: updatedMovie.id,
+                    personId: member.id,
+                    job: member.job,
+                  },
+                },
+                update: {
+                  department: member.department,
+                },
+                create: {
                   movieId: updatedMovie.id,
                   personId: member.id,
-                  department: member.department,
                   job: member.job,
+                  department: member.department,
                 },
               });
-            } catch {
-              console.log('Crew member relation already exists or failed');
+            } catch (error) {
+              // Only log if it's not a unique constraint violation
+              if (!error || !String(error).includes('Unique constraint')) {
+                console.log('Crew member error:', error);
+              }
             }
           });
 
