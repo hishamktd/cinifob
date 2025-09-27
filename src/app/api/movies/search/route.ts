@@ -86,45 +86,48 @@ export async function GET(request: Request) {
   } catch (error) {
     console.error('Movie search error:', error);
 
-    // Return mock data when TMDb API is unavailable
-    const mockMovies = [
-      {
-        tmdbId: 1,
-        title: 'Sample Movie 1',
-        overview: 'This is a sample movie for testing purposes when TMDb API is unavailable.',
-        posterPath: '/sample1.jpg',
-        releaseDate: '2024-01-01',
-        voteAverage: 8.5,
-        runtime: 120,
-        genres: [28, 12],
-      },
-      {
-        tmdbId: 2,
-        title: 'Sample Movie 2',
-        overview: 'Another sample movie for testing.',
-        posterPath: '/sample2.jpg',
-        releaseDate: '2024-02-01',
-        voteAverage: 7.5,
-        runtime: 110,
-        genres: [18, 35],
-      },
-      {
-        tmdbId: 3,
-        title: 'Test Movie 3',
-        overview: 'A third test movie to demonstrate the application functionality.',
-        posterPath: '/sample3.jpg',
-        releaseDate: '2024-03-01',
-        voteAverage: 9.0,
-        runtime: 150,
-        genres: [878, 28],
-      },
-    ];
+    // Try to fetch from cache if TMDb API is unavailable
+    try {
+      const cachedMovies = await prisma.movie.findMany({
+        take: 20,
+        orderBy: { cachedAt: 'desc' },
+      });
 
-    return NextResponse.json({
-      movies: mockMovies,
-      page: 1,
-      totalPages: 1,
-      totalResults: mockMovies.length,
-    });
+      if (cachedMovies.length > 0) {
+        const movies = cachedMovies.map((movie) => ({
+          tmdbId: movie.tmdbId,
+          title: movie.title,
+          overview: movie.overview,
+          posterPath: movie.posterPath,
+          backdropPath: movie.backdropPath,
+          releaseDate: movie.releaseDate?.toISOString().split('T')[0],
+          genres: movie.genres as number[],
+          voteAverage: movie.voteAverage,
+          voteCount: movie.voteCount,
+        }));
+
+        return NextResponse.json({
+          movies,
+          page: 1,
+          totalPages: 1,
+          totalResults: movies.length,
+          cached: true,
+          message: 'TMDb API is unavailable. Showing cached movies.',
+        });
+      }
+    } catch (cacheError) {
+      console.error('Cache fetch error:', cacheError);
+    }
+
+    return NextResponse.json(
+      {
+        error: 'Failed to fetch movies. TMDb API is currently unavailable.',
+        movies: [],
+        page: 1,
+        totalPages: 0,
+        totalResults: 0,
+      },
+      { status: 503 },
+    );
   }
 }
