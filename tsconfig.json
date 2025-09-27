@@ -26,7 +26,7 @@
       "@lib/*": ["./src/lib/*"],
       "@utils/*": ["./src/utils/*"],
       "@hooks/*": ["./src/hooks/*"],
-      "@types/*": ["./src/types/*"],
+      "@types/*": ["./src/types/*", "./src/types"],
       "@store/*": ["./src/store/*"],
       "@api/*": ["./src/app/api/*"],
       "@contexts/*": ["./src/core/contexts/*"],

@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useSession } from 'next-auth/react';
 
 import {
   Box,
@@ -11,9 +10,7 @@ import {
   CardActionArea,
   CardActions,
   CardContent,
-  CardMedia,
   Chip,
-  CircularProgress,
   IconButton,
   Rating,
   Tooltip,
@@ -22,8 +19,6 @@ import {
 
 import { AppIcon } from '@core/components/app-icon';
 import { TMDB_CONFIG } from '@core/constants';
-import { useToast } from '@/hooks/useToast';
-import { movieService } from '@/services/movie.service';
 import { Movie } from '@/types';
 
 interface MovieCardProps {
@@ -42,9 +37,6 @@ export const MovieCard = ({
   userRating,
 }: MovieCardProps) => {
   const router = useRouter();
-  const { data: session } = useSession();
-  const { showToast } = useToast();
-  const [loading, setLoading] = useState(false);
 
   const posterUrl = movie.posterPath
     ? `${TMDB_CONFIG.IMAGE_BASE_URL}/${TMDB_CONFIG.POSTER_SIZES[3]}${movie.posterPath}`

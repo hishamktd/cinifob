@@ -32,7 +32,7 @@ export default function Home() {
         </Typography>
 
         <Grid container spacing={4}>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -48,7 +48,7 @@ export default function Home() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -64,7 +64,7 @@ export default function Home() {
             </Card>
           </Grid>
 
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Card>
               <CardContent>
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
@@ -87,7 +87,7 @@ export default function Home() {
           </Typography>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <AppSelect
                 label="Select Genre"
                 placeholder="Choose a genre"
@@ -100,7 +100,7 @@ export default function Home() {
               />
             </Grid>
 
-            <Grid item xs={12} md={6}>
+            <Grid size={{ xs: 12, md: 6 }}>
               <AppDatePicker
                 label="Watch Date"
                 value={selectedDate}
@@ -111,7 +111,7 @@ export default function Home() {
               />
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid size={12}>
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Button variant="contained" startIcon={<AppIcon icon="solar:add-circle-bold" />}>
                   Add to Watchlist

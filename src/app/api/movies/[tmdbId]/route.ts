@@ -5,10 +5,11 @@ import { tmdbService } from '@/lib/tmdb';
 
 export async function GET(
   request: Request,
-  { params }: { params: { tmdbId: string } }
+  { params }: { params: Promise<{ tmdbId: string }> }
 ) {
   try {
-    const tmdbId = parseInt(params.tmdbId);
+    const { tmdbId: tmdbIdParam } = await params;
+    const tmdbId = parseInt(tmdbIdParam);
 
     if (isNaN(tmdbId)) {
       return NextResponse.json(

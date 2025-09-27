@@ -104,11 +104,7 @@ class MovieService {
     return response.json();
   }
 
-  async searchMovies(params: {
-    query?: string;
-    page?: number;
-    type?: string;
-  }): Promise<{
+  async searchMovies(params: { query?: string; page?: number; type?: string }): Promise<{
     movies: Partial<Movie>[];
     page: number;
     totalPages: number;
@@ -135,7 +131,7 @@ class MovieService {
   }
 
   async getTrendingMovies(timeWindow = 'week', page = 1) {
-    const response = await fetch(`${this.baseUrl}/movies/search?type=trending&page=${page}`);
+    const response = await fetch(`${this.baseUrl}/movies/search?type=trending&page=${page}&timeWindow=${timeWindow}`);
     if (!response.ok) throw new Error('Failed to fetch trending movies');
     return response.json();
   }

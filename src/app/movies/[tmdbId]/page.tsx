@@ -21,7 +21,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
 } from '@mui/material';
 
 import { AppIcon } from '@core/components/app-icon';
@@ -30,7 +29,7 @@ import { Toast } from '@core/components/toast';
 import { TMDB_CONFIG } from '@core/constants';
 import { MovieStatus } from '@core/enums';
 import { movieService } from '@/services/movie.service';
-import { Movie } from '@/types';
+import { Movie, UserMovie } from '@/types';
 
 export default function MovieDetailPage() {
   const params = useParams();
@@ -38,10 +37,10 @@ export default function MovieDetailPage() {
   const [movie, setMovie] = useState<Movie | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
-  const [userMovie, setUserMovie] = useState<any>(null);
+  const [userMovie, setUserMovie] = useState<UserMovie | null>(null);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
-  const [toast, setToast] = useState({ open: false, message: '', severity: 'info' as any });
+  const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'info' | 'success' | 'error' | 'warning' }>({ open: false, message: '', severity: 'info' });
 
   const tmdbId = parseInt(params.tmdbId as string);
 
@@ -52,6 +51,7 @@ export default function MovieDetailPage() {
         checkUserMovieStatus();
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tmdbId, session]);
 
   const fetchMovieDetails = async () => {
@@ -61,8 +61,8 @@ export default function MovieDetailPage() {
       if (data.movie) {
         setMovie(data.movie);
       }
-    } catch (error) {
-      console.error('Error fetching movie details:', error);
+    } catch {
+      console.error('Error fetching movie details');
       showToast('Failed to load movie details', 'error');
     } finally {
       setLoading(false);
@@ -76,8 +76,8 @@ export default function MovieDetailPage() {
         movieService.getWatchedMovies(),
       ]);
 
-      const inWatchlist = watchlistRes.watchlist.find((um) => um.movie.tmdbId === tmdbId);
-      const inWatched = watchedRes.watched.find((um) => um.movie.tmdbId === tmdbId);
+      const inWatchlist = watchlistRes.watchlist.find((um) => um.movie?.tmdbId === tmdbId);
+      const inWatched = watchedRes.watched.find((um) => um.movie?.tmdbId === tmdbId);
 
       if (inWatched) {
         setUserMovie(inWatched);
@@ -85,8 +85,8 @@ export default function MovieDetailPage() {
       } else if (inWatchlist) {
         setUserMovie(inWatchlist);
       }
-    } catch (error) {
-      console.error('Error checking user movie status:', error);
+    } catch {
+      console.error('Error checking user movie status');
     }
   };
 
@@ -101,8 +101,8 @@ export default function MovieDetailPage() {
       await movieService.addToWatchlist(movie!);
       showToast('Added to watchlist', 'success');
       await checkUserMovieStatus();
-    } catch (error: any) {
-      showToast(error.message || 'Failed to add to watchlist', 'error');
+    } catch {
+      showToast('Failed to add to watchlist', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -124,8 +124,8 @@ export default function MovieDetailPage() {
       showToast('Marked as watched', 'success');
       setRatingDialogOpen(false);
       await checkUserMovieStatus();
-    } catch (error: any) {
-      showToast(error.message || 'Failed to mark as watched', 'error');
+    } catch {
+      showToast('Failed to mark as watched', 'error');
     } finally {
       setActionLoading(false);
     }
@@ -137,14 +137,14 @@ export default function MovieDetailPage() {
       await movieService.removeFromWatchlist(tmdbId);
       showToast('Removed from watchlist', 'success');
       setUserMovie(null);
-    } catch (error: any) {
-      showToast(error.message || 'Failed to remove from watchlist', 'error');
+    } catch {
+      showToast('Failed to remove from watchlist', 'error');
     } finally {
       setActionLoading(false);
     }
   };
 
-  const showToast = (message: string, severity: any) => {
+  const showToast = (message: string, severity: 'info' | 'success' | 'error' | 'warning') => {
     setToast({ open: true, message, severity });
   };
 
@@ -221,7 +221,7 @@ export default function MovieDetailPage() {
       <Container>
         <Box sx={{ py: 4 }}>
           <Grid container spacing={4}>
-            <Grid item xs={12} md={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
               {posterUrl ? (
                 <Card sx={{ position: 'relative', paddingTop: '150%' }}>
                   <Image
@@ -283,7 +283,7 @@ export default function MovieDetailPage() {
               </Box>
             </Grid>
 
-            <Grid item xs={12} md={8}>
+            <Grid size={{ xs: 12, md: 8 }}>
               <Typography variant="h3" component="h1" gutterBottom>
                 {movie.title}
               </Typography>
@@ -308,8 +308,12 @@ export default function MovieDetailPage() {
 
               {movie.genres && Array.isArray(movie.genres) && movie.genres.length > 0 && (
                 <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
-                  {movie.genres.map((genre: any) => (
-                    <Chip key={genre.id} label={genre.name} variant="outlined" />
+                  {movie.genres.map((genre: string | { id: number; name: string }, index: number) => (
+                    <Chip
+                      key={typeof genre === 'string' ? index : genre.id}
+                      label={typeof genre === 'string' ? genre : genre.name}
+                      variant="outlined"
+                    />
                   ))}
                 </Box>
               )}

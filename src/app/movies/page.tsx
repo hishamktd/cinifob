@@ -14,7 +14,6 @@ import {
   InputAdornment,
   ToggleButtonGroup,
   ToggleButton,
-  Paper,
 } from '@mui/material';
 
 import { MovieCard } from '@/components/movie/movie-card';
@@ -63,6 +62,7 @@ export default function MoviesPage() {
 
   useEffect(() => {
     fetchMovies('', 1, searchType);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchType]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -94,7 +94,7 @@ export default function MoviesPage() {
 
   const handleTypeChange = (_: React.MouseEvent<HTMLElement>, newType: string | null) => {
     if (newType && newType !== searchType) {
-      setSearchType(newType);
+      setSearchType(newType as MovieSearchType);
       setSearchQuery('');
       setPage(1);
     }
@@ -153,7 +153,7 @@ export default function MoviesPage() {
             <>
               <Grid container spacing={3}>
                 {movies.map((movie) => (
-                  <Grid item xs={12} sm={6} md={4} lg={3} key={movie.tmdbId}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={movie.tmdbId}>
                     <MovieCard
                       movie={movie}
                       onAddToWatchlist={async () => {
@@ -164,8 +164,8 @@ export default function MoviesPage() {
                         try {
                           await movieService.addToWatchlist(movie);
                           showToast('Added to watchlist', 'success');
-                        } catch (error: any) {
-                          showToast(error.message || 'Failed to add to watchlist', 'error');
+                        } catch {
+                          showToast('Failed to add to watchlist', 'error');
                         }
                       }}
                       onMarkAsWatched={async () => {
@@ -176,8 +176,8 @@ export default function MoviesPage() {
                         try {
                           await movieService.markAsWatched(movie);
                           showToast('Marked as watched', 'success');
-                        } catch (error: any) {
-                          showToast(error.message || 'Failed to mark as watched', 'error');
+                        } catch {
+                          showToast('Failed to mark as watched', 'error');
                         }
                       }}
                     />

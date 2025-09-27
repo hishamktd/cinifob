@@ -1,4 +1,6 @@
-export interface ApiResponse<T = any> {
+import { Any } from '.';
+
+export interface ApiResponse<T = Any> {
   success: boolean;
   data?: T;
   error?: string;

@@ -55,7 +55,7 @@ export default function LoginPage() {
         router.push('/dashboard');
         router.refresh();
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -131,7 +131,7 @@ export default function LoginPage() {
             <Divider sx={{ my: 2 }}>OR</Divider>
 
             <Typography variant="body2" align="center">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{' '}
               <Link href="/register" style={{ color: 'inherit' }}>
                 <strong>Sign up</strong>
               </Link>

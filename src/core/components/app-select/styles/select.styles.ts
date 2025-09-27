@@ -97,8 +97,10 @@ export const getSelectStyles = (
   }),
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const getSelectTheme = (theme: Theme) => (selectTheme: any) => ({
   ...selectTheme,
+  borderRadius: theme.shape.borderRadius,
   colors: {
     ...selectTheme.colors,
     primary: theme.palette.primary.main,
@@ -118,5 +120,11 @@ export const getSelectTheme = (theme: Theme) => (selectTheme: any) => ({
     neutral70: theme.palette.text.primary,
     neutral80: theme.palette.text.primary,
     neutral90: theme.palette.text.primary,
+  },
+  spacing: {
+    ...selectTheme.spacing,
+    baseUnit: 4,
+    controlHeight: 56,
+    menuGutter: 8,
   },
 });

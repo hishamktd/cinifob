@@ -1,4 +1,14 @@
 {
+  "ignorePatterns": [
+    "src/generated/**/*",
+    "node_modules",
+    ".next",
+    "out",
+    "public",
+    "*.config.js",
+    "*.config.ts",
+    "next-env.d.ts"
+  ],
   "extends": [
     "next/core-web-vitals",
     "plugin:@typescript-eslint/recommended",
@@ -12,6 +22,9 @@
     "quotes": ["error", "single"],
     "no-console": ["warn", { "allow": ["warn", "error"] }],
     "@typescript-eslint/no-unused-vars": "off",
+    "@typescript-eslint/no-require-imports": ["error", {
+      "allow": ["/generated/"]
+    }],
     "unused-imports/no-unused-imports": "error",
     "unused-imports/no-unused-vars": [
       "warn",

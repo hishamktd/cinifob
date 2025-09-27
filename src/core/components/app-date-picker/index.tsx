@@ -33,7 +33,14 @@ export const AppDatePicker = ({
 }: AppDatePickerProps) => {
   const theme = useTheme();
 
-  const CustomInput = React.forwardRef<HTMLInputElement, any>(
+  interface CustomInputProps {
+    value?: string;
+    onClick?: () => void;
+    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
+    placeholder?: string;
+  }
+
+  const CustomInput = React.forwardRef<HTMLInputElement, CustomInputProps>(
     ({ value, onClick, onChange: inputOnChange, placeholder }, ref) => (
       <TextField
         ref={ref}

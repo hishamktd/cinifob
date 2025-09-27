@@ -15,7 +15,6 @@ import {
   Chip,
   Card,
   CardContent,
-  Divider,
 } from '@mui/material';
 
 import { AppIcon } from '@core/components/app-icon';
@@ -24,19 +23,20 @@ import { MovieCard } from '@/components/movie/movie-card';
 import { useToast } from '@/hooks/useToast';
 import { movieService } from '@/services/movie.service';
 import { MovieSortBy } from '@core/enums';
+import { UserMovie } from '@/types';
 
 export default function WatchedPage() {
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const { showToast } = useToast();
-  const [movies, setMovies] = useState<any[]>([]);
+  const [movies, setMovies] = useState<UserMovie[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<MovieSortBy>(MovieSortBy.DATE_ADDED);
   const [stats, setStats] = useState({
     totalWatched: 0,
     totalRuntime: 0,
     averageRating: 0,
-    highestRated: null as any,
+    highestRated: null as UserMovie | null,
   });
 
   useEffect(() => {
@@ -45,30 +45,31 @@ export default function WatchedPage() {
     } else if (status === 'authenticated') {
       fetchWatchedMovies();
     }
-  }, [status]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, router]);
 
   const fetchWatchedMovies = async () => {
     try {
       const response = await movieService.getWatchedMovies();
       setMovies(response.watched);
       calculateStats(response.watched);
-    } catch (error) {
+    } catch {
       showToast('Failed to load watched movies', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const calculateStats = (watchedMovies: any[]) => {
+  const calculateStats = (watchedMovies: UserMovie[]) => {
     if (watchedMovies.length === 0) return;
 
-    const totalRuntime = watchedMovies.reduce((sum, m) => sum + (m.movie.runtime || 0), 0);
+    const totalRuntime = watchedMovies.reduce((sum, m) => sum + (m.movie?.runtime || 0), 0);
     const ratedMovies = watchedMovies.filter(m => m.rating);
     const averageRating = ratedMovies.length > 0
-      ? ratedMovies.reduce((sum, m) => sum + m.rating, 0) / ratedMovies.length
+      ? ratedMovies.reduce((sum, m) => sum + (m.rating || 0), 0) / ratedMovies.length
       : 0;
     const highestRated = ratedMovies.length > 0
-      ? ratedMovies.reduce((max, m) => m.rating > (max?.rating || 0) ? m : max, ratedMovies[0])
+      ? ratedMovies.reduce((max, m) => (m.rating || 0) > (max?.rating || 0) ? m : max, ratedMovies[0])
       : null;
 
     setStats({
@@ -82,26 +83,26 @@ export default function WatchedPage() {
   const handleRemoveFromWatched = async (tmdbId: number) => {
     try {
       await movieService.removeFromWatched(tmdbId);
-      const updatedMovies = movies.filter(m => m.movie.tmdbId !== tmdbId);
+      const updatedMovies = movies.filter(m => m.movie?.tmdbId !== tmdbId);
       setMovies(updatedMovies);
       calculateStats(updatedMovies);
       showToast('Removed from watched movies', 'success');
-    } catch (error) {
+    } catch {
       showToast('Failed to remove from watched movies', 'error');
     }
   };
 
-  const sortMovies = (movies: any[]) => {
+  const sortMovies = (movies: UserMovie[]) => {
     const sorted = [...movies];
     switch (sortBy) {
       case MovieSortBy.DATE_ADDED:
         return sorted.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
       case MovieSortBy.TITLE:
-        return sorted.sort((a, b) => a.movie.title.localeCompare(b.movie.title));
+        return sorted.sort((a, b) => (a.movie?.title || '').localeCompare(b.movie?.title || ''));
       case MovieSortBy.RELEASE_DATE:
         return sorted.sort((a, b) => {
-          const dateA = a.movie.releaseDate ? new Date(a.movie.releaseDate).getTime() : 0;
-          const dateB = b.movie.releaseDate ? new Date(b.movie.releaseDate).getTime() : 0;
+          const dateA = a.movie?.releaseDate ? new Date(a.movie.releaseDate).getTime() : 0;
+          const dateB = b.movie?.releaseDate ? new Date(b.movie?.releaseDate).getTime() : 0;
           return dateB - dateA;
         });
       case MovieSortBy.RATING:
@@ -151,7 +152,7 @@ export default function WatchedPage() {
 
           {movies.length > 0 && (
             <Grid container spacing={3} sx={{ mb: 4 }}>
-              <Grid item xs={12} md={3}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <Card>
                   <CardContent>
                     <AppIcon icon="mdi:movie-check" size={24} color="primary.main" />
@@ -164,7 +165,7 @@ export default function WatchedPage() {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <Card>
                   <CardContent>
                     <AppIcon icon="mdi:clock-outline" size={24} color="primary.main" />
@@ -177,7 +178,7 @@ export default function WatchedPage() {
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid item xs={12} md={3}>
+              <Grid size={{ xs: 12, md: 3 }}>
                 <Card>
                   <CardContent>
                     <AppIcon icon="mdi:star" size={24} color="primary.main" />
@@ -191,12 +192,12 @@ export default function WatchedPage() {
                 </Card>
               </Grid>
               {stats.highestRated && (
-                <Grid item xs={12} md={3}>
+                <Grid size={{ xs: 12, md: 3 }}>
                   <Card>
                     <CardContent>
                       <AppIcon icon="mdi:trophy" size={24} color="primary.main" />
                       <Typography variant="body1" sx={{ mt: 1 }} noWrap>
-                        {stats.highestRated.movie.title}
+                        {stats.highestRated.movie?.title || 'Unknown'}
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
                         Highest Rated ({stats.highestRated.rating}★)
@@ -243,7 +244,7 @@ export default function WatchedPage() {
                 No watched movies yet
               </Typography>
               <Typography variant="body2" color="text.secondary" paragraph>
-                Start tracking movies you've watched
+                Start tracking movies you&apos;ve watched
               </Typography>
               <Button
                 variant="contained"
@@ -256,9 +257,9 @@ export default function WatchedPage() {
           ) : (
             <Grid container spacing={3}>
               {sortedMovies.map((userMovie) => (
-                <Grid item xs={12} sm={6} md={4} lg={3} key={userMovie.movie.id}>
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={userMovie.movie?.id}>
                   <MovieCard
-                    movie={userMovie.movie}
+                    movie={userMovie.movie || {}}
                     showActions={false}
                     userRating={userMovie.rating}
                   />
@@ -268,7 +269,7 @@ export default function WatchedPage() {
                       variant="outlined"
                       color="error"
                       startIcon={<AppIcon icon="mdi:delete-outline" />}
-                      onClick={() => handleRemoveFromWatched(userMovie.movie.tmdbId)}
+                      onClick={() => handleRemoveFromWatched(userMovie.movie?.tmdbId || 0)}
                       fullWidth
                     >
                       Remove

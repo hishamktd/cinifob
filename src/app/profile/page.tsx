@@ -15,25 +15,22 @@ import {
   Grid,
   Paper,
   Skeleton,
-  TextField,
   Typography,
 } from '@mui/material';
 
 import { AppIcon } from '@core/components/app-icon';
 import { MainLayout } from '@core/components/layout/main-layout';
-import { useToast } from '@/hooks/useToast';
 import { movieService } from '@/services/movie.service';
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const { showToast } = useToast();
   const [stats, setStats] = useState({
     watchlistCount: 0,
     watchedCount: 0,
     totalRuntime: 0,
     averageRating: 0,
-    genreDistribution: [] as any[],
+    genreDistribution: [] as Array<{ name: string; count: number }>,
   });
   const [loading, setLoading] = useState(true);
 
@@ -43,7 +40,7 @@ export default function ProfilePage() {
     } else if (status === 'authenticated') {
       fetchUserStats();
     }
-  }, [status]);
+  }, [status, router]);
 
   const fetchUserStats = async () => {
     try {
@@ -53,22 +50,24 @@ export default function ProfilePage() {
       ]);
 
       const watchedMovies = watchedRes.watched;
-      const totalRuntime = watchedMovies.reduce((sum, m) => sum + (m.movie.runtime || 0), 0);
+      const totalRuntime = watchedMovies.reduce((sum, m) => sum + (m.movie?.runtime || 0), 0);
       const ratedMovies = watchedMovies.filter(m => m.rating);
       const averageRating = ratedMovies.length > 0
-        ? ratedMovies.reduce((sum, m) => sum + m.rating, 0) / ratedMovies.length
+        ? ratedMovies.reduce((sum, m) => sum + (m.rating || 0), 0) / ratedMovies.length
         : 0;
 
       // Genre distribution
       const genreMap = new Map();
       watchedMovies.forEach(m => {
         try {
-          const genres = JSON.parse(m.movie.genres || '[]');
-          genres.forEach((genre: any) => {
-            const current = genreMap.get(genre.name) || 0;
-            genreMap.set(genre.name, current + 1);
+          if (!m.movie?.genres) return;
+          const genresString = typeof m.movie.genres === 'string' ? m.movie.genres : JSON.stringify(m.movie.genres);
+          const genres = JSON.parse(genresString);
+          genres.forEach((genreId: number) => {
+            const current = genreMap.get(genreId) || 0;
+            genreMap.set(genreId, current + 1);
           });
-        } catch (e) {}
+        } catch {}
       });
 
       const genreDistribution = Array.from(genreMap.entries())
@@ -142,7 +141,7 @@ export default function ProfilePage() {
           </Typography>
 
           <Grid container spacing={3}>
-            <Grid item xs={12} md={6} lg={3}>
+            <Grid size={{ xs: 12, md: 6, lg: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -158,7 +157,7 @@ export default function ProfilePage() {
               </Card>
             </Grid>
 
-            <Grid item xs={12} md={6} lg={3}>
+            <Grid size={{ xs: 12, md: 6, lg: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -174,7 +173,7 @@ export default function ProfilePage() {
               </Card>
             </Grid>
 
-            <Grid item xs={12} md={6} lg={3}>
+            <Grid size={{ xs: 12, md: 6, lg: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -190,7 +189,7 @@ export default function ProfilePage() {
               </Card>
             </Grid>
 
-            <Grid item xs={12} md={6} lg={3}>
+            <Grid size={{ xs: 12, md: 6, lg: 3 }}>
               <Card>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -209,7 +208,7 @@ export default function ProfilePage() {
             </Grid>
 
             {stats.genreDistribution.length > 0 && (
-              <Grid item xs={12}>
+              <Grid size={12}>
                 <Card>
                   <CardContent>
                     <Typography variant="h6" gutterBottom>
