@@ -98,9 +98,10 @@ class TMDbService {
         ) {
           if (attempt < retries) {
             const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Exponential backoff, max 5s
-            console.log(
-              `Network error, waiting ${waitTime}ms before retry ${attempt + 1}/${retries}`,
-            );
+            // Only log on final retry attempt
+            if (attempt === retries - 1) {
+              console.log(`TMDb API network error, final retry attempt...`);
+            }
             await new Promise((resolve) => setTimeout(resolve, waitTime));
             continue;
           }

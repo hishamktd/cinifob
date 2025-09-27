@@ -1,77 +1,12 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@core/lib/prisma';
 import { tmdbService } from '@/lib/tmdb';
+import { Any } from '@/types';
 
-export async function GET(request: Request, { params }: { params: Promise<{ tmdbId: string }> }) {
-  let tmdbIdParam: string = '';
-
+// Background job to store movie data
+async function storeMovieDataInBackground(tmdbMovie: Any, tmdbId: number) {
   try {
-    const resolvedParams = await params;
-    tmdbIdParam = resolvedParams.tmdbId;
-    const tmdbId = parseInt(tmdbIdParam);
-
-    if (isNaN(tmdbId)) {
-      return NextResponse.json({ error: 'Invalid movie ID' }, { status: 400 });
-    }
-
-    // Check cache first - now including relations
-    const cachedMovie = await prisma.movie.findUnique({
-      where: { tmdbId },
-      include: {
-        genres: {
-          include: {
-            genre: true,
-          },
-        },
-        videos: true,
-        cast: {
-          include: {
-            person: true,
-          },
-          orderBy: { order: 'asc' },
-          take: 10,
-        },
-        crew: {
-          include: {
-            person: true,
-          },
-          where: {
-            OR: [
-              { job: 'Director' },
-              { job: 'Producer' },
-              { job: 'Screenplay' },
-              { job: 'Writer' },
-            ],
-          },
-          take: 10,
-        },
-        productionCompanies: true,
-        productionCountries: true,
-        spokenLanguages: true,
-      },
-    });
-
-    // If cached and recent (less than 24 hours old), return it
-    if (cachedMovie && cachedMovie.cachedAt) {
-      const cacheAge = Date.now() - cachedMovie.cachedAt.getTime();
-      const oneDayInMs = 24 * 60 * 60 * 1000;
-
-      if (cacheAge < oneDayInMs) {
-        return NextResponse.json({
-          movie: {
-            ...cachedMovie,
-            budget: cachedMovie.budget ? cachedMovie.budget.toString() : null,
-            revenue: cachedMovie.revenue ? cachedMovie.revenue.toString() : null,
-            genres: cachedMovie.genres.map((mg) => mg.genre),
-          },
-        });
-      }
-    }
-
-    // Fetch from TMDb with all additional data
-    const tmdbMovie = await tmdbService.getMovieDetails(tmdbId);
-
-    // Create or update the movie first
+    // Create or update the movie
     const updatedMovie = await prisma.movie.upsert({
       where: { tmdbId },
       update: {
@@ -116,8 +51,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ tmdb
       },
     });
 
-    // Delete existing relations before creating new ones
-    await Promise.all([
+    // Delete existing relations (but don't wait)
+    const deletePromises = [
       prisma.movieGenre.deleteMany({ where: { movieId: updatedMovie.id } }),
       prisma.video.deleteMany({ where: { movieId: updatedMovie.id } }),
       prisma.cast.deleteMany({ where: { movieId: updatedMovie.id } }),
@@ -125,185 +60,161 @@ export async function GET(request: Request, { params }: { params: Promise<{ tmdb
       prisma.productionCompany.deleteMany({ where: { movieId: updatedMovie.id } }),
       prisma.productionCountry.deleteMany({ where: { movieId: updatedMovie.id } }),
       prisma.spokenLanguage.deleteMany({ where: { movieId: updatedMovie.id } }),
-    ]);
+    ];
 
-    // Save genres
+    await Promise.all(deletePromises);
+
+    // Store genres - create them if they don't exist
     if (tmdbMovie.genres && Array.isArray(tmdbMovie.genres)) {
-      const genrePromises = tmdbMovie.genres.map(
-        (genre) =>
-          prisma.movieGenre
-            .create({
-              data: {
-                movieId: updatedMovie.id,
-                genreId: genre.id,
-              },
-            })
-            .catch(() => null), // Ignore if genre doesn't exist in database
-      );
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const genrePromises = tmdbMovie.genres.map(async (genre: any) => {
+        try {
+          // First ensure genre exists
+          await prisma.genre.upsert({
+            where: { id: genre.id },
+            update: { name: genre.name },
+            create: { id: genre.id, name: genre.name },
+          });
+
+          // Then create the relation
+          await prisma.movieGenre.create({
+            data: {
+              movieId: updatedMovie.id,
+              genreId: genre.id,
+            },
+          });
+        } catch {
+          // Silently skip - genre relation likely already exists
+        }
+      });
+
       await Promise.all(genrePromises);
     }
 
-    // Save videos
+    // Store videos
     if (tmdbMovie.videos?.results) {
-      const videoPromises = tmdbMovie.videos.results.slice(0, 10).map((video) =>
-        prisma.video.create({
-          data: {
-            movieId: updatedMovie.id,
-            key: video.key,
-            name: video.name,
-            site: video.site,
-            size: video.size,
-            type: video.type,
-            official: video.official || false,
-            publishedAt: video.published_at ? new Date(video.published_at) : null,
-          },
-        }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const videoPromises = tmdbMovie.videos.results.slice(0, 10).map((video: any) =>
+        prisma.video
+          .create({
+            data: {
+              movieId: updatedMovie.id,
+              key: video.key,
+              name: video.name,
+              site: video.site,
+              size: video.size,
+              type: video.type,
+              official: video.official || false,
+              publishedAt: video.published_at ? new Date(video.published_at) : null,
+            },
+          })
+          .catch(() => null),
       );
       await Promise.all(videoPromises);
     }
 
-    // Save cast with Person records
-    if (tmdbMovie.credits?.cast) {
-      // First, create/update Person records
-      const castPeople = tmdbMovie.credits.cast.slice(0, 20);
-      await Promise.all(
-        castPeople.map((person) =>
-          prisma.person.upsert({
-            where: { id: person.id },
-            update: {
-              name: person.name,
-              profilePath: person.profile_path || null,
-            },
-            create: {
-              id: person.id,
-              name: person.name,
-              profilePath: person.profile_path || null,
-            },
-          }),
-        ),
-      );
+    // Store cast and crew (for background storage)
+    if (tmdbMovie.credits) {
+      // Store cast
+      if (tmdbMovie.credits.cast && Array.isArray(tmdbMovie.credits.cast)) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const castPromises = tmdbMovie.credits.cast.slice(0, 20).map(async (member: any) => {
+          try {
+            // First ensure person exists
+            await prisma.person.upsert({
+              where: { id: member.id },
+              update: {
+                name: member.name,
+                profilePath: member.profile_path,
+              },
+              create: {
+                id: member.id,
+                name: member.name,
+                profilePath: member.profile_path,
+              },
+            });
 
-      // Then create Cast records
-      const castPromises = castPeople.map(
-        (person, index) =>
-          prisma.cast
-            .create({
+            // Then create cast relation
+            await prisma.cast.create({
               data: {
                 movieId: updatedMovie.id,
-                personId: person.id,
-                character: person.character || null,
-                order: person.order || index,
+                personId: member.id,
+                character: member.character,
+                order: member.order,
               },
-            })
-            .catch(() => null), // Ignore duplicates
-      );
-      await Promise.all(castPromises);
+            });
+          } catch {
+            console.log('Cast member relation already exists or failed');
+          }
+        });
+
+        await Promise.all(castPromises);
+      }
+
+      // Store crew
+      if (tmdbMovie.credits.crew && Array.isArray(tmdbMovie.credits.crew)) {
+        const crewPromises = tmdbMovie.credits.crew
+          .filter((member: Any) =>
+            ['Director', 'Producer', 'Screenplay', 'Writer', 'Executive Producer'].includes(
+              member.job,
+            ),
+          )
+          .slice(0, 20)
+          .map(async (member: Any) => {
+            try {
+              // First ensure person exists
+              await prisma.person.upsert({
+                where: { id: member.id },
+                update: {
+                  name: member.name,
+                  profilePath: member.profile_path,
+                },
+                create: {
+                  id: member.id,
+                  name: member.name,
+                  profilePath: member.profile_path,
+                },
+              });
+
+              // Then create crew relation
+              await prisma.crew.create({
+                data: {
+                  movieId: updatedMovie.id,
+                  personId: member.id,
+                  department: member.department,
+                  job: member.job,
+                },
+              });
+            } catch {
+              console.log('Crew member relation already exists or failed');
+            }
+          });
+
+        await Promise.all(crewPromises);
+      }
     }
 
-    // Save crew with Person records
-    if (tmdbMovie.credits?.crew) {
-      const importantCrew = tmdbMovie.credits.crew.filter((person) =>
-        [
-          'Director',
-          'Producer',
-          'Screenplay',
-          'Writer',
-          'Director of Photography',
-          'Original Music Composer',
-        ].includes(person.job),
-      );
+    console.log(`✅ Background storage complete for movie ${tmdbId}`);
+  } catch (error) {
+    console.error(`❌ Background storage failed for movie ${tmdbId}:`, error);
+  }
+}
 
-      // First, create/update Person records
-      const crewPeople = importantCrew.slice(0, 20);
-      await Promise.all(
-        crewPeople.map((person) =>
-          prisma.person.upsert({
-            where: { id: person.id },
-            update: {
-              name: person.name,
-              profilePath: person.profile_path || null,
-            },
-            create: {
-              id: person.id,
-              name: person.name,
-              profilePath: person.profile_path || null,
-            },
-          }),
-        ),
-      );
+export async function GET(_request: Request, { params }: { params: Promise<{ tmdbId: string }> }) {
+  let tmdbIdParam: string = '';
 
-      // Then create Crew records
-      const crewPromises = crewPeople.map(
-        (person) =>
-          prisma.crew
-            .create({
-              data: {
-                movieId: updatedMovie.id,
-                personId: person.id,
-                job: person.job,
-                department: person.department,
-              },
-            })
-            .catch(() => null), // Ignore duplicates
-      );
-      await Promise.all(crewPromises);
+  try {
+    const resolvedParams = await params;
+    tmdbIdParam = resolvedParams.tmdbId;
+    const tmdbId = parseInt(tmdbIdParam);
+
+    if (isNaN(tmdbId)) {
+      return NextResponse.json({ error: 'Invalid movie ID' }, { status: 400 });
     }
 
-    // Save production companies
-    if (tmdbMovie.production_companies) {
-      const companyPromises = tmdbMovie.production_companies.map(
-        (company) =>
-          prisma.productionCompany
-            .create({
-              data: {
-                movieId: updatedMovie.id,
-                companyId: company.id,
-                name: company.name,
-                logoPath: company.logo_path || null,
-                originCountry: company.origin_country || null,
-              },
-            })
-            .catch(() => null), // Ignore duplicates
-      );
-      await Promise.all(companyPromises);
-    }
-
-    // Save production countries
-    if (tmdbMovie.production_countries) {
-      const countryPromises = tmdbMovie.production_countries.map((country) =>
-        prisma.productionCountry
-          .create({
-            data: {
-              movieId: updatedMovie.id,
-              iso31661: country.iso_3166_1,
-              name: country.name,
-            },
-          })
-          .catch(() => null),
-      );
-      await Promise.all(countryPromises);
-    }
-
-    // Save spoken languages
-    if (tmdbMovie.spoken_languages) {
-      const languagePromises = tmdbMovie.spoken_languages.map((lang) =>
-        prisma.spokenLanguage
-          .create({
-            data: {
-              movieId: updatedMovie.id,
-              iso6391: lang.iso_639_1,
-              name: lang.name,
-              englishName: lang.english_name || null,
-            },
-          })
-          .catch(() => null),
-      );
-      await Promise.all(languagePromises);
-    }
-
-    // Fetch the complete movie with all relations
-    const completeMovie = await prisma.movie.findUnique({
-      where: { id: updatedMovie.id },
+    // Check cache first
+    const cachedMovie = await prisma.movie.findUnique({
+      where: { tmdbId },
       include: {
         genres: {
           include: {
@@ -338,73 +249,164 @@ export async function GET(request: Request, { params }: { params: Promise<{ tmdb
       },
     });
 
-    return NextResponse.json({
-      movie: {
-        ...completeMovie,
-        budget: completeMovie?.budget ? completeMovie.budget.toString() : null,
-        revenue: completeMovie?.revenue ? completeMovie.revenue.toString() : null,
-        genres: completeMovie?.genres.map((mg) => mg.genre) || [],
-      },
-    });
-  } catch (error) {
-    console.error('Movie detail fetch error:', error);
+    if (cachedMovie && cachedMovie.cachedAt) {
+      const cacheAge = Date.now() - cachedMovie.cachedAt.getTime();
+      const oneDayInMs = 24 * 60 * 60 * 1000;
 
-    // If we have a cached version, return it even if it's stale
-    try {
-      const cachedMovie = await prisma.movie.findUnique({
-        where: { tmdbId: parseInt(tmdbIdParam) },
-        include: {
-          genres: {
-            include: {
-              genre: true,
-            },
-          },
-          videos: true,
-          cast: {
-            include: {
-              person: true,
-            },
-            orderBy: { order: 'asc' },
-            take: 10,
-          },
-          crew: {
-            include: {
-              person: true,
-            },
-            where: {
-              OR: [
-                { job: 'Director' },
-                { job: 'Producer' },
-                { job: 'Screenplay' },
-                { job: 'Writer' },
-              ],
-            },
-            take: 10,
-          },
-          productionCompanies: true,
-          productionCountries: true,
-          spokenLanguages: true,
-        },
-      });
-
-      if (cachedMovie) {
-        console.log('Returning stale cache due to TMDb API error');
+      if (cacheAge < oneDayInMs) {
         return NextResponse.json({
           movie: {
             ...cachedMovie,
             budget: cachedMovie.budget ? cachedMovie.budget.toString() : null,
             revenue: cachedMovie.revenue ? cachedMovie.revenue.toString() : null,
             genres: cachedMovie.genres.map((mg) => mg.genre),
+            credits:
+              cachedMovie.cast.length > 0 || cachedMovie.crew.length > 0
+                ? {
+                    cast: cachedMovie.cast.map((c) => ({
+                      ...c.person,
+                      character: c.character,
+                      order: c.order,
+                    })),
+                    crew: cachedMovie.crew.map((c) => ({
+                      ...c.person,
+                      department: c.department,
+                      job: c.job,
+                    })),
+                  }
+                : null,
+          },
+          cached: true,
+        });
+      }
+    }
+
+    // Fetch fresh data from TMDb
+    let tmdbMovie;
+    try {
+      tmdbMovie = await tmdbService.getMovieDetails(tmdbId);
+    } catch (fetchError) {
+      console.error('TMDb fetch failed:', fetchError);
+
+      // If we have ANY cached data, return it even if stale
+      if (cachedMovie) {
+        return NextResponse.json({
+          movie: {
+            ...cachedMovie,
+            budget: cachedMovie.budget ? cachedMovie.budget.toString() : null,
+            revenue: cachedMovie.revenue ? cachedMovie.revenue.toString() : null,
+            genres: cachedMovie.genres.map((mg) => mg.genre),
+            credits:
+              cachedMovie.cast.length > 0 || cachedMovie.crew.length > 0
+                ? {
+                    cast: cachedMovie.cast.map((c) => ({
+                      ...c.person,
+                      character: c.character,
+                      order: c.order,
+                    })),
+                    crew: cachedMovie.crew.map((c) => ({
+                      ...c.person,
+                      department: c.department,
+                      job: c.job,
+                    })),
+                  }
+                : null,
           },
           cached: true,
           stale: true,
         });
       }
-    } catch (cacheError) {
-      console.error('Failed to fetch from cache:', cacheError);
+
+      // No cached data and fetch failed
+      throw fetchError;
     }
 
-    // Return more specific error messages
+    // Transform the TMDb response for immediate return
+    const responseData = {
+      id: cachedMovie?.id, // Keep existing DB id if available
+      tmdbId: tmdbMovie.id,
+      title: tmdbMovie.title,
+      overview: tmdbMovie.overview,
+      posterPath: tmdbMovie.poster_path,
+      backdropPath: tmdbMovie.backdrop_path,
+      releaseDate: tmdbMovie.release_date,
+      runtime: tmdbMovie.runtime,
+      voteAverage: tmdbMovie.vote_average,
+      voteCount: tmdbMovie.vote_count,
+      budget: tmdbMovie.budget ? tmdbMovie.budget.toString() : null,
+      revenue: tmdbMovie.revenue ? tmdbMovie.revenue.toString() : null,
+      tagline: tmdbMovie.tagline,
+      homepage: tmdbMovie.homepage,
+      imdbId: tmdbMovie.imdb_id,
+      originalLanguage: tmdbMovie.original_language,
+      originalTitle: tmdbMovie.original_title,
+      popularity: tmdbMovie.popularity,
+      status: tmdbMovie.status,
+      genres: tmdbMovie.genres || [],
+      videos: tmdbMovie.videos?.results || [],
+      credits: tmdbMovie.credits
+        ? {
+            cast: tmdbMovie.credits.cast?.slice(0, 10) || [],
+            crew:
+              tmdbMovie.credits.crew
+                ?.filter((c: Any) =>
+                  ['Director', 'Producer', 'Screenplay', 'Writer'].includes(c.job),
+                )
+                .slice(0, 10) || [],
+          }
+        : null,
+      production_companies: tmdbMovie.production_companies || [],
+      production_countries: tmdbMovie.production_countries || [],
+      spoken_languages: tmdbMovie.spoken_languages || [],
+    };
+
+    // Start background storage (don't await)
+    storeMovieDataInBackground(tmdbMovie, tmdbId).catch((error) => {
+      console.error('Background storage error:', error);
+    });
+
+    // Return immediately with fresh data
+    return NextResponse.json({
+      movie: responseData,
+      cached: false,
+    });
+  } catch (error) {
+    console.error('Movie detail fetch error:', error);
+
+    // Try to get ANY cached data as last resort
+    if (tmdbIdParam) {
+      try {
+        const cachedMovie = await prisma.movie.findUnique({
+          where: { tmdbId: parseInt(tmdbIdParam) },
+          include: {
+            genres: {
+              include: {
+                genre: true,
+              },
+            },
+            videos: true,
+          },
+        });
+
+        if (cachedMovie) {
+          return NextResponse.json({
+            movie: {
+              ...cachedMovie,
+              budget: cachedMovie.budget ? cachedMovie.budget.toString() : null,
+              revenue: cachedMovie.revenue ? cachedMovie.revenue.toString() : null,
+              genres: cachedMovie.genres.map((mg) => mg.genre),
+            },
+            cached: true,
+            stale: true,
+            error: true,
+          });
+        }
+      } catch (cacheError) {
+        console.error('Cache retrieval failed:', cacheError);
+      }
+    }
+
+    // Return appropriate error response
     if (error instanceof Error) {
       if (error.message.includes('TMDB API key')) {
         return NextResponse.json({ error: 'TMDb API key not configured' }, { status: 503 });

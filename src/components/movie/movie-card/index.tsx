@@ -20,6 +20,7 @@ import {
 import { AppIcon } from '@core/components/app-icon';
 import { TMDB_CONFIG } from '@core/constants';
 import { Movie } from '@/types';
+import { useMoviePrefetch } from '@/hooks/useMoviePrefetch';
 
 interface MovieCardProps {
   movie: Partial<Movie>;
@@ -37,6 +38,7 @@ export const MovieCard = ({
   userRating,
 }: MovieCardProps) => {
   const router = useRouter();
+  const { prefetchMovie, cancelPrefetch } = useMoviePrefetch({ delay: 400 });
 
   const posterUrl = movie.posterPath
     ? `${TMDB_CONFIG.IMAGE_BASE_URL}/${TMDB_CONFIG.POSTER_SIZES[3]}${movie.posterPath}`
@@ -48,10 +50,24 @@ export const MovieCard = ({
     }
   };
 
+  const handleMouseEnter = () => {
+    if (movie.tmdbId) {
+      prefetchMovie(movie.tmdbId);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    cancelPrefetch();
+  };
+
   const releaseYear = movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'Unknown';
 
   return (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <Card
+      sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+    >
       <CardActionArea onClick={handleCardClick}>
         <Box sx={{ position: 'relative', paddingTop: '150%' }}>
           {movie.posterPath ? (

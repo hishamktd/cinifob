@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     }
 
     // First, ensure the movie exists in our database
-    let movie;
+    let movie: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     try {
       movie = await prisma.movie.upsert({
         where: { tmdbId },
