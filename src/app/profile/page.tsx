@@ -116,18 +116,40 @@ export default function ProfilePage() {
     <MainLayout>
       <Container>
         <Box sx={{ py: 4 }}>
-          <Paper sx={{ p: 4, mb: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 3, mb: 3 }}>
-              <Avatar sx={{ width: 80, height: 80, bgcolor: 'primary.main' }}>
-                <Typography variant="h3">
+          <Paper sx={{ p: { xs: 2, sm: 3, md: 4 }, mb: 4 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: 'center',
+                gap: { xs: 2, sm: 3 },
+                mb: 3,
+              }}
+            >
+              <Avatar
+                sx={{
+                  width: { xs: 60, sm: 80 },
+                  height: { xs: 60, sm: 80 },
+                  bgcolor: 'primary.main',
+                }}
+              >
+                <Typography variant="h3" sx={{ fontSize: { xs: '2rem', sm: '3rem' } }}>
                   {session?.user?.email?.charAt(0).toUpperCase()}
                 </Typography>
               </Avatar>
-              <Box>
-                <Typography variant="h4" gutterBottom>
+              <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                <Typography
+                  variant="h4"
+                  gutterBottom
+                  sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}
+                >
                   {session?.user?.name || 'Movie Enthusiast'}
                 </Typography>
-                <Typography variant="body1" color="text.secondary">
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                >
                   {session?.user?.email}
                 </Typography>
               </Box>
@@ -138,15 +160,28 @@ export default function ProfilePage() {
             Your Movie Statistics
           </Typography>
 
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+          <Grid container spacing={{ xs: 2, sm: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
               <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <AppIcon icon="mdi:bookmark" size={40} color="primary.main" />
-                    <Box>
-                      <Typography variant="h4">{stats.watchlistCount}</Typography>
-                      <Typography variant="body2" color="text.secondary">
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      gap: { xs: 1, sm: 2 },
+                    }}
+                  >
+                    <AppIcon icon="mdi:bookmark" size={32} color="primary.main" />
+                    <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                      <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+                        {stats.watchlistCount}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                      >
                         In Watchlist
                       </Typography>
                     </Box>
@@ -155,14 +190,27 @@ export default function ProfilePage() {
               </Card>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
               <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <AppIcon icon="mdi:check-circle" size={40} color="success.main" />
-                    <Box>
-                      <Typography variant="h4">{stats.watchedCount}</Typography>
-                      <Typography variant="body2" color="text.secondary">
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      gap: { xs: 1, sm: 2 },
+                    }}
+                  >
+                    <AppIcon icon="mdi:check-circle" size={32} color="success.main" />
+                    <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                      <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
+                        {stats.watchedCount}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                      >
                         Movies Watched
                       </Typography>
                     </Box>
@@ -171,14 +219,27 @@ export default function ProfilePage() {
               </Card>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
               <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <AppIcon icon="mdi:clock" size={40} color="info.main" />
-                    <Box>
-                      <Typography variant="h6">{formatRuntime(stats.totalRuntime)}</Typography>
-                      <Typography variant="body2" color="text.secondary">
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      gap: { xs: 1, sm: 2 },
+                    }}
+                  >
+                    <AppIcon icon="mdi:clock" size={32} color="info.main" />
+                    <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                      <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+                        {formatRuntime(stats.totalRuntime)}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                      >
                         Total Watch Time
                       </Typography>
                     </Box>
@@ -187,16 +248,27 @@ export default function ProfilePage() {
               </Card>
             </Grid>
 
-            <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+            <Grid size={{ xs: 6, sm: 6, md: 6, lg: 3 }}>
               <Card>
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <AppIcon icon="mdi:star" size={40} color="warning.main" />
-                    <Box>
-                      <Typography variant="h4">
+                <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      gap: { xs: 1, sm: 2 },
+                    }}
+                  >
+                    <AppIcon icon="mdi:star" size={32} color="warning.main" />
+                    <Box sx={{ textAlign: { xs: 'center', sm: 'left' } }}>
+                      <Typography variant="h4" sx={{ fontSize: { xs: '1.5rem', sm: '2.125rem' } }}>
                         {stats.averageRating > 0 ? stats.averageRating.toFixed(1) : 'N/A'}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                      >
                         Average Rating
                       </Typography>
                     </Box>
@@ -239,11 +311,24 @@ export default function ProfilePage() {
 
           <Divider sx={{ my: 4 }} />
 
-          <Box sx={{ display: 'flex', gap: 2 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              gap: 2,
+            }}
+          >
             <Button
               variant="contained"
               startIcon={<AppIcon icon="mdi:bookmark" />}
               onClick={() => router.push('/watchlist')}
+              fullWidth={{ xs: true, sm: false }}
+              sx={{
+                fontSize: { xs: '0.875rem', sm: '1rem' },
+                '& .MuiButton-startIcon': {
+                  display: { xs: 'none', sm: 'inherit' },
+                },
+              }}
             >
               View Watchlist
             </Button>
@@ -252,6 +337,13 @@ export default function ProfilePage() {
               color="success"
               startIcon={<AppIcon icon="mdi:check-circle" />}
               onClick={() => router.push('/watched')}
+              fullWidth={{ xs: true, sm: false }}
+              sx={{
+                fontSize: { xs: '0.875rem', sm: '1rem' },
+                '& .MuiButton-startIcon': {
+                  display: { xs: 'none', sm: 'inherit' },
+                },
+              }}
             >
               View Watched
             </Button>
@@ -259,6 +351,13 @@ export default function ProfilePage() {
               variant="outlined"
               startIcon={<AppIcon icon="mdi:movie-search" />}
               onClick={() => router.push('/movies')}
+              fullWidth={{ xs: true, sm: false }}
+              sx={{
+                fontSize: { xs: '0.875rem', sm: '1rem' },
+                '& .MuiButton-startIcon': {
+                  display: { xs: 'none', sm: 'inherit' },
+                },
+              }}
             >
               Browse Movies
             </Button>

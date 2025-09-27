@@ -91,9 +91,18 @@ export default function WatchedPage() {
       const updatedMovies = movies.filter((m) => m.movie?.tmdbId !== tmdbId);
       setMovies(updatedMovies);
       calculateStats(updatedMovies);
-      showToast('Removed from watched movies', 'success');
+      showToast('Marked as unwatched', 'success');
     } catch {
       showToast('Failed to remove from watched movies', 'error');
+    }
+  };
+
+  const handleAddToWatchlist = async (movie: UserMovie['movie']) => {
+    try {
+      await movieService.addToWatchlist(movie);
+      showToast('Added to watchlist', 'success');
+    } catch {
+      showToast('Failed to add to watchlist', 'error');
     }
   };
 
@@ -330,16 +339,39 @@ export default function WatchedPage() {
                     showActions={false}
                     userRating={userMovie.rating}
                   />
-                  <Box sx={{ mt: 1 }}>
+                  <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
                     <Button
                       size="small"
                       variant="outlined"
-                      color="error"
-                      startIcon={<AppIcon icon="mdi:delete-outline" />}
-                      onClick={() => handleRemoveFromWatched(userMovie.movie?.tmdbId || 0)}
+                      startIcon={<AppIcon icon="mdi:bookmark-plus" />}
+                      onClick={() => handleAddToWatchlist(userMovie.movie)}
                       fullWidth
                       sx={{
                         fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        color: 'primary.main',
+                        borderColor: 'primary.main',
+                        '&:hover': {
+                          bgcolor: 'primary.main',
+                          color: 'primary.contrastText',
+                        },
+                        '& .MuiButton-startIcon': {
+                          display: { xs: 'none', sm: 'inherit' },
+                        },
+                      }}
+                    >
+                      Watch Again
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="text"
+                      startIcon={<AppIcon icon="mdi:close" />}
+                      onClick={() => handleRemoveFromWatched(userMovie.movie?.tmdbId || 0)}
+                      sx={{
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        color: 'text.secondary',
+                        '&:hover': {
+                          bgcolor: 'action.hover',
+                        },
                         '& .MuiButton-startIcon': {
                           display: { xs: 'none', sm: 'inherit' },
                         },

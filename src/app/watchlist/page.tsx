@@ -216,25 +216,9 @@ export default function WatchlistPage() {
                   <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
                     <Button
                       size="small"
-                      variant="outlined"
-                      color="error"
-                      startIcon={<AppIcon icon="mdi:bookmark-remove" />}
-                      onClick={() => handleRemoveFromWatchlist(userMovie?.movie?.tmdbId || 0)}
-                      fullWidth
-                      sx={{
-                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                        '& .MuiButton-startIcon': {
-                          display: { xs: 'none', sm: 'inherit' },
-                        },
-                      }}
-                    >
-                      Remove
-                    </Button>
-                    <Button
-                      size="small"
                       variant="contained"
                       color="success"
-                      startIcon={<AppIcon icon="mdi:check" />}
+                      startIcon={<AppIcon icon="mdi:check-circle" />}
                       onClick={() => handleMarkAsWatched(userMovie)}
                       fullWidth
                       sx={{
@@ -244,7 +228,27 @@ export default function WatchlistPage() {
                         },
                       }}
                     >
-                      Watched
+                      Mark as Watched
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="text"
+                      color="inherit"
+                      startIcon={<AppIcon icon="mdi:close" />}
+                      onClick={() => handleRemoveFromWatchlist(userMovie?.movie?.tmdbId || 0)}
+                      sx={{
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        color: 'text.secondary',
+                        '&:hover': {
+                          bgcolor: 'error.main',
+                          color: 'error.contrastText',
+                        },
+                        '& .MuiButton-startIcon': {
+                          display: { xs: 'none', sm: 'inherit' },
+                        },
+                      }}
+                    >
+                      Remove
                     </Button>
                   </Box>
                 </Grid>

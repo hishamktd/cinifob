@@ -424,6 +424,8 @@ export default function MovieDetailPage() {
               <Tabs
                 value={tabValue}
                 onChange={(_, newValue) => setTabValue(newValue)}
+                variant="scrollable"
+                scrollButtons="auto"
                 sx={{ mb: 3 }}
               >
                 <Tab label="Details" />
@@ -543,24 +545,31 @@ export default function MovieDetailPage() {
                       </Typography>
                       <Grid container spacing={2} sx={{ mb: 4 }}>
                         {movie.cast.map((person) => (
-                          <Grid key={person.personId} size={{ xs: 6, sm: 4, md: 3 }}>
-                            <Card sx={{ p: 2 }}>
-                              <Stack direction="row" spacing={2} alignItems="center">
+                          <Grid key={person.personId} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+                            <Card sx={{ p: { xs: 1.5, sm: 2 } }}>
+                              <Stack direction="row" spacing={{ xs: 1, sm: 2 }} alignItems="center">
                                 <Avatar
                                   src={
                                     person.person?.profilePath
                                       ? `${TMDB_CONFIG.IMAGE_BASE_URL}/w92${person.person.profilePath}`
                                       : undefined
                                   }
-                                  sx={{ width: 56, height: 56 }}
+                                  sx={{ width: { xs: 48, sm: 56 }, height: { xs: 48, sm: 56 } }}
                                 >
                                   {!person.person?.profilePath && person.person?.name?.[0]}
                                 </Avatar>
-                                <Box sx={{ minWidth: 0 }}>
-                                  <Typography variant="subtitle2" noWrap>
+                                <Box sx={{ minWidth: 0, flex: 1 }}>
+                                  <Typography
+                                    variant="subtitle2"
+                                    sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                                  >
                                     {person.person?.name}
                                   </Typography>
-                                  <Typography variant="caption" color="text.secondary" noWrap>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                                  >
                                     {person.character}
                                   </Typography>
                                 </Box>
@@ -579,24 +588,34 @@ export default function MovieDetailPage() {
                       </Typography>
                       <Grid container spacing={2}>
                         {movie.crew.map((person, index) => (
-                          <Grid key={`${person.personId}-${index}`} size={{ xs: 6, sm: 4, md: 3 }}>
-                            <Card sx={{ p: 2 }}>
-                              <Stack direction="row" spacing={2} alignItems="center">
+                          <Grid
+                            key={`${person.personId}-${index}`}
+                            size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+                          >
+                            <Card sx={{ p: { xs: 1.5, sm: 2 } }}>
+                              <Stack direction="row" spacing={{ xs: 1, sm: 2 }} alignItems="center">
                                 <Avatar
                                   src={
                                     person.person?.profilePath
                                       ? `${TMDB_CONFIG.IMAGE_BASE_URL}/w92${person.person.profilePath}`
                                       : undefined
                                   }
-                                  sx={{ width: 56, height: 56 }}
+                                  sx={{ width: { xs: 48, sm: 56 }, height: { xs: 48, sm: 56 } }}
                                 >
                                   {!person.person?.profilePath && person.person?.name?.[0]}
                                 </Avatar>
-                                <Box sx={{ minWidth: 0 }}>
-                                  <Typography variant="subtitle2" noWrap>
+                                <Box sx={{ minWidth: 0, flex: 1 }}>
+                                  <Typography
+                                    variant="subtitle2"
+                                    sx={{ fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                                  >
                                     {person.person?.name}
                                   </Typography>
-                                  <Typography variant="caption" color="text.secondary" noWrap>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                    sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                                  >
                                     {person.job}
                                   </Typography>
                                 </Box>
