@@ -97,7 +97,6 @@ export async function POST(request: Request) {
           releaseDate: releaseDate ? new Date(releaseDate) : null,
           voteAverage: voteAverage || null,
           runtime: runtime || null,
-          genres: genres || [],
           cachedAt: new Date(),
         },
         create: {
@@ -108,9 +107,56 @@ export async function POST(request: Request) {
           releaseDate: releaseDate ? new Date(releaseDate) : null,
           voteAverage: voteAverage || null,
           runtime: runtime || null,
-          genres: genres || [],
         },
       });
+
+      // Handle genres separately if provided
+      if (genres && Array.isArray(genres) && genres.length > 0) {
+        // Ensure genres exist in the database
+        const genrePromises = genres.map(async (genreName: string) => {
+          // First try to find the genre by name
+          let genre = await prisma.genre.findFirst({
+            where: { name: genreName },
+          });
+
+          // If not found, create it with a generated ID
+          if (!genre) {
+            // Generate a unique ID for custom genres (negative to avoid conflicts with TMDb IDs)
+            const existingCustomGenres = await prisma.genre.findMany({
+              where: { id: { lt: 0 } },
+              orderBy: { id: 'asc' },
+              take: 1,
+            });
+            const newId = existingCustomGenres.length > 0 ? existingCustomGenres[0].id - 1 : -1;
+
+            genre = await prisma.genre.create({
+              data: {
+                id: newId,
+                name: genreName,
+              },
+            });
+          }
+
+          // Create MovieGenre relation
+          await prisma.movieGenre
+            .upsert({
+              where: {
+                movieId_genreId: {
+                  movieId: movie.id,
+                  genreId: genre.id,
+                },
+              },
+              update: {},
+              create: {
+                movieId: movie.id,
+                genreId: genre.id,
+              },
+            })
+            .catch(() => null); // Ignore duplicate errors
+        });
+
+        await Promise.all(genrePromises);
+      }
       console.log('Movie upserted successfully:', movie);
     } catch (movieError) {
       console.error('Failed to upsert movie:', movieError);
