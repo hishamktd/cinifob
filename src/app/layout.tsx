@@ -4,6 +4,7 @@ import { Inter } from 'next/font/google';
 import { AppThemeProvider } from '@contexts/ThemeContext';
 import AuthSessionProvider from '@core/providers/session-provider';
 import { ToastProvider } from '@/hooks/useToast';
+import { MovieStatusProvider } from '@/hooks/useMovieStatus';
 
 import './globals.css';
 
@@ -28,7 +29,9 @@ export default function RootLayout({
       <body className={inter.variable}>
         <AuthSessionProvider>
           <AppThemeProvider>
-            <ToastProvider>{children}</ToastProvider>
+            <MovieStatusProvider>
+              <ToastProvider>{children}</ToastProvider>
+            </MovieStatusProvider>
           </AppThemeProvider>
         </AuthSessionProvider>
       </body>

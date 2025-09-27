@@ -21,6 +21,7 @@ import { AppIcon } from '@core/components/app-icon';
 import { TMDB_CONFIG } from '@core/constants';
 import { Movie } from '@/types';
 import { useMoviePrefetch } from '@/hooks/useMoviePrefetch';
+import { useMovieStatus } from '@/hooks/useMovieStatus';
 
 interface MovieCardProps {
   movie: Partial<Movie>;
@@ -39,6 +40,10 @@ export const MovieCard = ({
 }: MovieCardProps) => {
   const router = useRouter();
   const { prefetchMovie, cancelPrefetch } = useMoviePrefetch({ delay: 400 });
+  const { isInWatchlist, isWatched } = useMovieStatus();
+
+  const inWatchlist = movie.tmdbId ? isInWatchlist(movie.tmdbId) : false;
+  const watched = movie.tmdbId ? isWatched(movie.tmdbId) : false;
 
   const posterUrl = movie.posterPath
     ? `${TMDB_CONFIG.IMAGE_BASE_URL}/${TMDB_CONFIG.POSTER_SIZES[3]}${movie.posterPath}`
@@ -122,26 +127,29 @@ export const MovieCard = ({
       </CardActionArea>
       {showActions && (
         <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
-          <Tooltip title="Add to Watchlist">
+          <Tooltip title={inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}>
             <IconButton
               size="small"
               onClick={(e) => {
                 e.stopPropagation();
                 onAddToWatchlist?.();
               }}
+              color={inWatchlist ? 'primary' : 'default'}
+              disabled={watched}
             >
-              <AppIcon icon="mdi:bookmark-outline" size={20} />
+              <AppIcon icon={inWatchlist ? 'mdi:bookmark' : 'mdi:bookmark-outline'} size={20} />
             </IconButton>
           </Tooltip>
-          <Tooltip title="Mark as Watched">
+          <Tooltip title={watched ? 'Watched' : 'Mark as Watched'}>
             <IconButton
               size="small"
               onClick={(e) => {
                 e.stopPropagation();
                 onMarkAsWatched?.();
               }}
+              color={watched ? 'success' : 'default'}
             >
-              <AppIcon icon="mdi:check-circle-outline" size={20} />
+              <AppIcon icon={watched ? 'mdi:check-circle' : 'mdi:check-circle-outline'} size={20} />
             </IconButton>
           </Tooltip>
         </CardActions>

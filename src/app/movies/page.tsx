@@ -22,12 +22,15 @@ import { MainLayout } from '@core/components/layout/main-layout';
 import { MovieSearchType } from '@core/enums';
 import { useToast } from '@/hooks/useToast';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useMovieStatus } from '@/hooks/useMovieStatus';
 import { movieService } from '@/services/movie.service';
 import { Movie } from '@/types';
 
 export default function MoviesPage() {
   const { data: session } = useSession();
   const { showToast } = useToast();
+  const { addToWatchlist, removeFromWatchlist, markAsWatched, isInWatchlist, isWatched } =
+    useMovieStatus();
   const [movies, setMovies] = useState<Partial<Movie>[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -165,11 +168,26 @@ export default function MoviesPage() {
                           showToast('Please login to add to watchlist', 'warning');
                           return;
                         }
+                        if (!movie.tmdbId) return;
+
+                        const inWatchlist = isInWatchlist(movie.tmdbId);
                         try {
-                          await movieService.addToWatchlist(movie);
-                          showToast('Added to watchlist', 'success');
+                          if (inWatchlist) {
+                            await movieService.removeFromWatchlist(movie.tmdbId);
+                            removeFromWatchlist(movie.tmdbId);
+                            showToast('Removed from watchlist', 'success');
+                          } else {
+                            await movieService.addToWatchlist(movie);
+                            addToWatchlist(movie.tmdbId);
+                            showToast('Added to watchlist', 'success');
+                          }
                         } catch {
-                          showToast('Failed to add to watchlist', 'error');
+                          showToast(
+                            inWatchlist
+                              ? 'Failed to remove from watchlist'
+                              : 'Failed to add to watchlist',
+                            'error',
+                          );
                         }
                       }}
                       onMarkAsWatched={async () => {
@@ -177,9 +195,18 @@ export default function MoviesPage() {
                           showToast('Please login to mark as watched', 'warning');
                           return;
                         }
+                        if (!movie.tmdbId) return;
+
+                        const watched = isWatched(movie.tmdbId);
                         try {
-                          await movieService.markAsWatched(movie);
-                          showToast('Marked as watched', 'success');
+                          if (watched) {
+                            // For now, we don't have an unwatch API, so just show message
+                            showToast('Already marked as watched', 'info');
+                          } else {
+                            await movieService.markAsWatched(movie);
+                            markAsWatched(movie.tmdbId);
+                            showToast('Marked as watched', 'success');
+                          }
                         } catch {
                           showToast('Failed to mark as watched', 'error');
                         }
