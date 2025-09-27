@@ -116,10 +116,7 @@ export default function Home() {
                 <Button variant="contained" startIcon={<AppIcon icon="solar:add-circle-bold" />}>
                   Add to Watchlist
                 </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<AppIcon icon="solar:play-circle-linear" />}
-                >
+                <Button variant="outlined" startIcon={<AppIcon icon="solar:play-circle-linear" />}>
                   Mark as Watched
                 </Button>
                 <Button

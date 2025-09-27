@@ -76,7 +76,7 @@ export async function POST(request: Request) {
           releaseDate: releaseDate ? new Date(releaseDate) : null,
           voteAverage: voteAverage || null,
           runtime: runtime || null,
-          genres: genres ? JSON.stringify(genres) : '[]',
+          genres: genres || [],
           cachedAt: new Date(),
         },
         create: {
@@ -87,7 +87,7 @@ export async function POST(request: Request) {
           releaseDate: releaseDate ? new Date(releaseDate) : null,
           voteAverage: voteAverage || null,
           runtime: runtime || null,
-          genres: genres ? JSON.stringify(genres) : '[]',
+          genres: genres || [],
         },
       });
       console.log('Movie upserted successfully:', movie);

@@ -40,7 +40,11 @@ export default function MovieDetailPage() {
   const [userMovie, setUserMovie] = useState<UserMovie | null>(null);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
-  const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'info' | 'success' | 'error' | 'warning' }>({ open: false, message: '', severity: 'info' });
+  const [toast, setToast] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'info' | 'success' | 'error' | 'warning';
+  }>({ open: false, message: '', severity: 'info' });
 
   const tmdbId = parseInt(params.tmdbId as string);
 
@@ -198,13 +202,7 @@ export default function MovieDetailPage() {
             overflow: 'hidden',
           }}
         >
-          <Image
-            src={backdropUrl}
-            alt={movie.title}
-            fill
-            style={{ objectFit: 'cover' }}
-            priority
-          />
+          <Image src={backdropUrl} alt={movie.title} fill style={{ objectFit: 'cover' }} priority />
           <Box
             sx={{
               position: 'absolute',
@@ -224,12 +222,7 @@ export default function MovieDetailPage() {
             <Grid size={{ xs: 12, md: 4 }}>
               {posterUrl ? (
                 <Card sx={{ position: 'relative', paddingTop: '150%' }}>
-                  <Image
-                    src={posterUrl}
-                    alt={movie.title}
-                    fill
-                    style={{ objectFit: 'cover' }}
-                  />
+                  <Image src={posterUrl} alt={movie.title} fill style={{ objectFit: 'cover' }} />
                 </Card>
               ) : (
                 <Card
@@ -252,7 +245,9 @@ export default function MovieDetailPage() {
                     fullWidth
                     variant={isInWatchlist ? 'outlined' : 'contained'}
                     color="primary"
-                    startIcon={<AppIcon icon={isInWatchlist ? 'mdi:bookmark-check' : 'mdi:bookmark-plus'} />}
+                    startIcon={
+                      <AppIcon icon={isInWatchlist ? 'mdi:bookmark-check' : 'mdi:bookmark-plus'} />
+                    }
                     onClick={isInWatchlist ? handleRemoveFromWatchlist : handleAddToWatchlist}
                     disabled={actionLoading}
                     sx={{ mb: 2 }}
@@ -308,13 +303,15 @@ export default function MovieDetailPage() {
 
               {movie.genres && Array.isArray(movie.genres) && movie.genres.length > 0 && (
                 <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
-                  {movie.genres.map((genre: string | { id: number; name: string }, index: number) => (
-                    <Chip
-                      key={typeof genre === 'string' ? index : genre.id}
-                      label={typeof genre === 'string' ? genre : genre.name}
-                      variant="outlined"
-                    />
-                  ))}
+                  {movie.genres.map(
+                    (genre: string | { id: number; name: string }, index: number) => (
+                      <Chip
+                        key={typeof genre === 'string' ? index : genre.id}
+                        label={typeof genre === 'string' ? genre : genre.name}
+                        variant="outlined"
+                      />
+                    ),
+                  )}
                 </Box>
               )}
 

@@ -51,23 +51,21 @@ export default function ProfilePage() {
 
       const watchedMovies = watchedRes.watched;
       const totalRuntime = watchedMovies.reduce((sum, m) => sum + (m.movie?.runtime || 0), 0);
-      const ratedMovies = watchedMovies.filter(m => m.rating);
-      const averageRating = ratedMovies.length > 0
-        ? ratedMovies.reduce((sum, m) => sum + (m.rating || 0), 0) / ratedMovies.length
-        : 0;
+      const ratedMovies = watchedMovies.filter((m) => m.rating);
+      const averageRating =
+        ratedMovies.length > 0
+          ? ratedMovies.reduce((sum, m) => sum + (m.rating || 0), 0) / ratedMovies.length
+          : 0;
 
       // Genre distribution
       const genreMap = new Map();
-      watchedMovies.forEach(m => {
-        try {
-          if (!m.movie?.genres) return;
-          const genresString = typeof m.movie.genres === 'string' ? m.movie.genres : JSON.stringify(m.movie.genres);
-          const genres = JSON.parse(genresString);
-          genres.forEach((genreId: number) => {
-            const current = genreMap.get(genreId) || 0;
-            genreMap.set(genreId, current + 1);
-          });
-        } catch {}
+      watchedMovies.forEach((m) => {
+        if (!m.movie?.genres) return;
+        const genres = Array.isArray(m.movie.genres) ? m.movie.genres : [];
+        genres.forEach((genreId: number) => {
+          const current = genreMap.get(genreId) || 0;
+          genreMap.set(genreId, current + 1);
+        });
       });
 
       const genreDistribution = Array.from(genreMap.entries())

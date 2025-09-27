@@ -7,8 +7,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -26,17 +27,20 @@ model Movie {
   id            Int          @id @default(autoincrement())
   tmdbId        Int          @unique
   title         String
-  overview      String?
+  overview      String?      @db.Text
   posterPath    String?
   backdropPath  String?
-  releaseDate   DateTime?
-  genres        String
+  releaseDate   DateTime?    @db.Date
+  genres        Json         @default("[]")
   runtime       Int?
   voteAverage   Float?
   voteCount     Int?
   cachedAt      DateTime     @default(now())
   createdAt     DateTime     @default(now())
   userMovies    UserMovie[]
+
+  @@index([tmdbId])
+  @@index([title])
 }
 
 model UserMovie {
@@ -46,14 +50,16 @@ model UserMovie {
   status        String       // 'watchlist' | 'watched'
   watchedAt     DateTime?
   rating        Int?         // 1-5
-  comment       String?
+  comment       String?      @db.Text
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
-  user          User         @relation(fields: [userId], references: [id])
-  movie         Movie        @relation(fields: [movieId], references: [id])
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movie         Movie        @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
   @@unique([userId, movieId])
+  @@index([userId, status])
+  @@index([status])
 }
 
 model Session {

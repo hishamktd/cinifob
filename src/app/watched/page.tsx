@@ -64,13 +64,18 @@ export default function WatchedPage() {
     if (watchedMovies.length === 0) return;
 
     const totalRuntime = watchedMovies.reduce((sum, m) => sum + (m.movie?.runtime || 0), 0);
-    const ratedMovies = watchedMovies.filter(m => m.rating);
-    const averageRating = ratedMovies.length > 0
-      ? ratedMovies.reduce((sum, m) => sum + (m.rating || 0), 0) / ratedMovies.length
-      : 0;
-    const highestRated = ratedMovies.length > 0
-      ? ratedMovies.reduce((max, m) => (m.rating || 0) > (max?.rating || 0) ? m : max, ratedMovies[0])
-      : null;
+    const ratedMovies = watchedMovies.filter((m) => m.rating);
+    const averageRating =
+      ratedMovies.length > 0
+        ? ratedMovies.reduce((sum, m) => sum + (m.rating || 0), 0) / ratedMovies.length
+        : 0;
+    const highestRated =
+      ratedMovies.length > 0
+        ? ratedMovies.reduce(
+            (max, m) => ((m.rating || 0) > (max?.rating || 0) ? m : max),
+            ratedMovies[0],
+          )
+        : null;
 
     setStats({
       totalWatched: watchedMovies.length,
@@ -83,7 +88,7 @@ export default function WatchedPage() {
   const handleRemoveFromWatched = async (tmdbId: number) => {
     try {
       await movieService.removeFromWatched(tmdbId);
-      const updatedMovies = movies.filter(m => m.movie?.tmdbId !== tmdbId);
+      const updatedMovies = movies.filter((m) => m.movie?.tmdbId !== tmdbId);
       setMovies(updatedMovies);
       calculateStats(updatedMovies);
       showToast('Removed from watched movies', 'success');
@@ -96,7 +101,9 @@ export default function WatchedPage() {
     const sorted = [...movies];
     switch (sortBy) {
       case MovieSortBy.DATE_ADDED:
-        return sorted.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        return sorted.sort(
+          (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+        );
       case MovieSortBy.TITLE:
         return sorted.sort((a, b) => (a.movie?.title || '').localeCompare(b.movie?.title || ''));
       case MovieSortBy.RELEASE_DATE:
@@ -209,10 +216,10 @@ export default function WatchedPage() {
             </Grid>
           )}
 
-          <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="h6">
-              All Watched Movies
-            </Typography>
+          <Box
+            sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+          >
+            <Typography variant="h6">All Watched Movies</Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <Chip
                 label="Recently Watched"

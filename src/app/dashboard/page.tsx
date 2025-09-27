@@ -69,18 +69,19 @@ export default function DashboardPage() {
 
       // Calculate statistics
       const totalRuntime = watchedMovies.reduce((sum, m) => sum + (m.movie?.runtime || 0), 0);
-      const ratedMovies = watchedMovies.filter(m => m.rating);
-      const averageRating = ratedMovies.length > 0
-        ? ratedMovies.reduce((sum, m) => sum + (m.rating || 0), 0) / ratedMovies.length
-        : 0;
+      const ratedMovies = watchedMovies.filter((m) => m.rating);
+      const averageRating =
+        ratedMovies.length > 0
+          ? ratedMovies.reduce((sum, m) => sum + (m.rating || 0), 0) / ratedMovies.length
+          : 0;
 
       // This month and year stats
       const now = dayjs();
-      const thisMonthWatched = watchedMovies.filter(m =>
-        dayjs(m.watchedAt).isSame(now, 'month')
+      const thisMonthWatched = watchedMovies.filter((m) =>
+        dayjs(m.watchedAt).isSame(now, 'month'),
       ).length;
-      const thisYearWatched = watchedMovies.filter(m =>
-        dayjs(m.watchedAt).isSame(now, 'year')
+      const thisYearWatched = watchedMovies.filter((m) =>
+        dayjs(m.watchedAt).isSame(now, 'year'),
       ).length;
 
       setStats({
@@ -94,11 +95,11 @@ export default function DashboardPage() {
 
       // Recent activity (combine watchlist and watched, sort by date)
       const allActivity = [
-        ...watchlist.map(m => ({ ...m, type: 'watchlist' })),
-        ...watchedMovies.map(m => ({ ...m, type: 'watched' })),
-      ].sort((a, b) =>
-        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-      ).slice(0, 5);
+        ...watchlist.map((m) => ({ ...m, type: 'watchlist' })),
+        ...watchedMovies.map((m) => ({ ...m, type: 'watched' })),
+      ]
+        .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+        .slice(0, 5);
 
       setRecentActivity(allActivity);
 
@@ -179,14 +180,14 @@ export default function DashboardPage() {
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                  >
                     <Box>
                       <Typography color="text.secondary" variant="body2" gutterBottom>
                         Watchlist
                       </Typography>
-                      <Typography variant="h4">
-                        {stats.watchlistCount}
-                      </Typography>
+                      <Typography variant="h4">{stats.watchlistCount}</Typography>
                     </Box>
                     <AppIcon icon="mdi:bookmark" size={40} color="primary.main" />
                   </Box>
@@ -204,14 +205,14 @@ export default function DashboardPage() {
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                  >
                     <Box>
                       <Typography color="text.secondary" variant="body2" gutterBottom>
                         Watched
                       </Typography>
-                      <Typography variant="h4">
-                        {stats.watchedCount}
-                      </Typography>
+                      <Typography variant="h4">{stats.watchedCount}</Typography>
                     </Box>
                     <AppIcon icon="mdi:check-circle" size={40} color="success.main" />
                   </Box>
@@ -227,14 +228,14 @@ export default function DashboardPage() {
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                  >
                     <Box>
                       <Typography color="text.secondary" variant="body2" gutterBottom>
                         Watch Time
                       </Typography>
-                      <Typography variant="h5">
-                        {formatRuntime(stats.totalRuntime)}
-                      </Typography>
+                      <Typography variant="h5">{formatRuntime(stats.totalRuntime)}</Typography>
                     </Box>
                     <AppIcon icon="mdi:clock-time-eight" size={40} color="info.main" />
                   </Box>
@@ -250,7 +251,9 @@ export default function DashboardPage() {
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card>
                 <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                  >
                     <Box>
                       <Typography color="text.secondary" variant="body2" gutterBottom>
                         Avg Rating
@@ -275,7 +278,14 @@ export default function DashboardPage() {
             {/* Recent Activity */}
             <Grid size={{ xs: 12, md: 6 }}>
               <Paper sx={{ p: 3, height: '100%' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 2,
+                  }}
+                >
                   <Typography variant="h6">Recent Activity</Typography>
                 </Box>
                 {recentActivity.length === 0 ? (
@@ -310,11 +320,7 @@ export default function DashboardPage() {
                                 {activity.type === 'watched' ? 'Watched' : 'Added to watchlist'}
                               </Typography>
                               {activity.rating && (
-                                <Chip
-                                  label={`${activity.rating}★`}
-                                  size="small"
-                                  color="warning"
-                                />
+                                <Chip label={`${activity.rating}★`} size="small" color="warning" />
                               )}
                             </Box>
                           }
@@ -329,7 +335,14 @@ export default function DashboardPage() {
             {/* Watchlist Preview */}
             <Grid size={{ xs: 12, md: 6 }}>
               <Paper sx={{ p: 3, height: '100%' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    mb: 2,
+                  }}
+                >
                   <Typography variant="h6">Your Watchlist</Typography>
                   <Button
                     size="small"
@@ -361,7 +374,7 @@ export default function DashboardPage() {
                         <Card
                           sx={{
                             cursor: 'pointer',
-                            '&:hover': { transform: 'scale(1.05)', transition: 'transform 0.2s' }
+                            '&:hover': { transform: 'scale(1.05)', transition: 'transform 0.2s' },
                           }}
                           onClick={() => item.movie && router.push(`/movies/${item.movie.tmdbId}`)}
                         >
@@ -418,9 +431,7 @@ export default function DashboardPage() {
                       <Typography variant="body2" color="text.secondary" gutterBottom>
                         Movies Watched This Year
                       </Typography>
-                      <Typography variant="h3">
-                        {stats.thisYearWatched}
-                      </Typography>
+                      <Typography variant="h3">{stats.thisYearWatched}</Typography>
                     </Box>
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
