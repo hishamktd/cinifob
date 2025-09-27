@@ -26,7 +26,19 @@ export async function GET() {
       },
     });
 
-    return NextResponse.json({ watched });
+    // Transform BigInt fields to strings for JSON serialization
+    const transformedWatched = watched.map((item) => ({
+      ...item,
+      movie: item.movie
+        ? {
+            ...item.movie,
+            budget: item.movie.budget ? item.movie.budget.toString() : null,
+            revenue: item.movie.revenue ? item.movie.revenue.toString() : null,
+          }
+        : null,
+    }));
+
+    return NextResponse.json({ watched: transformedWatched });
   } catch (error) {
     console.error('Watched movies fetch error:', error);
     return NextResponse.json({ error: 'Failed to fetch watched movies' }, { status: 500 });
@@ -197,7 +209,19 @@ export async function POST(request: Request) {
         },
       });
 
-      return NextResponse.json({ userMovie: updated });
+      // Transform BigInt fields to strings
+      const transformedUserMovie = {
+        ...updated,
+        movie: updated.movie
+          ? {
+              ...updated.movie,
+              budget: updated.movie.budget ? updated.movie.budget.toString() : null,
+              revenue: updated.movie.revenue ? updated.movie.revenue.toString() : null,
+            }
+          : null,
+      };
+
+      return NextResponse.json({ userMovie: transformedUserMovie });
     }
 
     // Mark as watched
@@ -215,7 +239,19 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ userMovie });
+    // Transform BigInt fields to strings
+    const transformedUserMovie = {
+      ...userMovie,
+      movie: userMovie.movie
+        ? {
+            ...userMovie.movie,
+            budget: userMovie.movie.budget ? userMovie.movie.budget.toString() : null,
+            revenue: userMovie.movie.revenue ? userMovie.movie.revenue.toString() : null,
+          }
+        : null,
+    };
+
+    return NextResponse.json({ userMovie: transformedUserMovie });
   } catch (error) {
     console.error('Mark as watched error:', error);
     return NextResponse.json({ error: 'Failed to mark as watched' }, { status: 500 });

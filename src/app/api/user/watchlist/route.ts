@@ -219,7 +219,19 @@ export async function POST(request: Request) {
         },
       });
 
-      return NextResponse.json({ userMovie: updated });
+      // Transform BigInt fields to strings
+      const transformedUserMovie = {
+        ...updated,
+        movie: updated.movie
+          ? {
+              ...updated.movie,
+              budget: updated.movie.budget ? updated.movie.budget.toString() : null,
+              revenue: updated.movie.revenue ? updated.movie.revenue.toString() : null,
+            }
+          : null,
+      };
+
+      return NextResponse.json({ userMovie: transformedUserMovie });
     }
 
     // Add to watchlist
@@ -234,7 +246,19 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ userMovie });
+    // Transform BigInt fields to strings
+    const transformedUserMovie = {
+      ...userMovie,
+      movie: userMovie.movie
+        ? {
+            ...userMovie.movie,
+            budget: userMovie.movie.budget ? userMovie.movie.budget.toString() : null,
+            revenue: userMovie.movie.revenue ? userMovie.movie.revenue.toString() : null,
+          }
+        : null,
+    };
+
+    return NextResponse.json({ userMovie: transformedUserMovie });
   } catch (error) {
     console.error('Add to watchlist error:', error);
     return NextResponse.json({ error: 'Failed to add to watchlist' }, { status: 500 });
