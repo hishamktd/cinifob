@@ -276,8 +276,8 @@ export default function DashboardPage() {
 
           <Grid container spacing={3}>
             {/* Recent Activity */}
-            <Grid size={{ xs: 12, md: 6 }}>
-              <Paper sx={{ p: 3, height: '100%' }}>
+            <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+              <Paper elevation={2} sx={{ p: { xs: 2, md: 3 }, height: '100%' }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -287,6 +287,14 @@ export default function DashboardPage() {
                   }}
                 >
                   <Typography variant="h6">Recent Activity</Typography>
+                  {recentActivity.length > 0 && (
+                    <Chip
+                      label={recentActivity.length}
+                      size="small"
+                      color="primary"
+                      sx={{ ml: 1 }}
+                    />
+                  )}
                 </Box>
                 {recentActivity.length === 0 ? (
                   <Box sx={{ textAlign: 'center', py: 4 }}>

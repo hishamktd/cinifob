@@ -236,7 +236,7 @@ export default function Home() {
         {/* Features Section */}
         <Grid container spacing={4} sx={{ mt: 6 }}>
           <Grid size={{ xs: 12, md: 6 }}>
-            <Paper sx={{ p: 3 }}>
+            <Paper elevation={2} sx={{ p: { xs: 2, md: 3 }, height: '100%' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <AppIcon icon="solar:shield-check-bold" size={28} color="primary" />
                 <Typography variant="h6" sx={{ ml: 1 }}>
@@ -279,7 +279,7 @@ export default function Home() {
           </Grid>
 
           <Grid size={{ xs: 12, md: 6 }}>
-            <Paper sx={{ p: 3 }}>
+            <Paper elevation={2} sx={{ p: { xs: 2, md: 3 }, height: '100%' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                 <AppIcon icon="solar:info-circle-bold" size={28} color="info" />
                 <Typography variant="h6" sx={{ ml: 1 }}>
