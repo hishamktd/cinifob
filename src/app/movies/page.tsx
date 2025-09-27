@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 
 import {
   Box,
@@ -13,15 +14,20 @@ import {
   InputAdornment,
   ToggleButtonGroup,
   ToggleButton,
+  Paper,
 } from '@mui/material';
 
 import { MovieCard } from '@/components/movie/movie-card';
 import { AppIcon } from '@core/components/app-icon';
 import { MainLayout } from '@core/components/layout/main-layout';
 import { MovieSearchType } from '@core/enums';
+import { useToast } from '@/hooks/useToast';
+import { movieService } from '@/services/movie.service';
 import { Movie } from '@/types';
 
 export default function MoviesPage() {
+  const { data: session } = useSession();
+  const { showToast } = useToast();
   const [movies, setMovies] = useState<Partial<Movie>[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -150,8 +156,30 @@ export default function MoviesPage() {
                   <Grid item xs={12} sm={6} md={4} lg={3} key={movie.tmdbId}>
                     <MovieCard
                       movie={movie}
-                      onAddToWatchlist={() => console.log('Add to watchlist:', movie.tmdbId)}
-                      onMarkAsWatched={() => console.log('Mark as watched:', movie.tmdbId)}
+                      onAddToWatchlist={async () => {
+                        if (!session) {
+                          showToast('Please login to add to watchlist', 'warning');
+                          return;
+                        }
+                        try {
+                          await movieService.addToWatchlist(movie);
+                          showToast('Added to watchlist', 'success');
+                        } catch (error: any) {
+                          showToast(error.message || 'Failed to add to watchlist', 'error');
+                        }
+                      }}
+                      onMarkAsWatched={async () => {
+                        if (!session) {
+                          showToast('Please login to mark as watched', 'warning');
+                          return;
+                        }
+                        try {
+                          await movieService.markAsWatched(movie);
+                          showToast('Marked as watched', 'success');
+                        } catch (error: any) {
+                          showToast(error.message || 'Failed to mark as watched', 'error');
+                        }
+                      }}
                     />
                   </Grid>
                 ))}

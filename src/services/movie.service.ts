@@ -1,3 +1,4 @@
+import { HttpMethod } from '@core/enums';
 import { Movie, UserMovie } from '@/types';
 
 class MovieService {
@@ -5,7 +6,7 @@ class MovieService {
 
   async addToWatchlist(movie: Partial<Movie>) {
     const response = await fetch(`${this.baseUrl}/user/watchlist`, {
-      method: 'POST',
+      method: HttpMethod.POST,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -16,6 +17,8 @@ class MovieService {
         overview: movie.overview,
         releaseDate: movie.releaseDate,
         voteAverage: movie.voteAverage,
+        runtime: movie.runtime,
+        genres: movie.genres,
       }),
     });
 
@@ -29,7 +32,7 @@ class MovieService {
 
   async removeFromWatchlist(tmdbId: number) {
     const response = await fetch(`${this.baseUrl}/user/watchlist?tmdbId=${tmdbId}`, {
-      method: 'DELETE',
+      method: HttpMethod.DELETE,
     });
 
     if (!response.ok) {
@@ -40,9 +43,9 @@ class MovieService {
     return response.json();
   }
 
-  async markAsWatched(movie: Partial<Movie>, rating?: number) {
+  async markAsWatched(movie: Partial<Movie>, rating?: number, comment?: string) {
     const response = await fetch(`${this.baseUrl}/user/watched`, {
-      method: 'POST',
+      method: HttpMethod.POST,
       headers: {
         'Content-Type': 'application/json',
       },
@@ -53,13 +56,29 @@ class MovieService {
         overview: movie.overview,
         releaseDate: movie.releaseDate,
         voteAverage: movie.voteAverage,
+        runtime: movie.runtime,
+        genres: movie.genres,
         rating,
+        comment,
       }),
     });
 
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to mark as watched');
+    }
+
+    return response.json();
+  }
+
+  async removeFromWatched(tmdbId: number) {
+    const response = await fetch(`${this.baseUrl}/user/watched?tmdbId=${tmdbId}`, {
+      method: HttpMethod.DELETE,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to remove from watched');
     }
 
     return response.json();
@@ -106,6 +125,30 @@ class MovieService {
       throw new Error('Failed to search movies');
     }
 
+    return response.json();
+  }
+
+  async getPopularMovies(page = 1) {
+    const response = await fetch(`${this.baseUrl}/movies/search?type=popular&page=${page}`);
+    if (!response.ok) throw new Error('Failed to fetch popular movies');
+    return response.json();
+  }
+
+  async getTrendingMovies(timeWindow = 'week', page = 1) {
+    const response = await fetch(`${this.baseUrl}/movies/search?type=trending&page=${page}`);
+    if (!response.ok) throw new Error('Failed to fetch trending movies');
+    return response.json();
+  }
+
+  async getUpcomingMovies(page = 1) {
+    const response = await fetch(`${this.baseUrl}/movies/search?type=upcoming&page=${page}`);
+    if (!response.ok) throw new Error('Failed to fetch upcoming movies');
+    return response.json();
+  }
+
+  async getNowPlayingMovies(page = 1) {
+    const response = await fetch(`${this.baseUrl}/movies/search?type=now_playing&page=${page}`);
+    if (!response.ok) throw new Error('Failed to fetch now playing movies');
     return response.json();
   }
 

@@ -57,4 +57,8 @@ export enum MovieSortBy {
   VOTE_AVERAGE_ASC = 'vote_average.asc',
   VOTE_COUNT_DESC = 'vote_count.desc',
   VOTE_COUNT_ASC = 'vote_count.asc',
+  DATE_ADDED = 'date_added',
+  TITLE = 'title',
+  RELEASE_DATE = 'release_date',
+  RATING = 'rating',
 }

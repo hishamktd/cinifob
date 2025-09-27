@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { tmdbId, title, posterPath, overview, releaseDate, voteAverage, rating } = await request.json();
+    const { tmdbId, title, posterPath, overview, releaseDate, voteAverage, runtime, genres, rating, comment } = await request.json();
 
     // First, ensure the movie exists in our database
     const movie = await prisma.movie.upsert({
@@ -61,6 +61,9 @@ export async function POST(request: Request) {
         overview,
         releaseDate: releaseDate ? new Date(releaseDate) : null,
         voteAverage,
+        runtime: runtime || null,
+        genres: genres ? JSON.stringify(genres) : '[]',
+        cachedAt: new Date(),
       },
       create: {
         tmdbId,
@@ -69,7 +72,8 @@ export async function POST(request: Request) {
         overview,
         releaseDate: releaseDate ? new Date(releaseDate) : null,
         voteAverage,
-        genres: '[]',
+        runtime: runtime || null,
+        genres: genres ? JSON.stringify(genres) : '[]',
       },
     });
 
@@ -93,6 +97,7 @@ export async function POST(request: Request) {
           status: MovieStatus.WATCHED,
           watchedAt: new Date(),
           rating: rating || existing.rating,
+          comment: comment || existing.comment,
         },
         include: {
           movie: true,
@@ -110,6 +115,7 @@ export async function POST(request: Request) {
         status: MovieStatus.WATCHED,
         watchedAt: new Date(),
         rating,
+        comment,
       },
       include: {
         movie: true,
@@ -121,6 +127,57 @@ export async function POST(request: Request) {
     console.error('Mark as watched error:', error);
     return NextResponse.json(
       { error: 'Failed to mark as watched' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const tmdbId = searchParams.get('tmdbId');
+
+    if (!tmdbId) {
+      return NextResponse.json(
+        { error: 'Movie ID is required' },
+        { status: 400 }
+      );
+    }
+
+    const movie = await prisma.movie.findUnique({
+      where: { tmdbId: parseInt(tmdbId) },
+    });
+
+    if (!movie) {
+      return NextResponse.json(
+        { error: 'Movie not found' },
+        { status: 404 }
+      );
+    }
+
+    await prisma.userMovie.delete({
+      where: {
+        userId_movieId: {
+          userId: parseInt(session.user.id),
+          movieId: movie.id,
+        },
+      },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Remove from watched error:', error);
+    return NextResponse.json(
+      { error: 'Failed to remove from watched' },
       { status: 500 }
     );
   }

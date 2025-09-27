@@ -50,7 +50,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const { tmdbId, title, posterPath, overview, releaseDate, voteAverage } = await request.json();
+    const { tmdbId, title, posterPath, overview, releaseDate, voteAverage, runtime, genres } = await request.json();
 
     // First, ensure the movie exists in our database
     const movie = await prisma.movie.upsert({
@@ -61,6 +61,9 @@ export async function POST(request: Request) {
         overview,
         releaseDate: releaseDate ? new Date(releaseDate) : null,
         voteAverage,
+        runtime: runtime || null,
+        genres: genres ? JSON.stringify(genres) : '[]',
+        cachedAt: new Date(),
       },
       create: {
         tmdbId,
@@ -69,7 +72,8 @@ export async function POST(request: Request) {
         overview,
         releaseDate: releaseDate ? new Date(releaseDate) : null,
         voteAverage,
-        genres: '[]',
+        runtime: runtime || null,
+        genres: genres ? JSON.stringify(genres) : '[]',
       },
     });
 
