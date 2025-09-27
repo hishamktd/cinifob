@@ -3,8 +3,11 @@ import { prisma } from '@core/lib/prisma';
 import { tmdbService } from '@/lib/tmdb';
 
 export async function GET(request: Request, { params }: { params: Promise<{ tmdbId: string }> }) {
+  let tmdbIdParam: string = '';
+
   try {
-    const { tmdbId: tmdbIdParam } = await params;
+    const resolvedParams = await params;
+    tmdbIdParam = resolvedParams.tmdbId;
     const tmdbId = parseInt(tmdbIdParam);
 
     if (isNaN(tmdbId)) {
@@ -345,6 +348,75 @@ export async function GET(request: Request, { params }: { params: Promise<{ tmdb
     });
   } catch (error) {
     console.error('Movie detail fetch error:', error);
+
+    // If we have a cached version, return it even if it's stale
+    try {
+      const cachedMovie = await prisma.movie.findUnique({
+        where: { tmdbId: parseInt(tmdbIdParam) },
+        include: {
+          genres: {
+            include: {
+              genre: true,
+            },
+          },
+          videos: true,
+          cast: {
+            include: {
+              person: true,
+            },
+            orderBy: { order: 'asc' },
+            take: 10,
+          },
+          crew: {
+            include: {
+              person: true,
+            },
+            where: {
+              OR: [
+                { job: 'Director' },
+                { job: 'Producer' },
+                { job: 'Screenplay' },
+                { job: 'Writer' },
+              ],
+            },
+            take: 10,
+          },
+          productionCompanies: true,
+          productionCountries: true,
+          spokenLanguages: true,
+        },
+      });
+
+      if (cachedMovie) {
+        console.log('Returning stale cache due to TMDb API error');
+        return NextResponse.json({
+          movie: {
+            ...cachedMovie,
+            budget: cachedMovie.budget ? cachedMovie.budget.toString() : null,
+            revenue: cachedMovie.revenue ? cachedMovie.revenue.toString() : null,
+            genres: cachedMovie.genres.map((mg) => mg.genre),
+          },
+          cached: true,
+          stale: true,
+        });
+      }
+    } catch (cacheError) {
+      console.error('Failed to fetch from cache:', cacheError);
+    }
+
+    // Return more specific error messages
+    if (error instanceof Error) {
+      if (error.message.includes('TMDB API key')) {
+        return NextResponse.json({ error: 'TMDb API key not configured' }, { status: 503 });
+      }
+      if (error.message.includes('timeout')) {
+        return NextResponse.json({ error: 'Request timeout - TMDb API is slow' }, { status: 504 });
+      }
+      if (error.message.includes('ECONNRESET') || error.message.includes('network')) {
+        return NextResponse.json({ error: 'Network error - please try again' }, { status: 503 });
+      }
+    }
+
     return NextResponse.json({ error: 'Failed to fetch movie details' }, { status: 500 });
   }
 }

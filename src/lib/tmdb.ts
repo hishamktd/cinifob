@@ -18,7 +18,11 @@ class TMDbService {
   private baseUrl = TMDB_CONFIG.BASE_URL;
   private apiKey = TMDB_API_KEY || '';
 
-  private async fetchFromTMDb<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
+  private async fetchFromTMDb<T>(
+    endpoint: string,
+    params?: Record<string, string>,
+    retries = 3,
+  ): Promise<T> {
     if (!this.apiKey) {
       throw new Error('TMDB API key is not configured');
     }
@@ -32,34 +36,87 @@ class TMDbService {
       });
     }
 
-    let response;
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); // Reduced to 3 seconds
+    let lastError: Error | null = null;
 
-      response = await fetch(url.toString(), {
-        signal: controller.signal,
-        headers: {
-          Accept: 'application/json',
-        },
-      });
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000); // Increased to 10 seconds
 
-      clearTimeout(timeoutId);
-    } catch (error: unknown) {
-      console.error('TMDb fetch error:', error);
-      if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          throw new Error('TMDb API request timeout');
+        const response = await fetch(url.toString(), {
+          signal: controller.signal,
+          headers: {
+            Accept: 'application/json',
+            'Content-Type': 'application/json',
+          },
+          // Add keep-alive to reuse connections
+          keepalive: true,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          // If it's a 429 (rate limit), wait before retrying
+          if (response.status === 429) {
+            const retryAfter = response.headers.get('Retry-After');
+            const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 2000 * attempt;
+            console.warn(
+              `TMDb rate limit hit. Waiting ${waitTime}ms before retry ${attempt}/${retries}`,
+            );
+            await new Promise((resolve) => setTimeout(resolve, waitTime));
+            continue;
+          }
+
+          // For other errors, throw immediately
+          const errorBody = await response.text();
+          throw new Error(`TMDb API error ${response.status}: ${errorBody || response.statusText}`);
         }
-        throw new Error(`Failed to connect to TMDb API: ${error.message}`);
+
+        // Success - return the data
+        return await response.json();
+      } catch (error: unknown) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+
+        // Log the error with attempt info
+        console.error(`TMDb fetch attempt ${attempt}/${retries} failed:`, {
+          endpoint,
+          error: lastError.message,
+          errorName: lastError.name,
+        });
+
+        // Don't retry on specific errors
+        if (lastError.name === 'AbortError') {
+          throw new Error(`TMDb API request timeout after ${attempt} attempts`);
+        }
+
+        // If ECONNRESET or network error, wait before retrying
+        if (
+          lastError.message.includes('ECONNRESET') ||
+          lastError.message.includes('ETIMEDOUT') ||
+          lastError.message.includes('fetch failed') ||
+          lastError.message.includes('network')
+        ) {
+          if (attempt < retries) {
+            const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000); // Exponential backoff, max 5s
+            console.log(
+              `Network error, waiting ${waitTime}ms before retry ${attempt + 1}/${retries}`,
+            );
+            await new Promise((resolve) => setTimeout(resolve, waitTime));
+            continue;
+          }
+        }
+
+        // If it's the last attempt, throw the error
+        if (attempt === retries) {
+          throw new Error(
+            `Failed to fetch from TMDb after ${retries} attempts: ${lastError.message}`,
+          );
+        }
       }
     }
 
-    if (!response || !response.ok) {
-      throw new Error(`TMDb API error: ${response?.status}`);
-    }
-
-    return response.json();
+    // Should never reach here, but just in case
+    throw lastError || new Error('Unknown error occurred while fetching from TMDb');
   }
 
   async searchMovies(options: TMDbOptions): Promise<TMDbSearchResponse> {
