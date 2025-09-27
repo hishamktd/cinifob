@@ -62,7 +62,7 @@ export default function ProfilePage() {
       watchedMovies.forEach((m) => {
         if (!m.movie?.genres) return;
         const genres = Array.isArray(m.movie.genres) ? m.movie.genres : [];
-        genres.forEach((genreId: number) => {
+        genres.forEach((genreId) => {
           const current = genreMap.get(genreId) || 0;
           genreMap.set(genreId, current + 1);
         });

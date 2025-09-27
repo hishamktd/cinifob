@@ -34,14 +34,29 @@ class TMDbService {
 
     let response;
     try {
-      response = await fetch(url.toString());
-    } catch (error) {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3000); // Reduced to 3 seconds
+
+      response = await fetch(url.toString(), {
+        signal: controller.signal,
+        headers: {
+          Accept: 'application/json',
+        },
+      });
+
+      clearTimeout(timeoutId);
+    } catch (error: unknown) {
       console.error('TMDb fetch error:', error);
-      throw new Error(`Failed to connect to TMDb API: ${(error as Error).message}`);
+      if (error instanceof Error) {
+        if (error.name === 'AbortError') {
+          throw new Error('TMDb API request timeout');
+        }
+        throw new Error(`Failed to connect to TMDb API: ${error.message}`);
+      }
     }
 
-    if (!response.ok) {
-      throw new Error(`TMDb API error: ${response.status}`);
+    if (!response || !response.ok) {
+      throw new Error(`TMDb API error: ${response?.status}`);
     }
 
     return response.json();

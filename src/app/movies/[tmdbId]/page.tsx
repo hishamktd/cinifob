@@ -304,13 +304,17 @@ export default function MovieDetailPage() {
               {movie.genres && Array.isArray(movie.genres) && movie.genres.length > 0 && (
                 <Box sx={{ display: 'flex', gap: 1, mb: 3, flexWrap: 'wrap' }}>
                   {movie.genres.map(
-                    (genre: string | { id: number; name: string }, index: number) => (
-                      <Chip
-                        key={typeof genre === 'string' ? index : genre.id}
-                        label={typeof genre === 'string' ? genre : genre.name}
-                        variant="outlined"
-                      />
-                    ),
+                    (genre: string | number | { id: number; name: string }, index: number) => {
+                      const genreId = typeof genre === 'object' ? genre.id : genre;
+                      const genreLabel = typeof genre === 'object' ? genre.name : `Genre ${genre}`;
+                      return (
+                        <Chip
+                          key={`genre-${genreId}-${index}`}
+                          label={genreLabel}
+                          variant="outlined"
+                        />
+                      );
+                    },
                   )}
                 </Box>
               )}

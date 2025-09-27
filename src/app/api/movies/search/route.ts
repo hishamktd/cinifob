@@ -34,35 +34,7 @@ export async function GET(request: Request) {
         }
     }
 
-    // Cache movies in the database
-    const moviesToCache = tmdbResponse.results.slice(0, 10); // Cache first 10 results
-    for (const movie of moviesToCache) {
-      await prisma.movie.upsert({
-        where: { tmdbId: movie.id },
-        update: {
-          title: movie.title,
-          overview: movie.overview,
-          posterPath: movie.poster_path,
-          backdropPath: movie.backdrop_path,
-          releaseDate: movie.release_date ? new Date(movie.release_date) : null,
-          genres: movie.genre_ids || [],
-          voteAverage: movie.vote_average,
-          voteCount: movie.vote_count,
-          cachedAt: new Date(),
-        },
-        create: {
-          tmdbId: movie.id,
-          title: movie.title,
-          overview: movie.overview || null,
-          posterPath: movie.poster_path || null,
-          backdropPath: movie.backdrop_path || null,
-          releaseDate: movie.release_date ? new Date(movie.release_date) : null,
-          genres: movie.genre_ids || [],
-          voteAverage: movie.vote_average,
-          voteCount: movie.vote_count,
-        },
-      });
-    }
+    // Don't cache movies during search - only when added to watchlist/watched
 
     // Transform the response to match our Movie type
     const movies = tmdbResponse.results.map((movie) => ({
@@ -88,7 +60,18 @@ export async function GET(request: Request) {
 
     // Try to fetch from cache if TMDb API is unavailable
     try {
+      const { searchParams } = new URL(request.url);
+      const query = searchParams.get('query');
+
+      // If there's a search query, filter cached movies
+      const whereClause = query
+        ? {
+            OR: [{ title: { contains: query } }, { overview: { contains: query } }],
+          }
+        : {};
+
       const cachedMovies = await prisma.movie.findMany({
+        where: whereClause,
         take: 20,
         orderBy: { cachedAt: 'desc' },
       });

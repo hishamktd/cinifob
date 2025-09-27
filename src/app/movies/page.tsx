@@ -21,6 +21,7 @@ import { AppIcon } from '@core/components/app-icon';
 import { MainLayout } from '@core/components/layout/main-layout';
 import { MovieSearchType } from '@core/enums';
 import { useToast } from '@/hooks/useToast';
+import { useDebounce } from '@/hooks/useDebounce';
 import { movieService } from '@/services/movie.service';
 import { Movie } from '@/types';
 
@@ -30,10 +31,10 @@ export default function MoviesPage() {
   const [movies, setMovies] = useState<Partial<Movie>[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [searchType, setSearchType] = useState<MovieSearchType>(MovieSearchType.POPULAR);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
-  const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
   const fetchMovies = async (query?: string, pageNum = 1, type = searchType) => {
     setLoading(true);
@@ -61,29 +62,23 @@ export default function MoviesPage() {
   };
 
   useEffect(() => {
-    fetchMovies('', 1, searchType);
+    if (debouncedSearchQuery) {
+      setSearchType(MovieSearchType.SEARCH);
+      fetchMovies(debouncedSearchQuery, 1, MovieSearchType.SEARCH);
+    } else if (searchType !== MovieSearchType.SEARCH) {
+      fetchMovies('', 1, searchType);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchType]);
+  }, [debouncedSearchQuery, searchType]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setSearchQuery(query);
     setPage(1);
 
-    if (searchTimeout) {
-      clearTimeout(searchTimeout);
+    if (!query && searchType === MovieSearchType.SEARCH) {
+      setSearchType(MovieSearchType.POPULAR);
     }
-
-    const timeout = setTimeout(() => {
-      if (query) {
-        setSearchType(MovieSearchType.SEARCH);
-        fetchMovies(query, 1, MovieSearchType.SEARCH);
-      } else {
-        fetchMovies('', 1, searchType);
-      }
-    }, 500);
-
-    setSearchTimeout(timeout);
   };
 
   const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {

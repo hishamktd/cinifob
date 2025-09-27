@@ -106,11 +106,29 @@ export async function POST(request: Request) {
       }
     }
 
+    // Ensure the user exists in the database
+    const userId = parseInt(session.user.id);
+    try {
+      await prisma.user.findUniqueOrThrow({
+        where: { id: userId },
+      });
+    } catch {
+      // Create the user if they don't exist
+      await prisma.user.create({
+        data: {
+          id: userId,
+          email: session.user.email || `user_${userId}@example.com`,
+          name: session.user.name || `User ${userId}`,
+          password: '', // Empty password for session-based users
+        },
+      });
+    }
+
     // Check if already exists
     const existing = await prisma.userMovie.findUnique({
       where: {
         userId_movieId: {
-          userId: parseInt(session.user.id),
+          userId,
           movieId: movie.id,
         },
       },
@@ -139,7 +157,7 @@ export async function POST(request: Request) {
     // Mark as watched
     const userMovie = await prisma.userMovie.create({
       data: {
-        userId: parseInt(session.user.id),
+        userId,
         movieId: movie.id,
         status: MovieStatus.WATCHED,
         watchedAt: new Date(),
