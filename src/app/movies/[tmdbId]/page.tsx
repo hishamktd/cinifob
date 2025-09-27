@@ -13,7 +13,6 @@ import {
   Container,
   Divider,
   Grid,
-  Paper,
   Rating,
   Skeleton,
   Typography,
@@ -21,6 +20,11 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Tabs,
+  Tab,
+  Avatar,
+  Stack,
+  Link,
 } from '@mui/material';
 
 import { AppIcon } from '@core/components/app-icon';
@@ -29,17 +33,72 @@ import { Toast } from '@core/components/toast';
 import { TMDB_CONFIG } from '@core/constants';
 import { MovieStatus } from '@core/enums';
 import { movieService } from '@/services/movie.service';
-import { Movie, UserMovie } from '@/types';
+import { UserMovie } from '@/types';
 
 export default function MovieDetailPage() {
   const params = useParams();
   const { data: session } = useSession();
-  const [movie, setMovie] = useState<Movie | null>(null);
+  const [movie, setMovie] = useState<{
+    id: number;
+    tmdbId: number;
+    title: string;
+    overview?: string;
+    posterPath?: string;
+    backdropPath?: string;
+    releaseDate?: string;
+    runtime?: number;
+    voteAverage?: number;
+    voteCount?: number;
+    tagline?: string;
+    status?: string;
+    originalLanguage?: string;
+    budget?: string;
+    revenue?: string;
+    popularity?: number;
+    homepage?: string;
+    imdbId?: string;
+    genres?: Array<{ id: number; name: string }>;
+    cast?: Array<{
+      personId: number;
+      character?: string;
+      order: number;
+      person?: { name: string; profilePath?: string };
+    }>;
+    crew?: Array<{
+      personId: number;
+      job: string;
+      department: string;
+      person?: { name: string; profilePath?: string };
+    }>;
+    videos?: Array<{
+      key: string;
+      name: string;
+      site: string;
+      type: string;
+      official: boolean;
+    }>;
+    productionCompanies?: Array<{
+      companyId: number;
+      name: string;
+      logoPath?: string;
+      originCountry?: string;
+    }>;
+    productionCountries?: Array<{
+      iso31661: string;
+      name: string;
+    }>;
+    spokenLanguages?: Array<{
+      iso6391: string;
+      name: string;
+      englishName?: string;
+    }>;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [userMovie, setUserMovie] = useState<UserMovie | null>(null);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
+  const [tabValue, setTabValue] = useState(0);
   const [toast, setToast] = useState<{
     open: boolean;
     message: string;
@@ -100,9 +159,23 @@ export default function MovieDetailPage() {
       return;
     }
 
+    if (!movie) return;
+
     setActionLoading(true);
     try {
-      await movieService.addToWatchlist(movie!);
+      const movieData = {
+        tmdbId: movie.tmdbId,
+        title: movie.title,
+        overview: movie.overview,
+        posterPath: movie.posterPath,
+        backdropPath: movie.backdropPath,
+        releaseDate: movie.releaseDate ? new Date(movie.releaseDate) : undefined,
+        genres: movie.genres?.map((g) => (typeof g === 'string' ? g : g.name)) || [],
+        runtime: movie.runtime,
+        voteAverage: movie.voteAverage,
+        voteCount: movie.voteCount,
+      };
+      await movieService.addToWatchlist(movieData);
       showToast('Added to watchlist', 'success');
       await checkUserMovieStatus();
     } catch {
@@ -122,9 +195,23 @@ export default function MovieDetailPage() {
   };
 
   const handleSaveWatched = async () => {
+    if (!movie) return;
+
     setActionLoading(true);
     try {
-      await movieService.markAsWatched(movie!, rating || undefined);
+      const movieData = {
+        tmdbId: movie.tmdbId,
+        title: movie.title,
+        overview: movie.overview,
+        posterPath: movie.posterPath,
+        backdropPath: movie.backdropPath,
+        releaseDate: movie.releaseDate ? new Date(movie.releaseDate) : undefined,
+        genres: movie.genres?.map((g) => (typeof g === 'string' ? g : g.name)) || [],
+        runtime: movie.runtime,
+        voteAverage: movie.voteAverage,
+        voteCount: movie.voteCount,
+      };
+      await movieService.markAsWatched(movieData, rating || undefined);
       showToast('Marked as watched', 'success');
       setRatingDialogOpen(false);
       await checkUserMovieStatus();
@@ -328,12 +415,304 @@ export default function MovieDetailPage() {
                 {movie.overview || 'No overview available'}
               </Typography>
 
-              {movie.voteCount && (
-                <Paper sx={{ p: 2, mt: 3 }}>
-                  <Typography variant="body2" color="text.secondary">
-                    Based on {movie.voteCount.toLocaleString()} votes
-                  </Typography>
-                </Paper>
+              {movie.tagline && (
+                <Typography variant="h6" color="text.secondary" sx={{ fontStyle: 'italic', mb: 3 }}>
+                  &ldquo;{movie.tagline}&rdquo;
+                </Typography>
+              )}
+
+              <Tabs
+                value={tabValue}
+                onChange={(_, newValue) => setTabValue(newValue)}
+                sx={{ mb: 3 }}
+              >
+                <Tab label="Details" />
+                <Tab label="Cast & Crew" />
+                <Tab label="Videos" />
+                <Tab label="Production" />
+              </Tabs>
+
+              {tabValue === 0 && (
+                <Box>
+                  <Grid container spacing={2}>
+                    {movie.status && (
+                      <Grid size={{ xs: 6, sm: 4 }}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Status
+                        </Typography>
+                        <Typography variant="body1">{movie.status}</Typography>
+                      </Grid>
+                    )}
+                    {movie.originalLanguage && (
+                      <Grid size={{ xs: 6, sm: 4 }}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Original Language
+                        </Typography>
+                        <Typography variant="body1">
+                          {movie.originalLanguage.toUpperCase()}
+                        </Typography>
+                      </Grid>
+                    )}
+                    {movie.budget && movie.budget !== '0' && (
+                      <Grid size={{ xs: 6, sm: 4 }}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Budget
+                        </Typography>
+                        <Typography variant="body1">
+                          ${parseInt(movie.budget).toLocaleString()}
+                        </Typography>
+                      </Grid>
+                    )}
+                    {movie.revenue && movie.revenue !== '0' && (
+                      <Grid size={{ xs: 6, sm: 4 }}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Revenue
+                        </Typography>
+                        <Typography variant="body1">
+                          ${parseInt(movie.revenue).toLocaleString()}
+                        </Typography>
+                      </Grid>
+                    )}
+                    {movie.popularity && (
+                      <Grid size={{ xs: 6, sm: 4 }}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Popularity
+                        </Typography>
+                        <Typography variant="body1">{movie.popularity.toFixed(1)}</Typography>
+                      </Grid>
+                    )}
+                    {movie.voteCount && (
+                      <Grid size={{ xs: 6, sm: 4 }}>
+                        <Typography variant="subtitle2" color="text.secondary">
+                          Vote Count
+                        </Typography>
+                        <Typography variant="body1">{movie.voteCount.toLocaleString()}</Typography>
+                      </Grid>
+                    )}
+                  </Grid>
+
+                  {movie.spokenLanguages && movie.spokenLanguages.length > 0 && (
+                    <Box sx={{ mt: 3 }}>
+                      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                        Spoken Languages
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        {movie.spokenLanguages.map((lang) => (
+                          <Chip
+                            key={lang.iso6391}
+                            label={lang.englishName || lang.name}
+                            size="small"
+                          />
+                        ))}
+                      </Box>
+                    </Box>
+                  )}
+
+                  {movie.homepage && (
+                    <Box sx={{ mt: 3 }}>
+                      <Link href={movie.homepage} target="_blank" rel="noopener">
+                        <Button variant="outlined" startIcon={<AppIcon icon="mdi:open-in-new" />}>
+                          Official Website
+                        </Button>
+                      </Link>
+                    </Box>
+                  )}
+
+                  {movie.imdbId && (
+                    <Box sx={{ mt: 2 }}>
+                      <Link
+                        href={`https://www.imdb.com/title/${movie.imdbId}`}
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        <Button variant="outlined" startIcon={<AppIcon icon="mdi:imdb" />}>
+                          View on IMDb
+                        </Button>
+                      </Link>
+                    </Box>
+                  )}
+                </Box>
+              )}
+
+              {tabValue === 1 && (
+                <Box>
+                  {movie.cast && movie.cast.length > 0 && (
+                    <>
+                      <Typography variant="h6" gutterBottom>
+                        Cast
+                      </Typography>
+                      <Grid container spacing={2} sx={{ mb: 4 }}>
+                        {movie.cast.map((person) => (
+                          <Grid key={person.personId} size={{ xs: 6, sm: 4, md: 3 }}>
+                            <Card sx={{ p: 2 }}>
+                              <Stack direction="row" spacing={2} alignItems="center">
+                                <Avatar
+                                  src={
+                                    person.person?.profilePath
+                                      ? `${TMDB_CONFIG.IMAGE_BASE_URL}/w92${person.person.profilePath}`
+                                      : undefined
+                                  }
+                                  sx={{ width: 56, height: 56 }}
+                                >
+                                  {!person.person?.profilePath && person.person?.name?.[0]}
+                                </Avatar>
+                                <Box sx={{ minWidth: 0 }}>
+                                  <Typography variant="subtitle2" noWrap>
+                                    {person.person?.name}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary" noWrap>
+                                    {person.character}
+                                  </Typography>
+                                </Box>
+                              </Stack>
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </>
+                  )}
+
+                  {movie.crew && movie.crew.length > 0 && (
+                    <>
+                      <Typography variant="h6" gutterBottom>
+                        Crew
+                      </Typography>
+                      <Grid container spacing={2}>
+                        {movie.crew.map((person, index) => (
+                          <Grid key={`${person.personId}-${index}`} size={{ xs: 6, sm: 4, md: 3 }}>
+                            <Card sx={{ p: 2 }}>
+                              <Stack direction="row" spacing={2} alignItems="center">
+                                <Avatar
+                                  src={
+                                    person.person?.profilePath
+                                      ? `${TMDB_CONFIG.IMAGE_BASE_URL}/w92${person.person.profilePath}`
+                                      : undefined
+                                  }
+                                  sx={{ width: 56, height: 56 }}
+                                >
+                                  {!person.person?.profilePath && person.person?.name?.[0]}
+                                </Avatar>
+                                <Box sx={{ minWidth: 0 }}>
+                                  <Typography variant="subtitle2" noWrap>
+                                    {person.person?.name}
+                                  </Typography>
+                                  <Typography variant="caption" color="text.secondary" noWrap>
+                                    {person.job}
+                                  </Typography>
+                                </Box>
+                              </Stack>
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </>
+                  )}
+                </Box>
+              )}
+
+              {tabValue === 2 && (
+                <Box>
+                  {movie.videos && movie.videos.length > 0 ? (
+                    <Grid container spacing={2}>
+                      {movie.videos
+                        .filter((video) => video.site === 'YouTube')
+                        .map((video) => (
+                          <Grid key={video.key} size={{ xs: 12, sm: 6, md: 4 }}>
+                            <Card>
+                              <Box
+                                sx={{
+                                  position: 'relative',
+                                  paddingTop: '56.25%',
+                                  backgroundColor: 'black',
+                                }}
+                              >
+                                <iframe
+                                  style={{
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                    width: '100%',
+                                    height: '100%',
+                                    border: 'none',
+                                  }}
+                                  src={`https://www.youtube.com/embed/${video.key}`}
+                                  title={video.name}
+                                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                  allowFullScreen
+                                />
+                              </Box>
+                              <Box sx={{ p: 2 }}>
+                                <Typography variant="subtitle2" noWrap>
+                                  {video.name}
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                  {video.type} • {video.official ? 'Official' : 'Unofficial'}
+                                </Typography>
+                              </Box>
+                            </Card>
+                          </Grid>
+                        ))}
+                    </Grid>
+                  ) : (
+                    <Typography color="text.secondary">No videos available</Typography>
+                  )}
+                </Box>
+              )}
+
+              {tabValue === 3 && (
+                <Box>
+                  {movie.productionCompanies && movie.productionCompanies.length > 0 && (
+                    <>
+                      <Typography variant="h6" gutterBottom>
+                        Production Companies
+                      </Typography>
+                      <Grid container spacing={2} sx={{ mb: 4 }}>
+                        {movie.productionCompanies.map((company) => (
+                          <Grid key={company.companyId} size={{ xs: 12, sm: 6, md: 4 }}>
+                            <Card sx={{ p: 2 }}>
+                              <Stack direction="row" spacing={2} alignItems="center">
+                                {company.logoPath && (
+                                  <Box
+                                    component="img"
+                                    src={`${TMDB_CONFIG.IMAGE_BASE_URL}/w92${company.logoPath}`}
+                                    alt={company.name}
+                                    sx={{ height: 40, objectFit: 'contain' }}
+                                  />
+                                )}
+                                <Box>
+                                  <Typography variant="subtitle2">{company.name}</Typography>
+                                  {company.originCountry && (
+                                    <Typography variant="caption" color="text.secondary">
+                                      {company.originCountry}
+                                    </Typography>
+                                  )}
+                                </Box>
+                              </Stack>
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    </>
+                  )}
+
+                  {movie.productionCountries && movie.productionCountries.length > 0 && (
+                    <>
+                      <Typography variant="h6" gutterBottom>
+                        Production Countries
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 4 }}>
+                        {movie.productionCountries.map((country) => (
+                          <Chip
+                            key={country.iso31661}
+                            label={country.name}
+                            variant="outlined"
+                            size="small"
+                          />
+                        ))}
+                      </Box>
+                    </>
+                  )}
+                </Box>
               )}
             </Grid>
           </Grid>

@@ -1,6 +1,7 @@
 # CiniFob Implementation Tasks
 
 ## ✅ Completed
+
 - [x] Core folder structure with proper organization
 - [x] Theme system with light/dark mode
 - [x] Core components (AppSelect, AppDatePicker, AppIcon)
@@ -20,10 +21,12 @@
 - [x] Dashboard page
 
 ## 🚧 In Progress
+
 - [ ] Watchlist functionality
 - [ ] Movie detail page
 
 ## 📋 Todo
+
 - [ ] API Routes
   - [ ] Auth endpoints
   - [ ] Movie endpoints

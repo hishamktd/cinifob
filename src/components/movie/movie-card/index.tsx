@@ -48,9 +48,7 @@ export const MovieCard = ({
     }
   };
 
-  const releaseYear = movie.releaseDate
-    ? new Date(movie.releaseDate).getFullYear()
-    : 'Unknown';
+  const releaseYear = movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : 'Unknown';
 
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -103,9 +101,7 @@ export const MovieCard = ({
           <Typography variant="body2" color="text.secondary">
             {releaseYear}
           </Typography>
-          {userRating && (
-            <Rating value={userRating} size="small" readOnly sx={{ mt: 1 }} />
-          )}
+          {userRating && <Rating value={userRating} size="small" readOnly sx={{ mt: 1 }} />}
         </CardContent>
       </CardActionArea>
       {showActions && (

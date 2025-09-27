@@ -4,21 +4,41 @@ import { Movie, UserMovie } from '@/types';
 class MovieService {
   private baseUrl = '/api';
 
+  async getMovieDetails(tmdbId: number): Promise<{ movie: Movie }> {
+    const response = await fetch(`${this.baseUrl}/movies/${tmdbId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch movie details');
+    }
+    return response.json();
+  }
+
   async addToWatchlist(movie: Partial<Movie>) {
+    // If we don't have runtime, fetch full movie details
+    let movieData = movie;
+    if (!movie.runtime && movie.tmdbId) {
+      try {
+        const { movie: fullMovie } = await this.getMovieDetails(movie.tmdbId);
+        movieData = { ...movie, ...fullMovie };
+      } catch (error) {
+        console.error('Failed to fetch movie details for runtime:', error);
+        // Continue with the data we have
+      }
+    }
+
     const response = await fetch(`${this.baseUrl}/user/watchlist`, {
       method: HttpMethod.POST,
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        tmdbId: movie.tmdbId,
-        title: movie.title,
-        posterPath: movie.posterPath,
-        overview: movie.overview,
-        releaseDate: movie.releaseDate,
-        voteAverage: movie.voteAverage,
-        runtime: movie.runtime,
-        genres: movie.genres,
+        tmdbId: movieData.tmdbId,
+        title: movieData.title,
+        posterPath: movieData.posterPath,
+        overview: movieData.overview,
+        releaseDate: movieData.releaseDate,
+        voteAverage: movieData.voteAverage,
+        runtime: movieData.runtime,
+        genres: movieData.genres,
       }),
     });
 
@@ -44,20 +64,32 @@ class MovieService {
   }
 
   async markAsWatched(movie: Partial<Movie>, rating?: number, comment?: string) {
+    // If we don't have runtime, fetch full movie details
+    let movieData = movie;
+    if (!movie.runtime && movie.tmdbId) {
+      try {
+        const { movie: fullMovie } = await this.getMovieDetails(movie.tmdbId);
+        movieData = { ...movie, ...fullMovie };
+      } catch (error) {
+        console.error('Failed to fetch movie details for runtime:', error);
+        // Continue with the data we have
+      }
+    }
+
     const response = await fetch(`${this.baseUrl}/user/watched`, {
       method: HttpMethod.POST,
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        tmdbId: movie.tmdbId,
-        title: movie.title,
-        posterPath: movie.posterPath,
-        overview: movie.overview,
-        releaseDate: movie.releaseDate,
-        voteAverage: movie.voteAverage,
-        runtime: movie.runtime,
-        genres: movie.genres,
+        tmdbId: movieData.tmdbId,
+        title: movieData.title,
+        posterPath: movieData.posterPath,
+        overview: movieData.overview,
+        releaseDate: movieData.releaseDate,
+        voteAverage: movieData.voteAverage,
+        runtime: movieData.runtime,
+        genres: movieData.genres,
         rating,
         comment,
       }),
@@ -131,7 +163,9 @@ class MovieService {
   }
 
   async getTrendingMovies(timeWindow = 'week', page = 1) {
-    const response = await fetch(`${this.baseUrl}/movies/search?type=trending&page=${page}&timeWindow=${timeWindow}`);
+    const response = await fetch(
+      `${this.baseUrl}/movies/search?type=trending&page=${page}&timeWindow=${timeWindow}`,
+    );
     if (!response.ok) throw new Error('Failed to fetch trending movies');
     return response.json();
   }
@@ -145,16 +179,6 @@ class MovieService {
   async getNowPlayingMovies(page = 1) {
     const response = await fetch(`${this.baseUrl}/movies/search?type=now_playing&page=${page}`);
     if (!response.ok) throw new Error('Failed to fetch now playing movies');
-    return response.json();
-  }
-
-  async getMovieDetails(tmdbId: number): Promise<Movie> {
-    const response = await fetch(`${this.baseUrl}/movies/${tmdbId}`);
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch movie details');
-    }
-
     return response.json();
   }
 }

@@ -81,10 +81,7 @@ export const AppHeader = () => {
           )}
 
           <IconButton onClick={toggleColorMode} color="inherit">
-            <AppIcon
-              icon={mode === 'dark' ? 'solar:sun-bold' : 'solar:moon-bold'}
-              size={24}
-            />
+            <AppIcon icon={mode === 'dark' ? 'solar:sun-bold' : 'solar:moon-bold'} size={24} />
           </IconButton>
 
           {isMobile && (
@@ -98,11 +95,7 @@ export const AppHeader = () => {
               <IconButton onClick={handleMenu} color="inherit">
                 <AppIcon icon="mdi:account-circle" size={28} />
               </IconButton>
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleClose}
-              >
+              <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
                 <MenuItem component={Link} href="/profile" onClick={handleClose}>
                   Profile
                 </MenuItem>

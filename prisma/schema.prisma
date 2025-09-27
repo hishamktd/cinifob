@@ -23,24 +23,162 @@ model User {
   sessions      Session[]
 }
 
+model Genre {
+  id        Int      @id // This is the TMDb genre ID
+  name      String
+  movies    MovieGenre[]
+  createdAt DateTime @default(now())
+}
+
+model Person {
+  id                 Int      @id // This is the TMDb person ID
+  name               String
+  profilePath        String?
+  biography          String?  @db.Text
+  birthday           DateTime?
+  deathday           DateTime?
+  placeOfBirth       String?
+  popularity         Float?
+  knownForDepartment String?
+  alsoKnownAs        String[] // JSON array
+  homepage           String?
+  imdbId             String?
+  cachedAt           DateTime @default(now())
+  createdAt          DateTime @default(now())
+
+  castRoles          Cast[]
+  crewRoles          Crew[]
+}
+
 model Movie {
-  id            Int          @id @default(autoincrement())
-  tmdbId        Int          @unique
-  title         String
-  overview      String?      @db.Text
-  posterPath    String?
-  backdropPath  String?
-  releaseDate   DateTime?    @db.Date
-  genres        Json         @default("[]")
-  runtime       Int?
-  voteAverage   Float?
-  voteCount     Int?
-  cachedAt      DateTime     @default(now())
-  createdAt     DateTime     @default(now())
-  userMovies    UserMovie[]
+  id                  Int          @id @default(autoincrement())
+  tmdbId              Int          @unique
+  title               String
+  overview            String?      @db.Text
+  posterPath          String?
+  backdropPath        String?
+  releaseDate         DateTime?    @db.Date
+  runtime             Int?
+  voteAverage         Float?
+  voteCount           Int?
+  budget              BigInt?
+  revenue             BigInt?
+  tagline             String?
+  homepage            String?
+  imdbId              String?
+  originalLanguage    String?
+  originalTitle       String?
+  popularity          Float?
+  status              String?
+  cachedAt            DateTime     @default(now())
+  createdAt           DateTime     @default(now())
+
+  // Relations
+  userMovies          UserMovie[]
+  genres              MovieGenre[]
+  videos              Video[]
+  cast                Cast[]
+  crew                Crew[]
+  productionCompanies ProductionCompany[]
+  productionCountries ProductionCountry[]
+  spokenLanguages     SpokenLanguage[]
 
   @@index([tmdbId])
   @@index([title])
+  @@index([imdbId])
+}
+
+model MovieGenre {
+  id        Int      @id @default(autoincrement())
+  movieId   Int
+  genreId   Int
+  movie     Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  genre     Genre    @relation(fields: [genreId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, genreId])
+  @@index([movieId])
+  @@index([genreId])
+}
+
+model Video {
+  id           String   @id @default(cuid())
+  movieId      Int
+  key          String   // YouTube/Vimeo key
+  name         String
+  site         String   // YouTube, Vimeo, etc
+  size         Int?     // 360, 480, 720, 1080
+  type         String   // Trailer, Teaser, Clip, Featurette, etc
+  official     Boolean  @default(false)
+  publishedAt  DateTime?
+  movie        Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@index([movieId])
+}
+
+model Cast {
+  id           Int      @id @default(autoincrement())
+  movieId      Int
+  personId     Int      // TMDb person ID
+  character    String?
+  order        Int      @default(0)
+  movie        Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  person       Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@unique([movieId, personId, character])
+  @@index([movieId])
+  @@index([personId])
+}
+
+model Crew {
+  id           Int      @id @default(autoincrement())
+  movieId      Int
+  personId     Int      // TMDb person ID
+  job          String
+  department   String
+  movie        Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  person       Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+
+  @@unique([movieId, personId, job])
+  @@index([movieId])
+  @@index([personId])
+}
+
+model ProductionCompany {
+  id           Int      @id @default(autoincrement())
+  movieId      Int
+  companyId    Int      // TMDb company ID
+  name         String
+  logoPath     String?
+  originCountry String?
+  movie        Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, companyId])
+  @@index([movieId])
+}
+
+model ProductionCountry {
+  id           Int      @id @default(autoincrement())
+  movieId      Int
+  iso31661     String   // Country code
+  name         String
+  movie        Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, iso31661])
+  @@index([movieId])
+}
+
+model SpokenLanguage {
+  id           Int      @id @default(autoincrement())
+  movieId      Int
+  iso6391      String   // Language code
+  name         String
+  englishName  String?
+  movie        Movie    @relation(fields: [movieId], references: [id], onDelete: Cascade)
+
+  @@unique([movieId, iso6391])
+  @@index([movieId])
 }
 
 model UserMovie {
@@ -49,11 +187,10 @@ model UserMovie {
   movieId       Int
   status        String       // 'watchlist' | 'watched'
   watchedAt     DateTime?
-  rating        Int?         // 1-5
-  comment       String?      @db.Text
+  rating        Int?
+  comment       String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
-
   user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   movie         Movie        @relation(fields: [movieId], references: [id], onDelete: Cascade)
 
@@ -63,9 +200,9 @@ model UserMovie {
 }
 
 model Session {
-  id            String       @id @default(cuid())
-  sessionToken  String       @unique
-  userId        Int
-  expires       DateTime
-  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

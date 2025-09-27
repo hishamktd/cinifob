@@ -34,9 +34,11 @@ export async function GET(request: Request) {
         }
     }
 
-    // Don't cache movies during search - only when added to watchlist/watched
+    // Fetch all genres for mapping
+    const genres = await prisma.genre.findMany();
+    const genreMap = new Map(genres.map((g) => [g.id, g.name]));
 
-    // Transform the response to match our Movie type
+    // Transform the response to match our Movie type with genre names
     const movies = tmdbResponse.results.map((movie) => ({
       tmdbId: movie.id,
       title: movie.title,
@@ -44,7 +46,12 @@ export async function GET(request: Request) {
       posterPath: movie.poster_path,
       backdropPath: movie.backdrop_path,
       releaseDate: movie.release_date,
-      genres: movie.genre_ids || [],
+      genres: movie.genre_ids
+        ? movie.genre_ids.map((id: number) => ({
+            id,
+            name: genreMap.get(id) || `Genre ${id}`,
+          }))
+        : [],
       voteAverage: movie.vote_average,
       voteCount: movie.vote_count,
     }));
@@ -74,6 +81,13 @@ export async function GET(request: Request) {
         where: whereClause,
         take: 20,
         orderBy: { cachedAt: 'desc' },
+        include: {
+          genres: {
+            include: {
+              genre: true,
+            },
+          },
+        },
       });
 
       if (cachedMovies.length > 0) {
@@ -84,7 +98,7 @@ export async function GET(request: Request) {
           posterPath: movie.posterPath,
           backdropPath: movie.backdropPath,
           releaseDate: movie.releaseDate?.toISOString().split('T')[0],
-          genres: movie.genres as number[],
+          genres: movie.genres.map((mg) => mg.genre),
           voteAverage: movie.voteAverage,
           voteCount: movie.voteCount,
         }));

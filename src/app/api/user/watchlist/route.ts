@@ -19,14 +19,46 @@ export async function GET() {
         status: MovieStatus.WATCHLIST,
       },
       include: {
-        movie: true,
+        movie: {
+          include: {
+            genres: {
+              include: {
+                genre: true,
+              },
+            },
+            videos: true,
+            cast: {
+              orderBy: { order: 'asc' },
+              take: 5,
+            },
+            crew: {
+              where: {
+                job: 'Director',
+              },
+              take: 2,
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    return NextResponse.json({ watchlist });
+    // Transform the response to include genre names
+    const transformedWatchlist = watchlist.map((item) => ({
+      ...item,
+      movie: item.movie
+        ? {
+            ...item.movie,
+            genres: item.movie.genres.map((mg) => mg.genre),
+            budget: item.movie.budget ? item.movie.budget.toString() : null,
+            revenue: item.movie.revenue ? item.movie.revenue.toString() : null,
+          }
+        : null,
+    }));
+
+    return NextResponse.json({ watchlist: transformedWatchlist });
   } catch (error) {
     console.error('Watchlist fetch error:', error);
     return NextResponse.json({ error: 'Failed to fetch watchlist' }, { status: 500 });

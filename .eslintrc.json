@@ -22,9 +22,12 @@
     "quotes": ["error", "single"],
     "no-console": ["warn", { "allow": ["warn", "error"] }],
     "@typescript-eslint/no-unused-vars": "off",
-    "@typescript-eslint/no-require-imports": ["error", {
-      "allow": ["/generated/"]
-    }],
+    "@typescript-eslint/no-require-imports": [
+      "error",
+      {
+        "allow": ["/generated/"]
+      }
+    ],
     "unused-imports/no-unused-imports": "error",
     "unused-imports/no-unused-vars": [
       "warn",

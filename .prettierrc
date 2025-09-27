@@ -10,15 +10,7 @@
   "bracketSpacing": true,
   "jsxBracketSameLine": false,
   "jsxSingleQuote": false,
-  "importOrder": [
-    "^react",
-    "^next",
-    "^@mui",
-    "^@reduxjs",
-    "^@prisma",
-    "^@",
-    "^[./]"
-  ],
+  "importOrder": ["^react", "^next", "^@mui", "^@reduxjs", "^@prisma", "^@", "^[./]"],
   "importOrderSeparation": true,
   "importOrderSortSpecifiers": true
 }

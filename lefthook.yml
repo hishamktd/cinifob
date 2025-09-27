@@ -13,18 +13,18 @@ pre-push:
   commands:
     build:
       run: npm run build
-      fail_text: "❌ Build failed. Please fix the errors before pushing."
+      fail_text: '❌ Build failed. Please fix the errors before pushing.'
 
 pre-commit:
   parallel: true
   commands:
     lint:
-      glob: "*.{js,jsx,ts,tsx}"
+      glob: '*.{js,jsx,ts,tsx}'
       run: npm run lint
-      fail_text: "❌ Linting failed. Please fix the errors before committing."
+      fail_text: '❌ Linting failed. Please fix the errors before committing.'
 
     format:
-      glob: "*.{js,jsx,ts,tsx,json,md}"
+      glob: '*.{js,jsx,ts,tsx,json,md}'
       run: npx prettier --check {staged_files}
       fail_text: "❌ Code is not formatted. Run 'npx prettier --write' to fix."
 

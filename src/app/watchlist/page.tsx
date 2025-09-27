@@ -13,6 +13,11 @@ import {
   Paper,
   Button,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Rating,
 } from '@mui/material';
 
 import { AppIcon } from '@core/components/app-icon';
@@ -30,6 +35,11 @@ export default function WatchlistPage() {
   const [movies, setMovies] = useState<UserMovie[]>([]);
   const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<MovieSortBy>(MovieSortBy.DATE_ADDED);
+  const [ratingDialog, setRatingDialog] = useState<{
+    open: boolean;
+    movie: UserMovie | null;
+    rating: number | null;
+  }>({ open: false, movie: null, rating: null });
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -61,11 +71,21 @@ export default function WatchlistPage() {
     }
   };
 
-  const handleMarkAsWatched = async (movie: UserMovie) => {
+  const handleMarkAsWatched = (movie: UserMovie) => {
+    setRatingDialog({ open: true, movie, rating: null });
+  };
+
+  const handleSaveWatched = async () => {
+    if (!ratingDialog.movie) return;
+
     try {
-      await movieService.markAsWatched(movie.movie || {});
-      setMovies(movies.filter((m) => m.movie?.tmdbId !== movie.movie?.tmdbId));
+      await movieService.markAsWatched(
+        ratingDialog.movie.movie || {},
+        ratingDialog.rating || undefined,
+      );
+      setMovies(movies.filter((m) => m.movie?.tmdbId !== ratingDialog.movie?.movie?.tmdbId));
       showToast('Marked as watched', 'success');
+      setRatingDialog({ open: false, movie: null, rating: null });
     } catch {
       showToast('Failed to mark as watched', 'error');
     }
@@ -196,6 +216,34 @@ export default function WatchlistPage() {
           )}
         </Box>
       </Container>
+
+      <Dialog
+        open={ratingDialog.open}
+        onClose={() => setRatingDialog({ open: false, movie: null, rating: null })}
+      >
+        <DialogTitle>Rate this movie</DialogTitle>
+        <DialogContent>
+          <Box sx={{ py: 2, textAlign: 'center' }}>
+            <Typography gutterBottom>
+              How would you rate {ratingDialog.movie?.movie?.title}?
+            </Typography>
+            <Rating
+              value={ratingDialog.rating}
+              onChange={(_, newValue) => setRatingDialog({ ...ratingDialog, rating: newValue })}
+              size="large"
+              sx={{ mt: 2 }}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRatingDialog({ open: false, movie: null, rating: null })}>
+            Cancel
+          </Button>
+          <Button onClick={handleSaveWatched} variant="contained">
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </MainLayout>
   );
 }

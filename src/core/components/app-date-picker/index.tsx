@@ -29,7 +29,7 @@ export const AppDatePicker = ({
   showTimeSelect,
   timeFormat,
   timeIntervals,
-  className
+  className,
 }: AppDatePickerProps) => {
   const theme = useTheme();
 

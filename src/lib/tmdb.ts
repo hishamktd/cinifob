@@ -91,7 +91,11 @@ class TMDbService {
   }
 
   async getMovieDetails(movieId: number): Promise<TMDbMovie> {
-    return this.fetchFromTMDb<TMDbMovie>(`/movie/${movieId}`);
+    // Fetch movie details with additional information (videos, credits)
+    const params = {
+      append_to_response: 'videos,credits,recommendations,similar',
+    };
+    return this.fetchFromTMDb<TMDbMovie>(`/movie/${movieId}`, params);
   }
 
   async getMoviesByGenre(genreId: string, page = 1): Promise<TMDbSearchResponse> {
@@ -111,6 +115,58 @@ class TMDbService {
     return this.fetchFromTMDb<TMDbSearchResponse>('/movie/now_playing', {
       page: page.toString(),
     });
+  }
+
+  async getTopRatedMovies(page = 1): Promise<TMDbSearchResponse> {
+    return this.fetchFromTMDb<TMDbSearchResponse>('/movie/top_rated', {
+      page: page.toString(),
+    });
+  }
+
+  async getMovieRecommendations(movieId: number, page = 1): Promise<TMDbSearchResponse> {
+    return this.fetchFromTMDb<TMDbSearchResponse>(`/movie/${movieId}/recommendations`, {
+      page: page.toString(),
+    });
+  }
+
+  async getSimilarMovies(movieId: number, page = 1): Promise<TMDbSearchResponse> {
+    return this.fetchFromTMDb<TMDbSearchResponse>(`/movie/${movieId}/similar`, {
+      page: page.toString(),
+    });
+  }
+
+  async getMovieVideos(movieId: number) {
+    return this.fetchFromTMDb(`/movie/${movieId}/videos`);
+  }
+
+  async getMovieCredits(movieId: number) {
+    return this.fetchFromTMDb(`/movie/${movieId}/credits`);
+  }
+
+  async discoverMovies(
+    options: {
+      sortBy?: string;
+      year?: number;
+      withGenres?: string;
+      page?: number;
+    } = {},
+  ): Promise<TMDbSearchResponse> {
+    const params: Record<string, string> = {
+      page: (options.page || 1).toString(),
+      sort_by: options.sortBy || 'popularity.desc',
+    };
+
+    if (options.year) params.year = options.year.toString();
+    if (options.withGenres) params.with_genres = options.withGenres;
+
+    return this.fetchFromTMDb<TMDbSearchResponse>('/discover/movie', params);
+  }
+
+  async getGenres(): Promise<Array<{ id: number; name: string }>> {
+    const response = await this.fetchFromTMDb<{ genres: Array<{ id: number; name: string }> }>(
+      '/genre/movie/list',
+    );
+    return response.genres || [];
   }
 }
 

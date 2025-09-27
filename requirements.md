@@ -3,6 +3,7 @@
 ## 1. MVP Feature List (Prioritized)
 
 ### MVP (Must Have)
+
 1. **User Authentication**
    - Register with email/password
    - Login/logout functionality
@@ -28,6 +29,7 @@
    - Record watched date
 
 ### V1 Features (Should Have)
+
 1. **Movie Ratings**
    - Rate watched movies (1-5 stars)
    - Update ratings
@@ -47,6 +49,7 @@
    - Infinite scroll
 
 ### V2 Features (Nice to Have)
+
 1. **Social Features**
    - Google OAuth login
    - User profiles with avatars
@@ -115,16 +118,19 @@ Session {
 ## 3. API Surface
 
 ### Authentication Endpoints
+
 - `POST /api/auth/register` - Create new user account
 - `POST /api/auth/login` - Authenticate user
 - `POST /api/auth/logout` - End user session
 - `GET /api/auth/session` - Get current session
 
 ### Movie Endpoints
+
 - `GET /api/movies?query=&page=&genre=&year=&sort=` - Search/list movies
 - `GET /api/movies/[tmdbId]` - Get movie details
 
 ### User Movie Management
+
 - `GET /api/user/watchlist` - Get user's watchlist
 - `POST /api/user/watchlist` - Add to watchlist
 - `DELETE /api/user/watchlist/[tmdbId]` - Remove from watchlist
@@ -134,12 +140,14 @@ Session {
 - `PUT /api/user/movies/[tmdbId]/rating` - Update rating
 
 ### Statistics
+
 - `GET /api/user/stats` - Get user statistics
 - `GET /api/user/activity?limit=10` - Get recent activity
 
 ## 4. UI Pages & Components
 
 ### Pages
+
 1. **Public Pages**
    - `/` - Landing/home page
    - `/login` - User login
@@ -154,6 +162,7 @@ Session {
    - `/profile` - User profile management
 
 ### Core Components
+
 1. **Layout Components**
    - `Header` - MUI AppBar with navigation
    - `Footer` - Site footer with MUI Typography
@@ -181,6 +190,7 @@ Session {
 ## 5. Non-Functional Requirements
 
 ### Performance
+
 - **Caching Strategy**
   - Cache TMDb API responses in SQLite for 24 hours
   - Implement pagination (20 items per page)
@@ -189,6 +199,7 @@ Session {
   - Lazy load components and images
 
 ### Security
+
 - **Authentication**
   - Bcrypt password hashing (10 rounds)
   - Secure HTTP-only cookies for sessions
@@ -207,6 +218,7 @@ Session {
   - General API: 100 requests/minute per user
 
 ### Responsiveness
+
 - **Mobile-First Design with MUI**
   - MUI Breakpoints: xs (0px), sm (600px), md (900px), lg (1200px), xl (1536px)
   - MUI Grid system with responsive columns
@@ -218,6 +230,7 @@ Session {
   - Minimum tap target size (48x48px per Material Design)
 
 ### Accessibility
+
 - WCAG 2.1 Level AA compliance
 - Keyboard navigation support
 - Screen reader compatibility
@@ -226,6 +239,7 @@ Session {
 - Focus indicators
 
 ### Error Handling
+
 - Graceful API failure handling
 - User-friendly error messages
 - Fallback UI states
@@ -233,6 +247,7 @@ Session {
 - Comprehensive logging
 
 ### Deployment Constraints (SQLite)
+
 - **Limitations**
   - Requires persistent filesystem
   - Not suitable for serverless (Vercel)
@@ -285,12 +300,14 @@ Session {
    - ✓ Data is user-specific
 
 ### Performance Criteria
+
 - Page load time < 3 seconds
 - API response time < 500ms
 - Search results appear < 2 seconds
 - Smooth scrolling and interactions
 
 ### Quality Criteria
+
 - 80% test coverage minimum
 - Zero critical security vulnerabilities
 - Mobile-responsive design
@@ -299,6 +316,7 @@ Session {
 ## 7. Technical Stack Summary
 
 ### Core Technologies
+
 - **Framework**: Next.js 15+ (Latest with App Router)
 - **Language**: TypeScript
 - **UI Library**: Material-UI (MUI) v7 (Latest)
@@ -310,12 +328,14 @@ Session {
 - **Testing**: Vitest + Playwright (Latest)
 
 ### UI Components
+
 - **Select Component**: react-select v5 (Material themed)
 - **Date Picker**: react-datepicker v8 (Material themed)
 - **Icons**: Iconify React v6
 - **Date Utilities**: dayjs v1
 
 ### Development Tools
+
 - ESLint + Prettier
 - TypeScript ESLint
 - Import sorting plugins
@@ -323,34 +343,40 @@ Session {
 - GitHub Actions (CI/CD)
 
 ### External Services
+
 - TMDb API (primary movie data)
 - OMDb API (fallback option)
 
 ## 8. Development Phases
 
 ### Phase 1: Foundation (Tasks 0-2)
+
 - Requirements analysis
 - Project setup
 - Database schema
 
 ### Phase 2: Core Features (Tasks 3-6)
+
 - External API integration
 - Authentication system
 - CRUD operations
 - Basic UI
 
 ### Phase 3: Enhancement (Tasks 7-8)
+
 - Dashboard & statistics
 - UX improvements
 - Edge case handling
 
 ### Phase 4: Quality & Deployment (Tasks 9-12)
+
 - Testing suite
 - Security hardening
 - Performance optimization
 - Deployment setup
 
 ### Phase 5: Documentation & Polish (Tasks 13-14)
+
 - Complete documentation
 - Optional features
 - Final refinements
@@ -358,12 +384,14 @@ Session {
 ## 9. Risk Mitigation
 
 ### Technical Risks
+
 - **SQLite Limitations**: Document PostgreSQL migration path
 - **API Rate Limits**: Implement caching and queuing
 - **Authentication Security**: Use established libraries (NextAuth)
 - **Data Loss**: Regular backup strategy
 
 ### Project Risks
+
 - **Scope Creep**: Strict MVP definition
 - **Performance Issues**: Early optimization planning
 - **Security Vulnerabilities**: Regular dependency updates
@@ -372,6 +400,7 @@ Session {
 ## 10. Acceptance Checklist
 
 ### MVP Delivery
+
 - [ ] All MVP features implemented
 - [ ] Authentication working end-to-end
 - [ ] Movie data cached and displayed
