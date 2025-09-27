@@ -19,6 +19,7 @@ import {
 
 import { AppIcon } from '@core/components/app-icon';
 import { useThemeMode } from '@contexts/ThemeContext';
+import { MobileDrawer } from '@core/components/layout/mobile-drawer';
 
 export const AppHeader = () => {
   const theme = useTheme();
@@ -26,6 +27,7 @@ export const AppHeader = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { data: session, status } = useSession();
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [mobileDrawerOpen, setMobileDrawerOpen] = React.useState(false);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -85,7 +87,7 @@ export const AppHeader = () => {
           </IconButton>
 
           {isMobile && (
-            <IconButton color="inherit">
+            <IconButton color="inherit" onClick={() => setMobileDrawerOpen(true)}>
               <AppIcon icon="solar:hamburger-menu-linear" size={24} />
             </IconButton>
           )}
@@ -118,6 +120,7 @@ export const AppHeader = () => {
           )}
         </Box>
       </Toolbar>
+      <MobileDrawer open={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
     </AppBar>
   );
 };

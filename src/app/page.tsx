@@ -287,7 +287,7 @@ export default function Home() {
                 </Typography>
               </Box>
               <Grid container spacing={2}>
-                <Grid size={6}>
+                <Grid size={{ xs: 6 }}>
                   <Box sx={{ textAlign: 'center' }}>
                     <Typography variant="h4" color="primary">
                       1M+
@@ -297,7 +297,7 @@ export default function Home() {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 6 }}>
                   <Box sx={{ textAlign: 'center' }}>
                     <Typography variant="h4" color="secondary">
                       50K+
@@ -307,7 +307,7 @@ export default function Home() {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 6 }}>
                   <Box sx={{ textAlign: 'center', mt: 2 }}>
                     <Typography variant="h4" color="success">
                       4.9
@@ -317,7 +317,7 @@ export default function Home() {
                     </Typography>
                   </Box>
                 </Grid>
-                <Grid size={6}>
+                <Grid size={{ xs: 6 }}>
                   <Box sx={{ textAlign: 'center', mt: 2 }}>
                     <Typography variant="h4" color="warning">
                       24/7

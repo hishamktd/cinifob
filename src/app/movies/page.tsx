@@ -124,6 +124,15 @@ export default function MoviesPage() {
               exclusive
               onChange={handleTypeChange}
               aria-label="movie type"
+              fullWidth
+              sx={{
+                flexWrap: { xs: 'wrap', sm: 'nowrap' },
+                '& .MuiToggleButton-root': {
+                  flexGrow: { xs: 1, sm: 0 },
+                  minWidth: { xs: '45%', sm: 'auto' },
+                  mb: { xs: 1, sm: 0 },
+                },
+              }}
             >
               <ToggleButton value={MovieSearchType.POPULAR} aria-label="popular">
                 Popular
