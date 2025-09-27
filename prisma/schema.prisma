@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int          @id @default(autoincrement())
+  email         String       @unique
+  name          String?
+  password      String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  userMovies    UserMovie[]
+  sessions      Session[]
+}
+
+model Movie {
+  id            Int          @id @default(autoincrement())
+  tmdbId        Int          @unique
+  title         String
+  overview      String?
+  posterPath    String?
+  backdropPath  String?
+  releaseDate   DateTime?
+  genres        String
+  runtime       Int?
+  voteAverage   Float?
+  voteCount     Int?
+  cachedAt      DateTime     @default(now())
+  createdAt     DateTime     @default(now())
+  userMovies    UserMovie[]
+}
+
+model UserMovie {
+  id            Int          @id @default(autoincrement())
+  userId        Int
+  movieId       Int
+  status        String       // 'watchlist' | 'watched'
+  watchedAt     DateTime?
+  rating        Int?         // 1-5
+  comment       String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  user          User         @relation(fields: [userId], references: [id])
+  movie         Movie        @relation(fields: [movieId], references: [id])
+
+  @@unique([userId, movieId])
+}
+
+model Session {
+  id            String       @id @default(cuid())
+  sessionToken  String       @unique
+  userId        Int
+  expires       DateTime
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
