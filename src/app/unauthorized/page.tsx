@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Box, Button, Container, Typography } from '@mui/material';
 import { AppIcon } from '@core/components/app-icon';
 import { MainLayout } from '@core/components/layout/main-layout';
+import { ROUTES } from '@core/constants';
 
 export default function UnauthorizedPage() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function UnauthorizedPage() {
 
           <Box sx={{ display: 'flex', gap: 2 }}>
             <Button
-              onClick={() => router.push('/login')}
+              onClick={() => router.push(ROUTES.LOGIN)}
               variant="contained"
               size="large"
               startIcon={<AppIcon icon="solar:login-bold" />}
@@ -47,7 +48,7 @@ export default function UnauthorizedPage() {
             </Button>
 
             <Button
-              onClick={() => router.push('/register')}
+              onClick={() => router.push(ROUTES.REGISTER)}
               variant="outlined"
               size="large"
               startIcon={<AppIcon icon="solar:user-plus-bold" />}

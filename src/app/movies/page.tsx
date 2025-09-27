@@ -3,22 +3,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
-import {
-  Box,
-  Container,
-  Grid,
-  Pagination,
-  TextField,
-  Typography,
-  CircularProgress,
-  InputAdornment,
-  ToggleButtonGroup,
-  ToggleButton,
-} from '@mui/material';
+import { Box, Container, Grid, Typography, ToggleButtonGroup, ToggleButton } from '@mui/material';
 
-import { MovieCard } from '@/components/movie/movie-card';
-import { AppIcon } from '@core/components/app-icon';
-import { MainLayout } from '@core/components/layout/main-layout';
+import { AppPagination, AppSearchBar, AppEmptyState, MainLayout } from '@core/components';
+import { ContentCard, ContentCardSkeleton } from '@/components/content-card';
 import { MovieSearchType } from '@core/enums';
 import { useToast } from '@/hooks/useToast';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -74,20 +62,13 @@ export default function MoviesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearchQuery, searchType]);
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
+  const handleSearchChange = (query: string) => {
     setSearchQuery(query);
     setPage(1);
 
     if (!query && searchType === MovieSearchType.SEARCH) {
       setSearchType(MovieSearchType.POPULAR);
     }
-  };
-
-  const handlePageChange = (_: React.ChangeEvent<unknown>, value: number) => {
-    setPage(value);
-    fetchMovies(searchQuery, value);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleTypeChange = (_: React.MouseEvent<HTMLElement>, newType: string | null) => {
@@ -107,19 +88,16 @@ export default function MoviesPage() {
           </Typography>
 
           <Box sx={{ mb: 4 }}>
-            <TextField
-              fullWidth
-              placeholder="Search for movies..."
+            <AppSearchBar
               value={searchQuery}
               onChange={handleSearchChange}
-              sx={{ mb: 2 }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <AppIcon icon="mdi:magnify" />
-                  </InputAdornment>
-                ),
+              onSearch={(query) => {
+                setSearchType(MovieSearchType.SEARCH);
+                fetchMovies(query, 1, MovieSearchType.SEARCH);
               }}
+              placeholder="Search for movies..."
+              loading={loading}
+              sx={{ mb: 2 }}
             />
 
             <ToggleButtonGroup
@@ -153,16 +131,52 @@ export default function MoviesPage() {
           </Box>
 
           {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-              <CircularProgress />
-            </Box>
+            <Grid container spacing={3}>
+              {Array.from({ length: 12 }).map((_, index) => (
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={index}>
+                  <ContentCardSkeleton />
+                </Grid>
+              ))}
+            </Grid>
+          ) : movies.length === 0 ? (
+            <AppEmptyState
+              icon="mdi:movie-search-outline"
+              title={searchQuery ? `No movies found for &quot;${searchQuery}&quot;` : 'No movies found'}
+              description={
+                searchQuery
+                  ? 'Try adjusting your search terms or browse our popular movies.'
+                  : 'Discover amazing movies by searching or browsing our collection.'
+              }
+              actionLabel="Browse Popular"
+              actionIcon="mdi:fire"
+              onAction={() => {
+                setSearchType(MovieSearchType.POPULAR);
+                setSearchQuery('');
+                fetchMovies('', 1, MovieSearchType.POPULAR);
+              }}
+            />
           ) : (
             <>
               <Grid container spacing={3}>
                 {movies.map((movie) => (
                   <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={movie.tmdbId}>
-                    <MovieCard
-                      movie={movie}
+                    <ContentCard
+                      item={{
+                        id: movie.id || 0,
+                        tmdbId: movie.tmdbId || 0,
+                        mediaType: 'movie',
+                        title: movie.title || 'Unknown Title',
+                        overview: movie.overview,
+                        posterPath: movie.posterPath,
+                        backdropPath: movie.backdropPath,
+                        date: movie.releaseDate,
+                        voteAverage: movie.voteAverage,
+                        voteCount: movie.voteCount,
+                        popularity: movie.popularity,
+                        genreIds: movie.genreIds,
+                      }}
+                      isInWatchlist={movie.tmdbId ? isInWatchlist(movie.tmdbId) : false}
+                      isWatched={movie.tmdbId ? isWatched(movie.tmdbId) : false}
                       onAddToWatchlist={async () => {
                         if (!session) {
                           showToast('Please login to add to watchlist', 'warning');
@@ -217,15 +231,17 @@ export default function MoviesPage() {
               </Grid>
 
               {totalPages > 1 && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
-                  <Pagination
-                    count={totalPages}
-                    page={page}
-                    onChange={handlePageChange}
-                    color="primary"
-                    size="large"
-                  />
-                </Box>
+                <AppPagination
+                  currentPage={page}
+                  totalPages={totalPages}
+                  onPageChange={(newPage) => {
+                    setPage(newPage);
+                    fetchMovies(searchQuery, newPage);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  showInfo
+                  position="center"
+                />
               )}
             </>
           )}

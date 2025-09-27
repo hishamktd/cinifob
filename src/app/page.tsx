@@ -1,29 +1,24 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardMedia,
-  Grid,
-  Paper,
-  Typography,
-  Skeleton,
-} from '@mui/material';
+import { ROUTES } from '@core/constants';
+import { Box, Button, Card, CardContent, Grid, Paper, Typography, Skeleton } from '@mui/material';
 
-import { AppIcon } from '@core/components/app-icon';
-import { MainLayout } from '@core/components/layout/main-layout';
+import { AppIcon, AppMovieCard, MainLayout } from '@core/components';
 import { movieService } from '@/services/movie.service';
+import { useMovieStatus } from '@/hooks/useMovieStatus';
+import { useToast } from '@/hooks/useToast';
 import { Movie } from '@/types';
 
 export default function Home() {
   const router = useRouter();
   const { data: session } = useSession();
+  const { showToast } = useToast();
+  const { addToWatchlist, removeFromWatchlist, markAsWatched, isInWatchlist, isWatched } =
+    useMovieStatus();
   const [popularMovies, setPopularMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,7 +26,7 @@ export default function Home() {
     loadPopularMovies();
   }, []);
 
-  const loadPopularMovies = async () => {
+  const loadPopularMovies = useCallback(async () => {
     try {
       const response = await movieService.getPopularMovies(1);
       // The API returns { movies, page, totalPages, totalResults }
@@ -43,7 +38,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   return (
     <MainLayout>
@@ -122,25 +117,29 @@ export default function Home() {
                   variant="contained"
                   size="large"
                   startIcon={<AppIcon icon="solar:video-library-bold" />}
-                  onClick={() => router.push('/movies')}
+                  onClick={() => router.push('/browse')}
                 >
-                  Browse Movies
+                  Browse Content
                 </Button>
                 <Button
                   variant="outlined"
                   size="large"
                   startIcon={<AppIcon icon="solar:bookmark-linear" />}
-                  onClick={() => router.push('/watchlist')}
+                  onClick={() => router.push(ROUTES.WATCHLIST)}
                 >
                   My Watchlist
                 </Button>
               </>
             ) : (
               <>
-                <Button variant="contained" size="large" onClick={() => router.push('/register')}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  onClick={() => router.push(ROUTES.REGISTER)}
+                >
                   Sign Up
                 </Button>
-                <Button variant="outlined" size="large" onClick={() => router.push('/login')}>
+                <Button variant="outlined" size="large" onClick={() => router.push(ROUTES.LOGIN)}>
                   Sign In
                 </Button>
               </>
@@ -172,49 +171,57 @@ export default function Home() {
                 ))
               : popularMovies.map((movie) => (
                   <Grid key={movie.tmdbId} size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
-                    <Card
-                      sx={{
-                        height: '100%',
-                        cursor: 'pointer',
-                        transition: 'transform 0.2s',
-                        '&:hover': {
-                          transform: 'scale(1.03)',
-                        },
+                    <AppMovieCard
+                      movie={movie}
+                      size="small"
+                      onAddToWatchlist={async () => {
+                        if (!session) {
+                          showToast('Please login to add to watchlist', 'warning');
+                          return;
+                        }
+                        if (!movie.tmdbId) return;
+
+                        const inWatchlist = isInWatchlist(movie.tmdbId);
+                        try {
+                          if (inWatchlist) {
+                            await movieService.removeFromWatchlist(movie.tmdbId);
+                            removeFromWatchlist(movie.tmdbId);
+                            showToast('Removed from watchlist', 'success');
+                          } else {
+                            await movieService.addToWatchlist(movie);
+                            addToWatchlist(movie.tmdbId);
+                            showToast('Added to watchlist', 'success');
+                          }
+                        } catch {
+                          showToast(
+                            inWatchlist
+                              ? 'Failed to remove from watchlist'
+                              : 'Failed to add to watchlist',
+                            'error',
+                          );
+                        }
                       }}
-                      onClick={() => router.push(`/movies/${movie.tmdbId}`)}
-                    >
-                      {movie.posterPath ? (
-                        <CardMedia
-                          component="img"
-                          height="300"
-                          image={`https://image.tmdb.org/t/p/w500${movie.posterPath}`}
-                          alt={movie.title}
-                        />
-                      ) : (
-                        <Box
-                          sx={{
-                            height: 300,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            bgcolor: 'action.disabled',
-                          }}
-                        >
-                          <AppIcon icon="solar:video-library-bold" size={48} />
-                        </Box>
-                      )}
-                      <CardContent>
-                        <Typography variant="body1" noWrap fontWeight="medium">
-                          {movie.title}
-                        </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1 }}>
-                          <AppIcon icon="solar:star-bold" size={16} color="warning" />
-                          <Typography variant="body2" color="text.secondary">
-                            {movie.voteAverage?.toFixed(1)}
-                          </Typography>
-                        </Box>
-                      </CardContent>
-                    </Card>
+                      onMarkAsWatched={async () => {
+                        if (!session) {
+                          showToast('Please login to mark as watched', 'warning');
+                          return;
+                        }
+                        if (!movie.tmdbId) return;
+
+                        const watched = isWatched(movie.tmdbId);
+                        try {
+                          if (watched) {
+                            showToast('Already marked as watched', 'info');
+                          } else {
+                            await movieService.markAsWatched(movie);
+                            markAsWatched(movie.tmdbId);
+                            showToast('Marked as watched', 'success');
+                          }
+                        } catch {
+                          showToast('Failed to mark as watched', 'error');
+                        }
+                      }}
+                    />
                   </Grid>
                 ))}
           </Grid>
@@ -224,10 +231,10 @@ export default function Home() {
               <Button
                 variant="outlined"
                 size="large"
-                onClick={() => router.push('/movies')}
+                onClick={() => router.push('/browse')}
                 endIcon={<AppIcon icon="solar:arrow-right-linear" />}
               >
-                View All Movies
+                Browse All Content
               </Button>
             </Box>
           )}

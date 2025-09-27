@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import Link from 'next/link';
 import { useSession, signOut } from 'next-auth/react';
 
@@ -20,6 +20,7 @@ import {
 import { AppIcon } from '@core/components/app-icon';
 import { useThemeMode } from '@contexts/ThemeContext';
 import { MobileDrawer } from '@core/components/layout/mobile-drawer';
+import { ROUTES } from '@core/constants';
 
 export const AppHeader = () => {
   const theme = useTheme();
@@ -29,20 +30,33 @@ export const AppHeader = () => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [mobileDrawerOpen, setMobileDrawerOpen] = React.useState(false);
 
-  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+  const handleMenu = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
-  };
+  }, []);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setAnchorEl(null);
-  };
+  }, []);
 
-  const handleSignOut = async () => {
-    await signOut({ redirect: true, callbackUrl: '/login' });
-  };
+  const handleSignOut = useCallback(async () => {
+    await signOut({ redirect: true, callbackUrl: ROUTES.LOGIN });
+  }, []);
+
+  const handleMobileDrawerOpen = useCallback(() => setMobileDrawerOpen(true), []);
+  const handleMobileDrawerClose = useCallback(() => setMobileDrawerOpen(false), []);
 
   return (
-    <AppBar position="sticky" elevation={1}>
+    <AppBar
+      position="fixed"
+      elevation={1}
+      sx={{
+        top: 0,
+        zIndex: (theme) => theme.zIndex.drawer + 1,
+        backdropFilter: 'blur(8px)',
+        backgroundColor: (theme) =>
+          theme.palette.mode === 'dark' ? 'rgba(18, 18, 18, 0.95)' : 'rgba(255, 255, 255, 0.95)',
+      }}
+    >
       <Toolbar>
         <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
           <AppIcon
@@ -53,7 +67,7 @@ export const AppHeader = () => {
           <Typography
             variant="h6"
             component={Link}
-            href="/"
+            href={ROUTES.HOME}
             sx={{
               textDecoration: 'none',
               color: 'inherit',
@@ -67,16 +81,22 @@ export const AppHeader = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {!isMobile && (
             <>
-              <Button color="inherit" component={Link} href="/movies">
+              <Button color="inherit" component={Link} href={ROUTES.MOVIES}>
+                Movies
+              </Button>
+              <Button color="inherit" component={Link} href={ROUTES.BROWSE}>
                 Browse
               </Button>
-              <Button color="inherit" component={Link} href="/watchlist">
+              <Button color="inherit" component={Link} href={ROUTES.TV}>
+                TV Shows
+              </Button>
+              <Button color="inherit" component={Link} href={ROUTES.WATCHLIST}>
                 Watchlist
               </Button>
-              <Button color="inherit" component={Link} href="/watched">
+              <Button color="inherit" component={Link} href={ROUTES.WATCHED}>
                 Watched
               </Button>
-              <Button color="inherit" component={Link} href="/dashboard">
+              <Button color="inherit" component={Link} href={ROUTES.DASHBOARD}>
                 Dashboard
               </Button>
             </>
@@ -87,7 +107,7 @@ export const AppHeader = () => {
           </IconButton>
 
           {isMobile && (
-            <IconButton color="inherit" onClick={() => setMobileDrawerOpen(true)}>
+            <IconButton color="inherit" onClick={handleMobileDrawerOpen}>
               <AppIcon icon="solar:hamburger-menu-linear" size={24} />
             </IconButton>
           )}
@@ -120,7 +140,7 @@ export const AppHeader = () => {
           )}
         </Box>
       </Toolbar>
-      <MobileDrawer open={mobileDrawerOpen} onClose={() => setMobileDrawerOpen(false)} />
+      <MobileDrawer open={mobileDrawerOpen} onClose={handleMobileDrawerClose} />
     </AppBar>
   );
 };

@@ -1,25 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  CircularProgress,
-  Paper,
-  Button,
-  Chip,
-  Card,
-  CardContent,
-} from '@mui/material';
+import { Box, Container, Grid, Typography, Chip, Card, CardContent, Button } from '@mui/material';
 
-import { AppIcon } from '@core/components/app-icon';
-import { MainLayout } from '@core/components/layout/main-layout';
-import { MovieCard } from '@/components/movie/movie-card';
+import { AppIcon, AppLoader, AppEmptyState, MainLayout } from '@core/components';
+import { ContentCard } from '@/components/content-card';
 import { useToast } from '@/hooks/useToast';
 import { movieService } from '@/services/movie.service';
 import { MovieSortBy } from '@core/enums';
@@ -60,7 +48,7 @@ export default function WatchedPage() {
     }
   };
 
-  const calculateStats = (watchedMovies: UserMovie[]) => {
+  const calculateStats = useCallback((watchedMovies: UserMovie[]) => {
     if (watchedMovies.length === 0) return;
 
     const totalRuntime = watchedMovies.reduce((sum, m) => sum + (m.movie?.runtime || 0), 0);
@@ -83,52 +71,61 @@ export default function WatchedPage() {
       averageRating,
       highestRated,
     });
-  };
+  }, []);
 
-  const handleRemoveFromWatched = async (tmdbId: number) => {
-    try {
-      await movieService.removeFromWatched(tmdbId);
-      const updatedMovies = movies.filter((m) => m.movie?.tmdbId !== tmdbId);
-      setMovies(updatedMovies);
-      calculateStats(updatedMovies);
-      showToast('Marked as unwatched', 'success');
-    } catch {
-      showToast('Failed to remove from watched movies', 'error');
-    }
-  };
+  const handleRemoveFromWatched = useCallback(
+    async (tmdbId: number) => {
+      try {
+        await movieService.removeFromWatched(tmdbId);
+        const updatedMovies = movies.filter((m) => m.movie?.tmdbId !== tmdbId);
+        setMovies(updatedMovies);
+        calculateStats(updatedMovies);
+        showToast('Marked as unwatched', 'success');
+      } catch {
+        showToast('Failed to remove from watched movies', 'error');
+      }
+    },
+    [movies, calculateStats, showToast],
+  );
 
-  const handleAddToWatchlist = async (movie: UserMovie['movie']) => {
-    try {
-      await movieService.addToWatchlist(movie);
-      showToast('Added to watchlist', 'success');
-    } catch {
-      showToast('Failed to add to watchlist', 'error');
-    }
-  };
+  const handleAddToWatchlist = useCallback(
+    async (movie: UserMovie['movie']) => {
+      try {
+        await movieService.addToWatchlist(movie);
+        showToast('Added to watchlist', 'success');
+      } catch {
+        showToast('Failed to add to watchlist', 'error');
+      }
+    },
+    [showToast],
+  );
 
-  const sortMovies = (movies: UserMovie[]) => {
-    const sorted = [...movies];
-    switch (sortBy) {
-      case MovieSortBy.DATE_ADDED:
-        return sorted.sort(
-          (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-        );
-      case MovieSortBy.TITLE:
-        return sorted.sort((a, b) => (a.movie?.title || '').localeCompare(b.movie?.title || ''));
-      case MovieSortBy.RELEASE_DATE:
-        return sorted.sort((a, b) => {
-          const dateA = a.movie?.releaseDate ? new Date(a.movie.releaseDate).getTime() : 0;
-          const dateB = b.movie?.releaseDate ? new Date(b.movie?.releaseDate).getTime() : 0;
-          return dateB - dateA;
-        });
-      case MovieSortBy.RATING:
-        return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-      default:
-        return sorted;
-    }
-  };
+  const sortMovies = useCallback(
+    (movies: UserMovie[]) => {
+      const sorted = [...movies];
+      switch (sortBy) {
+        case MovieSortBy.DATE_ADDED:
+          return sorted.sort(
+            (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+          );
+        case MovieSortBy.TITLE:
+          return sorted.sort((a, b) => (a.movie?.title || '').localeCompare(b.movie?.title || ''));
+        case MovieSortBy.RELEASE_DATE:
+          return sorted.sort((a, b) => {
+            const dateA = a.movie?.releaseDate ? new Date(a.movie.releaseDate).getTime() : 0;
+            const dateB = b.movie?.releaseDate ? new Date(b.movie?.releaseDate).getTime() : 0;
+            return dateB - dateA;
+          });
+        case MovieSortBy.RATING:
+          return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+        default:
+          return sorted;
+      }
+    },
+    [sortBy],
+  );
 
-  const formatRuntime = (minutes: number) => {
+  const formatRuntime = useCallback((minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
     const remainingHours = hours % 24;
@@ -137,21 +134,19 @@ export default function WatchedPage() {
       return `${days}d ${remainingHours}h`;
     }
     return `${hours}h ${minutes % 60}m`;
-  };
+  }, []);
+
+  const sortedMovies = useMemo(() => sortMovies(movies), [sortMovies, movies]);
 
   if (loading) {
     return (
       <MainLayout>
         <Container>
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-            <CircularProgress />
-          </Box>
+          <AppLoader type="circular" message="Loading watched movies..." />
         </Container>
       </MainLayout>
     );
   }
-
-  const sortedMovies = sortMovies(movies);
 
   return (
     <MainLayout>
@@ -314,36 +309,40 @@ export default function WatchedPage() {
           </Box>
 
           {movies.length === 0 ? (
-            <Paper sx={{ p: 8, textAlign: 'center' }}>
-              <AppIcon icon="mdi:movie-check-outline" size={64} color="text.secondary" />
-              <Typography variant="h6" sx={{ mt: 2 }} gutterBottom>
-                No watched movies yet
-              </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                Start tracking movies you&apos;ve watched
-              </Typography>
-              <Button
-                variant="contained"
-                startIcon={<AppIcon icon="mdi:movie-search" />}
-                onClick={() => router.push('/movies')}
-              >
-                Browse Movies
-              </Button>
-            </Paper>
+            <AppEmptyState
+              icon="mdi:movie-check-outline"
+              title="No watched movies yet"
+              description="Keep track of movies you've watched and rate them."
+              actionLabel="Browse Movies"
+              actionIcon="mdi:movie-search"
+              onAction={() => router.push('/movies')}
+            />
           ) : (
             <Grid container spacing={3}>
               {sortedMovies.map((userMovie) => (
                 <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={userMovie.movie?.id}>
-                  <MovieCard
-                    movie={userMovie.movie || {}}
-                    showActions={false}
-                    userRating={userMovie.rating}
+                  <ContentCard
+                    item={{
+                      id: userMovie.movie?.id || 0,
+                      tmdbId: userMovie.movie?.tmdbId || 0,
+                      mediaType: 'movie',
+                      title: userMovie.movie?.title || 'Unknown Title',
+                      overview: userMovie.movie?.overview,
+                      posterPath: userMovie.movie?.posterPath,
+                      backdropPath: userMovie.movie?.backdropPath,
+                      date: userMovie.movie?.releaseDate,
+                      voteAverage: userMovie.movie?.voteAverage,
+                      voteCount: userMovie.movie?.voteCount,
+                      popularity: userMovie.movie?.popularity,
+                      genreIds: userMovie.movie?.genreIds,
+                    }}
+                    isInWatchlist={false}
+                    isWatched={true}
                   />
                   <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
                     <Button
                       size="small"
                       variant="outlined"
-                      startIcon={<AppIcon icon="mdi:bookmark-plus" />}
                       onClick={() => handleAddToWatchlist(userMovie.movie)}
                       fullWidth
                       sx={{
@@ -364,7 +363,6 @@ export default function WatchedPage() {
                     <Button
                       size="small"
                       variant="text"
-                      startIcon={<AppIcon icon="mdi:close" />}
                       onClick={() => handleRemoveFromWatched(userMovie.movie?.tmdbId || 0)}
                       sx={{
                         fontSize: { xs: '0.75rem', sm: '0.875rem' },

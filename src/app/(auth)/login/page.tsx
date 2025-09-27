@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 
 import { AppIcon } from '@core/components/app-icon';
-import { APP_CONFIG } from '@core/constants';
+import { APP_CONFIG, ROUTES } from '@core/constants';
 
 interface LoginForm {
   email: string;
@@ -52,7 +52,7 @@ export default function LoginPage() {
       if (result?.error) {
         setError('Invalid email or password');
       } else {
-        router.push('/dashboard');
+        router.push(ROUTES.DASHBOARD);
         router.refresh();
       }
     } catch {
@@ -132,7 +132,7 @@ export default function LoginPage() {
 
             <Typography variant="body2" align="center">
               Don&apos;t have an account?{' '}
-              <Link href="/register" style={{ color: 'inherit' }}>
+              <Link href={ROUTES.REGISTER} style={{ color: 'inherit' }}>
                 <strong>Sign up</strong>
               </Link>
             </Typography>

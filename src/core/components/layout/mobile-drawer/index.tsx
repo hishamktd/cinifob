@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
@@ -19,29 +19,35 @@ import {
 } from '@mui/material';
 
 import { AppIcon } from '@core/components/app-icon';
+import { ROUTES } from '@core/constants';
 
 interface MobileDrawerProps {
   open: boolean;
   onClose: () => void;
 }
 
-export const MobileDrawer = ({ open, onClose }: MobileDrawerProps) => {
+export const MobileDrawer = React.memo(({ open, onClose }: MobileDrawerProps) => {
   const pathname = usePathname();
   const { data: session, status } = useSession();
 
-  const handleSignOut = async () => {
-    await signOut({ redirect: true, callbackUrl: '/login' });
+  const handleSignOut = useCallback(async () => {
+    await signOut({ redirect: true, callbackUrl: ROUTES.LOGIN });
     onClose();
-  };
+  }, [onClose]);
 
-  const menuItems = [
-    { title: 'Home', icon: 'solar:home-2-bold', href: '/' },
-    { title: 'Browse Movies', icon: 'solar:play-circle-bold', href: '/movies' },
-    { title: 'Watchlist', icon: 'solar:bookmark-bold', href: '/watchlist' },
-    { title: 'Watched', icon: 'solar:check-circle-bold', href: '/watched' },
-    { title: 'Dashboard', icon: 'solar:chart-square-bold', href: '/dashboard' },
-    { title: 'Profile', icon: 'solar:user-bold', href: '/profile' },
-  ];
+  const menuItems = useMemo(
+    () => [
+      { title: 'Home', icon: 'solar:home-2-bold', href: ROUTES.HOME },
+      { title: 'Movies', icon: 'solar:play-circle-bold', href: ROUTES.MOVIES },
+      { title: 'Browse', icon: 'solar:magnifer-linear', href: ROUTES.BROWSE },
+      { title: 'TV Shows', icon: 'solar:tv-bold', href: ROUTES.TV },
+      { title: 'Watchlist', icon: 'solar:bookmark-bold', href: ROUTES.WATCHLIST },
+      { title: 'Watched', icon: 'solar:check-circle-bold', href: ROUTES.WATCHED },
+      { title: 'Dashboard', icon: 'solar:chart-square-bold', href: ROUTES.DASHBOARD },
+      { title: 'Profile', icon: 'solar:user-bold', href: ROUTES.PROFILE },
+    ],
+    [],
+  );
 
   return (
     <Drawer
@@ -125,7 +131,7 @@ export const MobileDrawer = ({ open, onClose }: MobileDrawerProps) => {
         ) : (
           <ListItemButton
             component={Link}
-            href="/login"
+            href={ROUTES.LOGIN}
             onClick={onClose}
             sx={{
               borderRadius: 1,
@@ -145,4 +151,6 @@ export const MobileDrawer = ({ open, onClose }: MobileDrawerProps) => {
       </Box>
     </Drawer>
   );
-};
+});
+
+MobileDrawer.displayName = 'MobileDrawer';

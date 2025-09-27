@@ -12,8 +12,11 @@ export const ROUTES = {
   LOGIN: '/login',
   REGISTER: '/register',
   DASHBOARD: '/dashboard',
+  BROWSE: '/browse',
   MOVIES: '/movies',
   MOVIE_DETAIL: '/movies/:id',
+  TV: '/tv',
+  TV_DETAIL: '/tv/:id',
   WATCHLIST: '/watchlist',
   WATCHED: '/watched',
   PROFILE: '/profile',
@@ -66,7 +69,7 @@ export const CACHE_DURATION = {
 } as const;
 
 export const TMDB_CONFIG = {
-  BASE_URL: 'https://api.themoviedb.org/3',
+  BASE_URL: process.env.TMDB_API_URL || 'https://api.themoviedb.org/3',
   IMAGE_BASE_URL: 'https://image.tmdb.org/t/p',
   POSTER_SIZES: ['w92', 'w154', 'w185', 'w342', 'w500', 'w780', 'original'] as const,
   BACKDROP_SIZES: ['w300', 'w780', 'w1280', 'original'] as const,

@@ -30,6 +30,7 @@ import {
 import { AppIcon } from '@core/components/app-icon';
 import { MainLayout } from '@core/components/layout/main-layout';
 import { Toast } from '@core/components/toast';
+import { RelatedContent } from '@/components/related-content';
 import { TMDB_CONFIG } from '@core/constants';
 import { MovieStatus } from '@core/enums';
 import { movieService } from '@/services/movie.service';
@@ -737,6 +738,19 @@ export default function MovieDetailPage() {
           </Grid>
         </Box>
       </Container>
+
+      {/* Related Content Section */}
+      {movie && (
+        <Container sx={{ mt: 4 }}>
+          <RelatedContent
+            contentId={movie.tmdbId}
+            contentType="movie"
+            title="You May Also Like"
+            maxItems={8}
+            showTypeFilter={true}
+          />
+        </Container>
+      )}
 
       <Dialog open={ratingDialogOpen} onClose={() => setRatingDialogOpen(false)}>
         <DialogTitle>Rate this movie</DialogTitle>

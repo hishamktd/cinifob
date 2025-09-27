@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import { Box, Container } from '@mui/material';
+import { Box, Container, Toolbar } from '@mui/material';
 
 import { AppHeader } from '../app-header';
 
@@ -20,6 +20,7 @@ export const MainLayout = ({
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppHeader />
+      <Toolbar /> {/* This adds spacing for the fixed header */}
       <Box component="main" sx={{ flexGrow: 1, py: disablePadding ? 0 : 3 }}>
         <Container maxWidth={maxWidth}>{children}</Container>
       </Box>

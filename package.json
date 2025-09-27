@@ -10,7 +10,7 @@
     "postinstall": "prisma generate && lefthook install",
     "prepare": "lefthook install",
     "db:cleanup": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/cleanup-database.ts",
-    "db:seed": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-genres.ts"
+    "db:seed:genres": "npx ts-node --compiler-options '{\"module\":\"commonjs\"}' scripts/seed-genres.ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

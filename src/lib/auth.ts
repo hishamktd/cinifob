@@ -3,6 +3,7 @@ import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 
 import { prisma } from '@core/lib/prisma';
+import { ROUTES } from '@core/constants';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -42,9 +43,9 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   pages: {
-    signIn: '/login',
-    signOut: '/login',
-    error: '/login',
+    signIn: ROUTES.LOGIN,
+    signOut: ROUTES.LOGIN,
+    error: ROUTES.LOGIN,
   },
   session: {
     strategy: 'jwt',

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Box, Button, Container, Typography } from '@mui/material';
 import { AppIcon } from '@core/components/app-icon';
+import { ROUTES } from '@core/constants';
 
 export default function NotFound() {
   return (
@@ -33,7 +34,7 @@ export default function NotFound() {
         <Box sx={{ display: 'flex', gap: 2 }}>
           <Button
             component={Link}
-            href="/"
+            href={ROUTES.HOME}
             variant="contained"
             size="large"
             startIcon={<AppIcon icon="solar:home-bold" />}
@@ -43,7 +44,7 @@ export default function NotFound() {
 
           <Button
             component={Link}
-            href="/movies"
+            href={ROUTES.MOVIES}
             variant="outlined"
             size="large"
             startIcon={<AppIcon icon="solar:video-library-bold" />}

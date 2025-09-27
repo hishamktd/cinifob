@@ -20,7 +20,7 @@ import {
 } from '@mui/material';
 
 import { AppIcon } from '@core/components/app-icon';
-import { APP_CONFIG } from '@core/constants';
+import { APP_CONFIG, ROUTES } from '@core/constants';
 
 interface RegisterForm {
   name: string;
@@ -48,7 +48,7 @@ export default function RegisterPage() {
     setError('');
 
     try {
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(ROUTES.API.AUTH.REGISTER, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +75,7 @@ export default function RegisterPage() {
       });
 
       if (signInResult?.ok) {
-        router.push('/dashboard');
+        router.push(ROUTES.DASHBOARD);
         router.refresh();
       }
     } catch {
@@ -179,7 +179,7 @@ export default function RegisterPage() {
 
             <Typography variant="body2" align="center">
               Already have an account?{' '}
-              <Link href="/login" style={{ color: 'inherit' }}>
+              <Link href={ROUTES.LOGIN} style={{ color: 'inherit' }}>
                 <strong>Sign in</strong>
               </Link>
             </Typography>
