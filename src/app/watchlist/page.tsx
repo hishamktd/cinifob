@@ -131,37 +131,62 @@ export default function WatchlistPage() {
     <MainLayout>
       <Container>
         <Box sx={{ py: 4 }}>
-          <Box
-            sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-          >
-            <Box>
-              <Typography variant="h4" component="h1" gutterBottom>
+          <Box sx={{ mb: 4 }}>
+            <Box sx={{ mb: 2 }}>
+              <Typography
+                variant="h4"
+                component="h1"
+                gutterBottom
+                sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}
+              >
                 My Watchlist
               </Typography>
               <Typography variant="body1" color="text.secondary">
                 {movies.length} {movies.length === 1 ? 'movie' : 'movies'} to watch
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 1,
+                overflowX: 'auto',
+                pb: 1,
+                '&::-webkit-scrollbar': {
+                  height: 4,
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: 'action.hover',
+                  borderRadius: 2,
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'action.disabled',
+                  borderRadius: 2,
+                },
+              }}
+            >
               <Chip
                 label="Recently Added"
                 onClick={() => setSortBy(MovieSortBy.DATE_ADDED)}
                 color={sortBy === MovieSortBy.DATE_ADDED ? 'primary' : 'default'}
+                sx={{ flexShrink: 0 }}
               />
               <Chip
                 label="Title"
                 onClick={() => setSortBy(MovieSortBy.TITLE)}
                 color={sortBy === MovieSortBy.TITLE ? 'primary' : 'default'}
+                sx={{ flexShrink: 0 }}
               />
               <Chip
                 label="Release Date"
                 onClick={() => setSortBy(MovieSortBy.RELEASE_DATE)}
                 color={sortBy === MovieSortBy.RELEASE_DATE ? 'primary' : 'default'}
+                sx={{ flexShrink: 0 }}
               />
               <Chip
                 label="Rating"
                 onClick={() => setSortBy(MovieSortBy.RATING)}
                 color={sortBy === MovieSortBy.RATING ? 'primary' : 'default'}
+                sx={{ flexShrink: 0 }}
               />
             </Box>
           </Box>
@@ -196,6 +221,12 @@ export default function WatchlistPage() {
                       startIcon={<AppIcon icon="mdi:bookmark-remove" />}
                       onClick={() => handleRemoveFromWatchlist(userMovie?.movie?.tmdbId || 0)}
                       fullWidth
+                      sx={{
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        '& .MuiButton-startIcon': {
+                          display: { xs: 'none', sm: 'inherit' },
+                        },
+                      }}
                     >
                       Remove
                     </Button>
@@ -206,6 +237,12 @@ export default function WatchlistPage() {
                       startIcon={<AppIcon icon="mdi:check" />}
                       onClick={() => handleMarkAsWatched(userMovie)}
                       fullWidth
+                      sx={{
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        '& .MuiButton-startIcon': {
+                          display: { xs: 'none', sm: 'inherit' },
+                        },
+                      }}
                     >
                       Watched
                     </Button>
@@ -220,6 +257,8 @@ export default function WatchlistPage() {
       <Dialog
         open={ratingDialog.open}
         onClose={() => setRatingDialog({ open: false, movie: null, rating: null })}
+        fullWidth
+        maxWidth="xs"
       >
         <DialogTitle>Rate this movie</DialogTitle>
         <DialogContent>

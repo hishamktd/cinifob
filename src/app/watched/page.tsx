@@ -149,7 +149,12 @@ export default function WatchedPage() {
       <Container>
         <Box sx={{ py: 4 }}>
           <Box sx={{ mb: 4 }}>
-            <Typography variant="h4" component="h1" gutterBottom>
+            <Typography
+              variant="h4"
+              component="h1"
+              gutterBottom
+              sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}
+            >
               Watched Movies
             </Typography>
             <Typography variant="body1" color="text.secondary">
@@ -158,55 +163,84 @@ export default function WatchedPage() {
           </Box>
 
           {movies.length > 0 && (
-            <Grid container spacing={3} sx={{ mb: 4 }}>
-              <Grid size={{ xs: 12, md: 3 }}>
+            <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: 4 }}>
+              <Grid size={{ xs: 6, sm: 6, md: 3 }}>
                 <Card>
-                  <CardContent>
+                  <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                     <AppIcon icon="mdi:movie-check" size={24} color="primary.main" />
-                    <Typography variant="h4" sx={{ mt: 1 }}>
+                    <Typography
+                      variant="h4"
+                      sx={{ mt: 1, fontSize: { xs: '1.5rem', sm: '2.125rem' } }}
+                    >
                       {stats.totalWatched}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    >
                       Movies Watched
                     </Typography>
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
+              <Grid size={{ xs: 6, sm: 6, md: 3 }}>
                 <Card>
-                  <CardContent>
+                  <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                     <AppIcon icon="mdi:clock-outline" size={24} color="primary.main" />
-                    <Typography variant="h4" sx={{ mt: 1 }}>
+                    <Typography
+                      variant="h4"
+                      sx={{ mt: 1, fontSize: { xs: '1.5rem', sm: '2.125rem' } }}
+                    >
                       {formatRuntime(stats.totalRuntime)}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    >
                       Total Runtime
                     </Typography>
                   </CardContent>
                 </Card>
               </Grid>
-              <Grid size={{ xs: 12, md: 3 }}>
+              <Grid size={{ xs: 6, sm: 6, md: 3 }}>
                 <Card>
-                  <CardContent>
+                  <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                     <AppIcon icon="mdi:star" size={24} color="primary.main" />
-                    <Typography variant="h4" sx={{ mt: 1 }}>
+                    <Typography
+                      variant="h4"
+                      sx={{ mt: 1, fontSize: { xs: '1.5rem', sm: '2.125rem' } }}
+                    >
                       {stats.averageRating.toFixed(1)}
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                    >
                       Average Rating
                     </Typography>
                   </CardContent>
                 </Card>
               </Grid>
               {stats.highestRated && (
-                <Grid size={{ xs: 12, md: 3 }}>
+                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
                   <Card>
-                    <CardContent>
+                    <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                       <AppIcon icon="mdi:trophy" size={24} color="primary.main" />
-                      <Typography variant="body1" sx={{ mt: 1 }} noWrap>
+                      <Typography
+                        variant="body1"
+                        sx={{ mt: 1, fontSize: { xs: '0.875rem', sm: '1rem' } }}
+                        noWrap
+                      >
                         {stats.highestRated.movie?.title || 'Unknown'}
                       </Typography>
-                      <Typography variant="body2" color="text.secondary">
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
+                      >
                         Highest Rated ({stats.highestRated.rating}★)
                       </Typography>
                     </CardContent>
@@ -216,30 +250,56 @@ export default function WatchedPage() {
             </Grid>
           )}
 
-          <Box
-            sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-          >
-            <Typography variant="h6">All Watched Movies</Typography>
-            <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1.125rem', sm: '1.25rem' } }}>
+              All Watched Movies
+            </Typography>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 1,
+                overflowX: 'auto',
+                pb: 1,
+                '&::-webkit-scrollbar': {
+                  height: 4,
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: 'action.hover',
+                  borderRadius: 2,
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'action.disabled',
+                  borderRadius: 2,
+                },
+              }}
+            >
               <Chip
                 label="Recently Watched"
                 onClick={() => setSortBy(MovieSortBy.DATE_ADDED)}
                 color={sortBy === MovieSortBy.DATE_ADDED ? 'primary' : 'default'}
+                size="small"
+                sx={{ flexShrink: 0 }}
               />
               <Chip
                 label="Title"
                 onClick={() => setSortBy(MovieSortBy.TITLE)}
                 color={sortBy === MovieSortBy.TITLE ? 'primary' : 'default'}
+                size="small"
+                sx={{ flexShrink: 0 }}
               />
               <Chip
                 label="Release Date"
                 onClick={() => setSortBy(MovieSortBy.RELEASE_DATE)}
                 color={sortBy === MovieSortBy.RELEASE_DATE ? 'primary' : 'default'}
+                size="small"
+                sx={{ flexShrink: 0 }}
               />
               <Chip
                 label="My Rating"
                 onClick={() => setSortBy(MovieSortBy.RATING)}
                 color={sortBy === MovieSortBy.RATING ? 'primary' : 'default'}
+                size="small"
+                sx={{ flexShrink: 0 }}
               />
             </Box>
           </Box>
@@ -278,6 +338,12 @@ export default function WatchedPage() {
                       startIcon={<AppIcon icon="mdi:delete-outline" />}
                       onClick={() => handleRemoveFromWatched(userMovie.movie?.tmdbId || 0)}
                       fullWidth
+                      sx={{
+                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                        '& .MuiButton-startIcon': {
+                          display: { xs: 'none', sm: 'inherit' },
+                        },
+                      }}
                     >
                       Remove
                     </Button>
