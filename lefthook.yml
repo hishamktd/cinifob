@@ -1,0 +1,45 @@
+# Lefthook configuration
+# https://github.com/evilmartians/lefthook
+
+# Disable tty for CI environments
+no_tty: false
+
+# Run hooks in parallel for better performance
+parallel: true
+
+# Git hooks configuration
+pre-push:
+  parallel: false
+  commands:
+    build:
+      run: npm run build
+      fail_text: "❌ Build failed. Please fix the errors before pushing."
+
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{js,jsx,ts,tsx}"
+      run: npm run lint
+      fail_text: "❌ Linting failed. Please fix the errors before committing."
+
+    format:
+      glob: "*.{js,jsx,ts,tsx,json,md}"
+      run: npx prettier --check {staged_files}
+      fail_text: "❌ Code is not formatted. Run 'npx prettier --write' to fix."
+
+commit-msg:
+  commands:
+    validate:
+      run: |
+        # Simple commit message validation
+        if ! head -1 {1} | grep -qE "^(feat|fix|docs|style|refactor|test|chore|build|ci|perf|revert)(\(.+?\))?: .{1,}$"; then
+          echo "❌ Commit message must follow conventional commits format:"
+          echo "   type(scope?): subject"
+          echo ""
+          echo "   Examples:"
+          echo "   - feat: add new feature"
+          echo "   - fix(api): resolve database connection issue"
+          echo "   - docs: update README"
+          exit 1
+        fi

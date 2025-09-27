@@ -10,10 +10,7 @@ export async function GET() {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const watched = await prisma.userMovie.findMany({
@@ -32,10 +29,7 @@ export async function GET() {
     return NextResponse.json({ watched });
   } catch (error) {
     console.error('Watched movies fetch error:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch watched movies' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch watched movies' }, { status: 500 });
   }
 }
 
@@ -44,50 +38,73 @@ export async function POST(request: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const body = await request.json();
     console.log('POST /api/user/watched - Request body:', body);
 
-    const { tmdbId, title, posterPath, overview, releaseDate, voteAverage, runtime, genres, rating, comment } = body;
+    const {
+      tmdbId,
+      title,
+      posterPath,
+      overview,
+      releaseDate,
+      voteAverage,
+      runtime,
+      genres,
+      rating,
+      comment,
+    } = body;
 
     if (!tmdbId || !title) {
       return NextResponse.json(
         { error: 'Missing required fields: tmdbId and title' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // First, ensure the movie exists in our database
-    const movie = await prisma.movie.upsert({
-      where: { tmdbId },
-      update: {
-        title,
-        posterPath: posterPath || null,
-        overview: overview || null,
-        releaseDate: releaseDate ? new Date(releaseDate) : null,
-        voteAverage: voteAverage || null,
-        runtime: runtime || null,
-        genres: genres ? JSON.stringify(genres) : '[]',
-        cachedAt: new Date(),
-      },
-      create: {
-        tmdbId,
-        title,
-        posterPath: posterPath || null,
-        overview: overview || null,
-        releaseDate: releaseDate ? new Date(releaseDate) : null,
-        voteAverage: voteAverage || null,
-        runtime: runtime || null,
-        genres: genres ? JSON.stringify(genres) : '[]',
-      },
-    });
+    let movie;
+    try {
+      movie = await prisma.movie.upsert({
+        where: { tmdbId },
+        update: {
+          title,
+          posterPath: posterPath || null,
+          overview: overview || null,
+          releaseDate: releaseDate ? new Date(releaseDate) : null,
+          voteAverage: voteAverage || null,
+          runtime: runtime || null,
+          genres: genres ? JSON.stringify(genres) : '[]',
+          cachedAt: new Date(),
+        },
+        create: {
+          tmdbId,
+          title,
+          posterPath: posterPath || null,
+          overview: overview || null,
+          releaseDate: releaseDate ? new Date(releaseDate) : null,
+          voteAverage: voteAverage || null,
+          runtime: runtime || null,
+          genres: genres ? JSON.stringify(genres) : '[]',
+        },
+      });
+      console.log('Movie upserted successfully:', movie);
+    } catch (movieError) {
+      console.error('Failed to upsert movie:', movieError);
+      // If movie creation fails, try to find existing movie
+      movie = await prisma.movie.findUnique({
+        where: { tmdbId },
+      });
 
-    console.log('Movie upserted:', movie);
+      if (!movie) {
+        return NextResponse.json(
+          { error: 'Failed to create or find movie in database' },
+          { status: 500 },
+        );
+      }
+    }
 
     // Check if already exists
     const existing = await prisma.userMovie.findUnique({
@@ -137,10 +154,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ userMovie });
   } catch (error) {
     console.error('Mark as watched error:', error);
-    return NextResponse.json(
-      { error: 'Failed to mark as watched' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to mark as watched' }, { status: 500 });
   }
 }
 
@@ -149,20 +163,14 @@ export async function DELETE(request: Request) {
     const session = await getServerSession(authOptions);
 
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     const { searchParams } = new URL(request.url);
     const tmdbId = searchParams.get('tmdbId');
 
     if (!tmdbId) {
-      return NextResponse.json(
-        { error: 'Movie ID is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Movie ID is required' }, { status: 400 });
     }
 
     const movie = await prisma.movie.findUnique({
@@ -170,10 +178,7 @@ export async function DELETE(request: Request) {
     });
 
     if (!movie) {
-      return NextResponse.json(
-        { error: 'Movie not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Movie not found' }, { status: 404 });
     }
 
     await prisma.userMovie.delete({
@@ -188,9 +193,6 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Remove from watched error:', error);
-    return NextResponse.json(
-      { error: 'Failed to remove from watched' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to remove from watched' }, { status: 500 });
   }
 }
