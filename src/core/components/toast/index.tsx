@@ -1,16 +1,8 @@
 'use client';
 
 import React from 'react';
-
-import { Alert, AlertColor, Snackbar } from '@mui/material';
-
-interface ToastProps {
-  open: boolean;
-  message: string;
-  severity?: AlertColor;
-  duration?: number;
-  onClose: () => void;
-}
+import { Alert, Snackbar } from '@mui/material';
+import { ToastProps } from './types';
 
 export const Toast = ({
   open,
@@ -32,3 +24,5 @@ export const Toast = ({
     </Snackbar>
   );
 };
+
+export type { ToastProps } from './types';

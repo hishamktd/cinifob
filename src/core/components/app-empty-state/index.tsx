@@ -4,19 +4,7 @@ import React, { useMemo } from 'react';
 import { Box, Typography, useTheme } from '@mui/material';
 import { AppIcon } from '../app-icon';
 import { AppButton } from '../app-button';
-
-export interface AppEmptyStateProps {
-  icon?: string;
-  iconSize?: number;
-  title: string;
-  description?: string;
-  actionLabel?: string;
-  onAction?: () => void;
-  actionIcon?: string;
-  variant?: 'default' | 'minimal' | 'illustration';
-  size?: 'small' | 'medium' | 'large';
-  fullHeight?: boolean;
-}
+import { AppEmptyStateProps } from './types';
 
 export const AppEmptyState = React.memo(
   ({
@@ -198,3 +186,5 @@ export const NoWatchedMovies = React.memo(({ onBrowse }: { onBrowse?: () => void
 ));
 
 NoWatchedMovies.displayName = 'NoWatchedMovies';
+
+export type { AppEmptyStateProps } from './types';

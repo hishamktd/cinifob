@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, ChangeEvent } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 
 import {
@@ -15,11 +15,19 @@ import {
 } from '@mui/material';
 
 import { ContentCard, ContentCardSkeleton } from '@/components/content-card';
-import { AppSearchBar, AppPagination, AppEmptyState, MainLayout, AppTabs, type AppTabItem } from '@core/components';
+import {
+  AppSearchBar,
+  AppPagination,
+  AppEmptyState,
+  MainLayout,
+  AppTabs,
+  type AppTabItem,
+} from '@core/components';
 import { useToast } from '@/hooks/useToast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useMovieStatus } from '@/hooks/useMovieStatus';
 import { movieService } from '@/services/movie.service';
+import type { Movie } from '@/types';
 
 interface ContentItem {
   id: number;
@@ -145,8 +153,8 @@ export default function BrowsePage() {
     }
   };
 
-  const handleGenreChange = (event: ChangeEvent<{ value: unknown }>) => {
-    setSelectedGenre(event.target.value as string);
+  const handleGenreChange = (event: { target: { value: string } }) => {
+    setSelectedGenre(event.target.value);
     setPage(1);
   };
 

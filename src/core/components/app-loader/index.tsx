@@ -9,19 +9,7 @@ import {
   Typography,
   useTheme,
 } from '@mui/material';
-
-export interface AppLoaderProps {
-  type?: 'circular' | 'linear' | 'skeleton' | 'dots';
-  size?: 'small' | 'medium' | 'large';
-  message?: string;
-  fullscreen?: boolean;
-  overlay?: boolean;
-  color?: 'primary' | 'secondary' | 'inherit';
-  skeletonVariant?: 'text' | 'rectangular' | 'rounded' | 'circular';
-  skeletonLines?: number;
-  skeletonHeight?: number | string;
-  skeletonWidth?: number | string;
-}
+import { AppLoaderProps } from './types';
 
 export const AppLoader = React.memo(
   ({
@@ -195,3 +183,5 @@ export const ListItemSkeleton = React.memo(({ count = 3 }: { count?: number }) =
 ));
 
 ListItemSkeleton.displayName = 'ListItemSkeleton';
+
+export type { AppLoaderProps } from './types';

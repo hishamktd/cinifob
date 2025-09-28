@@ -1,21 +1,9 @@
 'use client';
 
 import React, { useCallback, useMemo } from 'react';
-import { Box, Rating, RatingProps, Typography, Tooltip } from '@mui/material';
+import { Box, Rating, Typography, Tooltip } from '@mui/material';
 import { AppIcon } from '../app-icon';
-
-export interface AppRatingProps extends Omit<RatingProps, 'icon' | 'emptyIcon'> {
-  label?: string;
-  showValue?: boolean;
-  showCount?: boolean;
-  count?: number;
-  variant?: 'default' | 'compact' | 'detailed';
-  icon?: string;
-  emptyIcon?: string;
-  iconSize?: number;
-  color?: string;
-  emptyColor?: string;
-}
+import { AppRatingProps } from './types';
 
 export const AppRating = React.memo(
   ({
@@ -161,3 +149,5 @@ export const UserRating = React.memo(
 );
 
 UserRating.displayName = 'UserRating';
+
+export type { AppRatingProps } from './types';

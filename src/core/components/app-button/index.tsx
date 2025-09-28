@@ -1,16 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Button, ButtonProps, CircularProgress } from '@mui/material';
+import { Button, CircularProgress } from '@mui/material';
 import { AppIcon } from '../app-icon';
-
-export interface AppButtonProps extends Omit<ButtonProps, 'startIcon' | 'endIcon'> {
-  loading?: boolean;
-  startIcon?: string;
-  endIcon?: string;
-  iconSize?: number;
-  variant?: 'text' | 'outlined' | 'contained';
-}
+import { AppButtonProps } from './types';
 
 export const AppButton = React.memo(
   React.forwardRef<HTMLButtonElement, AppButtonProps>(
@@ -50,3 +43,5 @@ export const AppButton = React.memo(
 );
 
 AppButton.displayName = 'AppButton';
+
+export type { AppButtonProps } from './types';

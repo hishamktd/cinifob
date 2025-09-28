@@ -7,22 +7,6 @@ export const APP_CONFIG = {
   DEFAULT_TIMEZONE: 'UTC',
 } as const;
 
-export const ROUTES = {
-  HOME: '/',
-  LOGIN: '/login',
-  REGISTER: '/register',
-  DASHBOARD: '/dashboard',
-  BROWSE: '/browse',
-  MOVIES: '/movies',
-  MOVIE_DETAIL: '/movies/:id',
-  TV: '/tv',
-  TV_DETAIL: '/tv/:id',
-  WATCHLIST: '/watchlist',
-  WATCHED: '/watched',
-  PROFILE: '/profile',
-  SETTINGS: '/settings',
-} as const;
-
 export const API_ENDPOINTS = {
   // Auth
   LOGIN: '/api/auth/login',
@@ -75,7 +59,6 @@ export const TMDB_CONFIG = {
   BACKDROP_SIZES: ['w300', 'w780', 'w1280', 'original'] as const,
 } as const;
 
-export type Route = (typeof ROUTES)[keyof typeof ROUTES];
 export type ApiEndpoint = (typeof API_ENDPOINTS)[keyof typeof API_ENDPOINTS];
 export type MovieStatus = (typeof MOVIE_STATUS)[keyof typeof MOVIE_STATUS];
 export type PosterSize = (typeof TMDB_CONFIG.POSTER_SIZES)[number];

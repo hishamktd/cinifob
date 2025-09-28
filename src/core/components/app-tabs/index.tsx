@@ -1,15 +1,9 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, SyntheticEvent, ReactNode } from 'react';
-import { Box, Tab, Tabs, Typography, Badge, TabsProps } from '@mui/material';
-import type { SxProps, Theme } from '@mui/material/styles';
+import React, { useState, useCallback, useMemo, SyntheticEvent } from 'react';
+import { Box, Tab, Tabs, Typography, Badge } from '@mui/material';
 import { AppIcon } from '@core/components/app-icon';
-
-interface TabPanelProps {
-  children?: ReactNode;
-  index: number;
-  value: number;
-}
+import { TabPanelProps, AppTabItem, AppTabsProps } from './types';
 
 const TabPanel = React.memo((props: TabPanelProps) => {
   const { children, value, index, ...other } = props;
@@ -28,29 +22,6 @@ const TabPanel = React.memo((props: TabPanelProps) => {
 });
 
 TabPanel.displayName = 'TabPanel';
-
-export interface AppTabItem {
-  id: string;
-  label: string;
-  content: ReactNode;
-  icon?: string;
-  badge?: number;
-  disabled?: boolean;
-}
-
-interface AppTabsProps {
-  tabs: AppTabItem[];
-  defaultTab?: string;
-  orientation?: TabsProps['orientation'];
-  variant?: TabsProps['variant'];
-  centered?: boolean;
-  onChange?: (tabId: string) => void;
-  sx?: SxProps<Theme>;
-  tabsSx?: SxProps<Theme>;
-  panelSx?: SxProps<Theme>;
-  indicatorColor?: TabsProps['indicatorColor'];
-  textColor?: TabsProps['textColor'];
-}
 
 export const AppTabs = React.memo(
   ({
@@ -176,3 +147,5 @@ export const AppTabs = React.memo(
 );
 
 AppTabs.displayName = 'AppTabs';
+
+export type { AppTabItem, AppTabsProps, TabPanelProps } from './types';

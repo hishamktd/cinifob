@@ -20,22 +20,9 @@ import {
 import { AppIcon } from '../app-icon';
 import { AppRating } from '../app-rating';
 import { TMDB_CONFIG } from '@core/constants';
-import { Movie } from '@/types';
 import { useMoviePrefetch } from '@/hooks/useMoviePrefetch';
 import { useMovieStatus } from '@/hooks/useMovieStatus';
-
-export interface AppMovieCardProps {
-  movie: Partial<Movie>;
-  onAddToWatchlist?: () => void;
-  onMarkAsWatched?: () => void;
-  onRatingChange?: (rating: number | null) => void;
-  showActions?: boolean;
-  showRating?: boolean;
-  userRating?: number | null;
-  size?: 'small' | 'medium' | 'large';
-  variant?: 'default' | 'compact';
-  enablePrefetch?: boolean;
-}
+import { AppMovieCardProps } from './types';
 
 export const AppMovieCard = React.memo(
   ({
@@ -256,3 +243,5 @@ export const AppMovieCard = React.memo(
 );
 
 AppMovieCard.displayName = 'AppMovieCard';
+
+export type { AppMovieCardProps } from './types';

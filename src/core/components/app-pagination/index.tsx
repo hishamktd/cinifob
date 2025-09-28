@@ -4,22 +4,11 @@ import React from 'react';
 import {
   Box,
   Pagination,
-  PaginationProps,
   Typography,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
-
-export interface AppPaginationProps extends Omit<PaginationProps, 'onChange'> {
-  currentPage: number;
-  totalPages: number;
-  totalItems?: number;
-  itemsPerPage?: number;
-  onPageChange: (page: number) => void;
-  showInfo?: boolean;
-  position?: 'left' | 'center' | 'right';
-  variant?: 'default' | 'compact';
-}
+import { AppPaginationProps } from './types';
 
 export const AppPagination = ({
   currentPage,
@@ -103,3 +92,5 @@ export const AppPagination = ({
     </Box>
   );
 };
+
+export type { AppPaginationProps } from './types';

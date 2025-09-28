@@ -127,7 +127,11 @@ export default function MoviesPage() {
                       voteAverage: movie.voteAverage,
                       voteCount: movie.voteCount,
                       popularity: movie.popularity,
-                      genreIds: movie.genres?.map((g) => g.id),
+                      genreIds: Array.isArray(movie.genres)
+                        ? typeof movie.genres[0] === 'object'
+                          ? movie.genres.map((g: { id: number }) => g.id)
+                          : movie.genres.map((g: string | number) => Number(g))
+                        : undefined,
                     }}
                     isInWatchlist={movie.tmdbId ? isInWatchlist(movie.tmdbId) : false}
                     isWatched={movie.tmdbId ? isWatched(movie.tmdbId) : false}

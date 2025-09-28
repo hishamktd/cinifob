@@ -47,7 +47,22 @@ export async function GET(request: NextRequest) {
     const sortBy = searchParams.get('sort') || 'popular'; // 'popular', 'trending', 'top_rated', 'now_playing', 'on_the_air'
     const genre = searchParams.get('genre'); // Genre ID
 
-    let results = [];
+    interface ContentResult {
+      id: number;
+      tmdbId: number;
+      mediaType: 'movie' | 'tv';
+      title: string;
+      overview?: string;
+      posterPath?: string | null;
+      backdropPath?: string | null;
+      date?: string;
+      voteAverage?: number;
+      voteCount?: number;
+      popularity?: number;
+      genreIds?: number[];
+    }
+
+    let results: ContentResult[] = [];
     let totalPages = 1;
     let totalResults = 0;
 

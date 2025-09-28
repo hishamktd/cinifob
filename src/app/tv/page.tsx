@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, ChangeEvent } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 
 import {
@@ -15,7 +15,14 @@ import {
 } from '@mui/material';
 
 import { ContentCard } from '@/components/content-card';
-import { AppSearchBar, AppPagination, AppEmptyState, MainLayout, AppTabs, type AppTabItem } from '@core/components';
+import {
+  AppSearchBar,
+  AppPagination,
+  AppEmptyState,
+  MainLayout,
+  AppTabs,
+  type AppTabItem,
+} from '@core/components';
 import { useToast } from '@/hooks/useToast';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -143,8 +150,8 @@ export default function TVPage() {
     }
   };
 
-  const handleGenreChange = (event: ChangeEvent<{ value: unknown }>) => {
-    setSelectedGenre(event.target.value as string);
+  const handleGenreChange = (event: { target: { value: string } }) => {
+    setSelectedGenre(event.target.value);
     setPage(1);
   };
 
