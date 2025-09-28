@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { PrismaClient } from '@prisma/client';
-
-const prisma = new PrismaClient();
+import { authOptions } from '@/lib/auth';
+import { prisma } from '@core/lib/prisma';
 
 // GET - Get user's episode statuses for a TV show or season
 export async function GET(request: NextRequest) {
@@ -38,7 +36,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query for user episodes
-    const whereClause: Record<string, unknown> = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const whereClause: any = {
       userId: session.user.id,
       episode: {
         season: {

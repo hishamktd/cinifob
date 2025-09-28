@@ -332,6 +332,9 @@ export default function DashboardPage() {
                               )}
                             </Box>
                           }
+                          secondaryTypographyProps={{
+                            component: 'div',
+                          }}
                         />
                       </ListItem>
                     ))}

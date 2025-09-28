@@ -1,0 +1,107 @@
+
+> cinifob-app@0.1.0 build
+> prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (v6.16.2) to ./src/generated/prisma in 135ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+
+   ▲ Next.js 15.5.4
+   - Environments: .env
+
+   Creating an optimized production build ...
+> [PWA] Compile server
+> [PWA] Compile server
+> [PWA] Compile client (static)
+> [PWA] Auto register service worker with: /home/kiebot/projects/fun/cinifob-app/node_modules/.pnpm/next-pwa@5.6.0_@babel+core@7.28.4_@types+babel__core@7.20.5_next@15.5.4_@babel+core@7.2_3632798350bb163ef956f535b3ad0f90/node_modules/next-pwa/register.js
+> [PWA] Service worker: /home/kiebot/projects/fun/cinifob-app/public/sw.js
+> [PWA]   url: /sw.js
+> [PWA]   scope: /
+ ⚠ Compiled with warnings in 17.4s
+
+./src/app/watchlist/unified/page.tsx
+Attempted import error: 'useToast' is not exported from '@core/components/toast' (imported as 'useToast').
+
+Import trace for requested module:
+./src/app/watchlist/unified/page.tsx
+
+./src/app/watchlist/unified/page.tsx
+Attempted import error: 'useToast' is not exported from '@core/components/toast' (imported as 'useToast').
+
+Import trace for requested module:
+./src/app/watchlist/unified/page.tsx
+
+   Linting and checking validity of types ...
+
+./src/app/page.tsx
+3:41  Warning: 'useMemo' is defined but never used.  @typescript-eslint/no-unused-vars
+27:6  Warning: React Hook useEffect has a missing dependency: 'loadPopularMovies'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/app/tv/[tmdbId]/page.tsx
+16:3  Warning: 'Rating' is defined but never used.  @typescript-eslint/no-unused-vars
+19:3  Warning: 'Dialog' is defined but never used.  @typescript-eslint/no-unused-vars
+20:3  Warning: 'DialogTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+21:3  Warning: 'DialogContent' is defined but never used.  @typescript-eslint/no-unused-vars
+22:3  Warning: 'DialogActions' is defined but never used.  @typescript-eslint/no-unused-vars
+106:10  Warning: 'rating' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+106:18  Warning: 'setRating' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+107:10  Warning: 'ratingDialogOpen' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+107:28  Warning: 'setRatingDialogOpen' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+108:25  Warning: 'setActionLoading' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/tv/page.tsx
+62:17  Warning: 'session' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/app/watchlist/unified/page.tsx
+43:6  Warning: React Hook useEffect has missing dependencies: 'fetchWatchlist' and 'router'. Either include them or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/episode-tracker/index.tsx
+9:3  Warning: 'Checkbox' is defined but never used.  @typescript-eslint/no-unused-vars
+18:3  Warning: 'Button' is defined but never used.  @typescript-eslint/no-unused-vars
+67:3  Warning: 'tvShowName' is defined but never used.  @typescript-eslint/no-unused-vars
+85:17  Warning: 'transformedStatus' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/components/related-content/index.tsx
+51:9  Warning: 'router' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+63:6  Warning: React Hook useEffect has a missing dependency: 'fetchRelatedContent'. Either include it or remove the dependency array.  react-hooks/exhaustive-deps
+
+./src/components/watched-movie-card/styled-components.tsx
+10:48  Warning: 'theme' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/core/components/app-search-bar/index.tsx
+15:3  Warning: 'SxProps' is defined but never used.  @typescript-eslint/no-unused-vars
+16:3  Warning: 'Theme' is defined but never used.  @typescript-eslint/no-unused-vars
+20:29  Warning: 'SearchSuggestion' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/core/components/app-tabs/index.tsx
+6:25  Warning: 'AppTabItem' is defined but never used.  @typescript-eslint/no-unused-vars
+
+./src/core/components/layout/app-header/index.tsx
+14:3  Warning: 'Chip' is defined but never used.  @typescript-eslint/no-unused-vars
+29:19  Warning: 'AppButton' is defined but never used.  @typescript-eslint/no-unused-vars
+29:30  Warning: 'AppSearchBar' is defined but never used.  @typescript-eslint/no-unused-vars
+147:9  Warning: 'handleSearchChange' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+./src/core/components/layout/mobile-drawer/index.tsx
+4:8  Warning: 'Link' is defined but never used.  @typescript-eslint/no-unused-vars
+136:10  Warning: 'statsLoading' is assigned a value but never used.  @typescript-eslint/no-unused-vars
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+Failed to compile.
+
+./src/app/api/user/episodes/status/route.ts:4:10
+Type error: Module '"@prisma/client"' has no exported member 'PrismaClient'.
+
+[0m [90m 2 |[39m [36mimport[39m { getServerSession } [36mfrom[39m [32m'next-auth'[39m[33m;[39m
+ [90m 3 |[39m [36mimport[39m { authOptions } [36mfrom[39m [32m'@/lib/auth'[39m[33m;[39m
+[31m[1m>[22m[39m[90m 4 |[39m [36mimport[39m { [33mPrismaClient[39m } [36mfrom[39m [32m'@prisma/client'[39m[33m;[39m
+ [90m   |[39m          [31m[1m^[22m[39m
+ [90m 5 |[39m
+ [90m 6 |[39m [36mconst[39m prisma [33m=[39m [36mnew[39m [33mPrismaClient[39m()[33m;[39m
+ [90m 7 |[39m[0m
+Next.js build worker exited with code: 1 and signal: null

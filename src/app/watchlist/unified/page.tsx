@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import dayjs, { Dayjs } from 'dayjs';
@@ -8,7 +8,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import UnifiedWatchlistPageView from '@/views/unified-watchlist';
 import { UserMovie, UserTVShow, ContentItem } from '@/types';
 import { MainLayout } from '@core/components/layout';
-import { useToast } from '@core/components/toast';
+import { useToast } from '@/hooks/useToast';
 
 const UnifiedWatchlistPage = () => {
   const { data: session } = useSession();
@@ -40,9 +40,10 @@ const UnifiedWatchlistPage = () => {
       return;
     }
     fetchWatchlist();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
-  const fetchWatchlist = async () => {
+  const fetchWatchlist = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -65,7 +66,7 @@ const UnifiedWatchlistPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [showToast]);
 
   const handleRemoveFromWatchlist = async (tmdbId: number, mediaType: 'movie' | 'tv') => {
     try {
