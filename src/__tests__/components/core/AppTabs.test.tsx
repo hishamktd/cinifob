@@ -13,17 +13,11 @@ describe('AppTabs', () => {
   const mockTabs = [
     { id: 'movies', label: 'Movies', content: <div>Movies content</div> },
     { id: 'tv-shows', label: 'TV Shows', content: <div>TV Shows content</div> },
-    { id: 'watchlist', label: 'Watchlist', content: <div>Watchlist content</div> }
+    { id: 'watchlist', label: 'Watchlist', content: <div>Watchlist content</div> },
   ];
 
   it('renders all tabs', () => {
-    renderWithTheme(
-      <AppTabs
-        tabs={mockTabs}
-        defaultTab="movies"
-        onChange={() => {}}
-      />
-    );
+    renderWithTheme(<AppTabs tabs={mockTabs} defaultTab="movies" onChange={() => {}} />);
 
     expect(screen.getByText('Movies')).toBeInTheDocument();
     expect(screen.getByText('TV Shows')).toBeInTheDocument();
@@ -31,26 +25,14 @@ describe('AppTabs', () => {
   });
 
   it('renders tab content', () => {
-    renderWithTheme(
-      <AppTabs
-        tabs={mockTabs}
-        defaultTab="movies"
-        onChange={() => {}}
-      />
-    );
+    renderWithTheme(<AppTabs tabs={mockTabs} defaultTab="movies" onChange={() => {}} />);
 
     expect(screen.getByText('Movies content')).toBeInTheDocument();
   });
 
   it('calls onChange when tab is clicked', () => {
     const handleChange = vi.fn();
-    renderWithTheme(
-      <AppTabs
-        tabs={mockTabs}
-        defaultTab="movies"
-        onChange={handleChange}
-      />
-    );
+    renderWithTheme(<AppTabs tabs={mockTabs} defaultTab="movies" onChange={handleChange} />);
 
     const watchlistTab = screen.getByRole('tab', { name: /Watchlist/ });
     fireEvent.click(watchlistTab);
@@ -60,12 +42,7 @@ describe('AppTabs', () => {
 
   it('renders with custom variant', () => {
     const { container } = renderWithTheme(
-      <AppTabs
-        tabs={mockTabs}
-        defaultTab="movies"
-        onChange={() => {}}
-        variant="fullWidth"
-      />
+      <AppTabs tabs={mockTabs} defaultTab="movies" onChange={() => {}} variant="fullWidth" />,
     );
 
     const tabsElement = container.querySelector('.MuiTabs-root');
@@ -74,12 +51,7 @@ describe('AppTabs', () => {
 
   it('renders centered tabs', () => {
     const { container } = renderWithTheme(
-      <AppTabs
-        tabs={mockTabs}
-        defaultTab="movies"
-        onChange={() => {}}
-        centered
-      />
+      <AppTabs tabs={mockTabs} defaultTab="movies" onChange={() => {}} centered />,
     );
 
     const tabs = container.querySelector('.MuiTabs-centered');
@@ -89,16 +61,10 @@ describe('AppTabs', () => {
   it('renders with icons', () => {
     const tabsWithIcons = [
       { id: 'movies', label: 'Movies', content: <div>Movies content</div>, icon: 'mdi:movie' },
-      { id: 'tv-shows', label: 'TV Shows', content: <div>TV content</div>, icon: 'mdi:television' }
+      { id: 'tv-shows', label: 'TV Shows', content: <div>TV content</div>, icon: 'mdi:television' },
     ];
 
-    renderWithTheme(
-      <AppTabs
-        tabs={tabsWithIcons}
-        defaultTab="movies"
-        onChange={() => {}}
-      />
-    );
+    renderWithTheme(<AppTabs tabs={tabsWithIcons} defaultTab="movies" onChange={() => {}} />);
 
     // Check that both tabs render with their labels
     const movieLabels = screen.getAllByText('Movies');
@@ -110,16 +76,10 @@ describe('AppTabs', () => {
   it('handles disabled tabs', () => {
     const tabsWithDisabled = [
       { id: 'movies', label: 'Movies', content: <div>Movies</div> },
-      { id: 'coming', label: 'Coming Soon', content: <div>Coming</div>, disabled: true }
+      { id: 'coming', label: 'Coming Soon', content: <div>Coming</div>, disabled: true },
     ];
 
-    renderWithTheme(
-      <AppTabs
-        tabs={tabsWithDisabled}
-        defaultTab="movies"
-        onChange={() => {}}
-      />
-    );
+    renderWithTheme(<AppTabs tabs={tabsWithDisabled} defaultTab="movies" onChange={() => {}} />);
 
     const disabledTab = screen.getByRole('tab', { name: /Coming Soon/ });
     expect(disabledTab).toBeDisabled();
@@ -128,16 +88,10 @@ describe('AppTabs', () => {
   it('renders with badges', () => {
     const tabsWithBadges = [
       { id: 'movies', label: 'Movies', content: <div>Movies</div>, badge: 5 },
-      { id: 'tv-shows', label: 'TV Shows', content: <div>TV</div>, badge: 3 }
+      { id: 'tv-shows', label: 'TV Shows', content: <div>TV</div>, badge: 3 },
     ];
 
-    renderWithTheme(
-      <AppTabs
-        tabs={tabsWithBadges}
-        defaultTab="movies"
-        onChange={() => {}}
-      />
-    );
+    renderWithTheme(<AppTabs tabs={tabsWithBadges} defaultTab="movies" onChange={() => {}} />);
 
     expect(screen.getByText('5')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
@@ -145,12 +99,7 @@ describe('AppTabs', () => {
 
   it('renders with vertical orientation', () => {
     renderWithTheme(
-      <AppTabs
-        tabs={mockTabs}
-        defaultTab="movies"
-        onChange={() => {}}
-        orientation="vertical"
-      />
+      <AppTabs tabs={mockTabs} defaultTab="movies" onChange={() => {}} orientation="vertical" />,
     );
 
     const tabList = screen.getByRole('tablist');

@@ -56,7 +56,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { tmdbId, seasonNumber, episodeNumber, watched = true, rating, notes } = body;
+    const { tmdbId, seasonNumber, episodeNumber, watched = true, rating } = body;
+    const status = watched ? 'watched' : 'planned';
 
     if (!tmdbId || seasonNumber === undefined || episodeNumber === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -68,19 +69,40 @@ export async function POST(request: NextRequest) {
     });
 
     if (!tvShow) {
-      // Fetch TV show from our API to ensure it's saved to database
-      const tvResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/tv/${tmdbId}`,
+      // Fetch TV show data from TMDB and save it
+      const tmdbResponse = await fetch(
+        `${process.env.TMDB_API_URL || 'https://api.themoviedb.org/3'}/tv/${tmdbId}?api_key=${process.env.TMDB_API_KEY}`,
       );
 
-      if (!tvResponse.ok) {
-        return NextResponse.json({ error: 'Failed to fetch TV show' }, { status: 404 });
-      }
+      if (tmdbResponse.ok) {
+        const tmdbData = await tmdbResponse.json();
 
-      // Try to find it again after the API call (which should have saved it)
-      tvShow = await prisma.tVShow.findUnique({
-        where: { tmdbId: parseInt(tmdbId) },
-      });
+        // Create the TV show in our database
+        tvShow = await prisma.tVShow.create({
+          data: {
+            tmdbId: parseInt(tmdbId),
+            name: tmdbData.name,
+            originalName: tmdbData.original_name,
+            overview: tmdbData.overview,
+            posterPath: tmdbData.poster_path,
+            backdropPath: tmdbData.backdrop_path,
+            firstAirDate: tmdbData.first_air_date ? new Date(tmdbData.first_air_date) : null,
+            lastAirDate: tmdbData.last_air_date ? new Date(tmdbData.last_air_date) : null,
+            voteAverage: tmdbData.vote_average,
+            voteCount: tmdbData.vote_count,
+            numberOfSeasons: tmdbData.number_of_seasons,
+            numberOfEpisodes: tmdbData.number_of_episodes,
+            episodeRunTime: tmdbData.episode_run_time || [],
+            inProduction: tmdbData.in_production || false,
+            status: tmdbData.status,
+            type: tmdbData.type,
+            homepage: tmdbData.homepage,
+            originalLanguage: tmdbData.original_language,
+            popularity: tmdbData.popularity,
+            tagline: tmdbData.tagline,
+          },
+        });
+      }
 
       if (!tvShow) {
         return NextResponse.json({ error: 'TV show not found' }, { status: 404 });
@@ -99,24 +121,63 @@ export async function POST(request: NextRequest) {
     });
 
     if (!episode) {
-      // Fetch episode data from API
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/tv/${tmdbId}/season/${seasonNumber}`,
+      // Fetch season data from TMDB API
+      const seasonResponse = await fetch(
+        `${process.env.TMDB_API_URL || 'https://api.themoviedb.org/3'}/tv/${tmdbId}/season/${seasonNumber}?api_key=${process.env.TMDB_API_KEY}`,
       );
-      if (!response.ok) {
-        return NextResponse.json({ error: 'Failed to fetch season data' }, { status: 404 });
-      }
 
-      // Check again if episode was created
-      episode = await prisma.episode.findUnique({
-        where: {
-          tvShowId_seasonNumber_episodeNumber: {
-            tvShowId: tvShow.id,
-            seasonNumber: parseInt(seasonNumber),
-            episodeNumber: parseInt(episodeNumber),
+      if (seasonResponse.ok) {
+        const seasonData = await seasonResponse.json();
+
+        // Find the season or create it
+        let season = await prisma.season.findUnique({
+          where: {
+            tvShowId_seasonNumber: {
+              tvShowId: tvShow.id,
+              seasonNumber: parseInt(seasonNumber),
+            },
           },
-        },
-      });
+        });
+
+        if (!season) {
+          season = await prisma.season.create({
+            data: {
+              tvShowId: tvShow.id,
+              seasonNumber: parseInt(seasonNumber),
+              name: seasonData.name,
+              overview: seasonData.overview,
+              posterPath: seasonData.poster_path,
+              airDate: seasonData.air_date ? new Date(seasonData.air_date) : null,
+              episodeCount: seasonData.episodes?.length || 0,
+            },
+          });
+        }
+
+        // Find the specific episode in the season data
+        const episodeData = seasonData.episodes?.find(
+          (ep: { episode_number: number }) => ep.episode_number === parseInt(episodeNumber),
+        );
+
+        if (episodeData) {
+          // Create the episode
+          episode = await prisma.episode.create({
+            data: {
+              tvShowId: tvShow.id,
+              seasonId: season.id,
+              seasonNumber: parseInt(seasonNumber),
+              episodeNumber: parseInt(episodeNumber),
+              name: episodeData.name,
+              overview: episodeData.overview,
+              stillPath: episodeData.still_path,
+              airDate: episodeData.air_date ? new Date(episodeData.air_date) : null,
+              runtime: episodeData.runtime,
+              voteAverage: episodeData.vote_average,
+              voteCount: episodeData.vote_count,
+              productionCode: episodeData.production_code,
+            },
+          });
+        }
+      }
 
       if (!episode) {
         return NextResponse.json({ error: 'Episode not found' }, { status: 404 });
@@ -143,10 +204,9 @@ export async function POST(request: NextRequest) {
           },
         },
         data: {
-          watched,
+          status,
           ...(watched && { watchedAt: new Date() }),
           ...(rating !== undefined && { rating }),
-          ...(notes !== undefined && { notes }),
         },
       });
 
@@ -164,10 +224,9 @@ export async function POST(request: NextRequest) {
       data: {
         userId: parseInt(session.user.id),
         episodeId: episode.id,
-        watched,
+        status,
         ...(watched && { watchedAt: new Date() }),
         ...(rating !== undefined && { rating }),
-        ...(notes !== undefined && { notes }),
       },
     });
 
@@ -189,7 +248,7 @@ async function updateTVShowProgress(userId: number, tvShowId: number) {
   const watchedEpisodes = await prisma.userEpisode.findMany({
     where: {
       userId,
-      watched: true,
+      status: 'watched',
       episode: {
         tvShowId,
       },
@@ -197,15 +256,12 @@ async function updateTVShowProgress(userId: number, tvShowId: number) {
     include: {
       episode: true,
     },
-    orderBy: [
-      { episode: { seasonNumber: 'desc' } },
-      { episode: { episodeNumber: 'desc' } },
-    ],
+    orderBy: [{ episode: { seasonNumber: 'desc' } }, { episode: { episodeNumber: 'desc' } }],
   });
 
   if (watchedEpisodes.length === 0) return;
 
-  const latestEpisode = watchedEpisodes[0].episode;
+  // const latestEpisode = watchedEpisodes[0].episode;
 
   // Check if user has a TV show entry
   const userTVShow = await prisma.userTVShow.findUnique({
@@ -224,8 +280,6 @@ async function updateTVShowProgress(userId: number, tvShowId: number) {
         userId,
         tvShowId,
         status: 'WATCHING',
-        currentSeason: latestEpisode.seasonNumber,
-        currentEpisode: latestEpisode.episodeNumber,
         startedAt: new Date(),
       },
     });
@@ -246,8 +300,6 @@ async function updateTVShowProgress(userId: number, tvShowId: number) {
         },
       },
       data: {
-        currentSeason: latestEpisode.seasonNumber,
-        currentEpisode: latestEpisode.episodeNumber,
         ...(isCompleted && {
           status: 'COMPLETED',
           completedAt: new Date(),

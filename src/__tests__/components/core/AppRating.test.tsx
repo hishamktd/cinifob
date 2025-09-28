@@ -25,13 +25,7 @@ describe('AppRating', () => {
 
   it('handles onChange when not read-only', () => {
     const handleChange = vi.fn();
-    renderWithTheme(
-      <AppRating
-        value={2}
-        onChange={handleChange}
-        readOnly={false}
-      />
-    );
+    renderWithTheme(<AppRating value={2} onChange={handleChange} readOnly={false} />);
 
     const star4 = screen.getByRole('radio', { name: '4 Stars' });
     fireEvent.click(star4);
@@ -54,9 +48,7 @@ describe('AppRating', () => {
   });
 
   it('renders with custom size', () => {
-    const { container } = renderWithTheme(
-      <AppRating value={4} size="large" />
-    );
+    const { container } = renderWithTheme(<AppRating value={4} size="large" />);
     const rating = container.querySelector('.MuiRating-sizeLarge');
     expect(rating).toBeInTheDocument();
   });
@@ -68,30 +60,22 @@ describe('AppRating', () => {
   });
 
   it('shows value when showValue is true', () => {
-    renderWithTheme(
-      <AppRating value={4} showValue />
-    );
+    renderWithTheme(<AppRating value={4} showValue />);
     expect(screen.getByText('4.0')).toBeInTheDocument();
   });
 
   it('renders with label', () => {
-    renderWithTheme(
-      <AppRating value={4} label="Rating" />
-    );
+    renderWithTheme(<AppRating value={4} label="Rating" />);
     expect(screen.getByText('Rating:')).toBeInTheDocument();
   });
 
   it('renders detailed variant', () => {
-    renderWithTheme(
-      <AppRating value={4} variant="detailed" showValue />
-    );
+    renderWithTheme(<AppRating value={4} variant="detailed" showValue />);
     expect(screen.getByText('4.0')).toBeInTheDocument();
   });
 
   it('renders compact variant', () => {
-    renderWithTheme(
-      <AppRating value={4} variant="compact" />
-    );
+    renderWithTheme(<AppRating value={4} variant="compact" />);
     const rating = screen.getByRole('radio', { name: '4 Stars' });
     expect(rating).toBeInTheDocument();
   });

@@ -7,22 +7,12 @@ import dayjs from 'dayjs';
 const theme = createTheme();
 
 const renderWithProviders = (component: React.ReactElement) => {
-  return render(
-    <ThemeProvider theme={theme}>
-      {component}
-    </ThemeProvider>
-  );
+  return render(<ThemeProvider theme={theme}>{component}</ThemeProvider>);
 };
 
 describe('AppDatePicker', () => {
   it('renders with label', () => {
-    renderWithProviders(
-      <AppDatePicker
-        label="Select Date"
-        value={null}
-        onChange={() => {}}
-      />
-    );
+    renderWithProviders(<AppDatePicker label="Select Date" value={null} onChange={() => {}} />);
     // Check that the date picker renders with the label (there may be multiple, so get all)
     const labels = screen.getAllByText('Select Date');
     expect(labels.length).toBeGreaterThan(0);
@@ -30,26 +20,14 @@ describe('AppDatePicker', () => {
 
   it('displays selected date', () => {
     const date = dayjs('2024-01-15');
-    renderWithProviders(
-      <AppDatePicker
-        label="Date"
-        value={date}
-        onChange={() => {}}
-      />
-    );
+    renderWithProviders(<AppDatePicker label="Date" value={date} onChange={() => {}} />);
     const monthInput = screen.getByLabelText('Month');
     expect(monthInput).toBeInTheDocument();
   });
 
   it('calls onChange when date picker opens', () => {
     const handleChange = vi.fn();
-    renderWithProviders(
-      <AppDatePicker
-        label="Date"
-        value={null}
-        onChange={handleChange}
-      />
-    );
+    renderWithProviders(<AppDatePicker label="Date" value={null} onChange={handleChange} />);
 
     const openButton = screen.getByLabelText('Choose date');
     fireEvent.click(openButton);
@@ -59,14 +37,7 @@ describe('AppDatePicker', () => {
   });
 
   it('handles disabled state', () => {
-    renderWithProviders(
-      <AppDatePicker
-        label="Date"
-        value={null}
-        onChange={() => {}}
-        disabled
-      />
-    );
+    renderWithProviders(<AppDatePicker label="Date" value={null} onChange={() => {}} disabled />);
 
     const openButton = screen.getByLabelText('Choose date');
     expect(openButton).toBeDisabled();
@@ -80,7 +51,7 @@ describe('AppDatePicker', () => {
         onChange={() => {}}
         error
         helperText="Invalid date"
-      />
+      />,
     );
 
     expect(screen.getByText('Invalid date')).toBeInTheDocument();
@@ -89,12 +60,7 @@ describe('AppDatePicker', () => {
   it('renders with custom format', () => {
     const date = dayjs('2024-01-15');
     renderWithProviders(
-      <AppDatePicker
-        label="Date"
-        value={date}
-        onChange={() => {}}
-        format="DD/MM/YYYY"
-      />
+      <AppDatePicker label="Date" value={date} onChange={() => {}} format="DD/MM/YYYY" />,
     );
 
     const monthInput = screen.getByLabelText('Month');
@@ -102,14 +68,7 @@ describe('AppDatePicker', () => {
   });
 
   it('accepts fullWidth prop', () => {
-    renderWithProviders(
-      <AppDatePicker
-        label="Date"
-        value={null}
-        onChange={() => {}}
-        fullWidth
-      />
-    );
+    renderWithProviders(<AppDatePicker label="Date" value={null} onChange={() => {}} fullWidth />);
 
     const labels = screen.getAllByText('Date');
     expect(labels.length).toBeGreaterThan(0);
@@ -117,12 +76,7 @@ describe('AppDatePicker', () => {
 
   it('accepts size prop', () => {
     renderWithProviders(
-      <AppDatePicker
-        label="Date"
-        value={null}
-        onChange={() => {}}
-        size="small"
-      />
+      <AppDatePicker label="Date" value={null} onChange={() => {}} size="small" />,
     );
 
     const labels = screen.getAllByText('Date');

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 import {
   Box,
@@ -48,7 +47,7 @@ export const RelatedContent = ({
   maxItems = 8,
   showTypeFilter = true,
 }: RelatedContentProps) => {
-  const router = useRouter();
+  // const router = useRouter(); // Unused variable
   const { showToast } = useToast();
   const { addToWatchlist, removeFromWatchlist, markAsWatched, isInWatchlist, isWatched } =
     useMovieStatus();

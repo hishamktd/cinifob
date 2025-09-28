@@ -7,7 +7,7 @@ export const WatchedMovieCardWrapper = styled(Box)({
   height: '100%',
 });
 
-export const StyledMovieCard = styled(Card)(({ theme }) => ({
+export const StyledMovieCard = styled(Card)(() => ({
   cursor: 'pointer',
   transition: 'all 0.3s ease',
   position: 'relative',

@@ -11,11 +11,12 @@ import { MovieStatusProvider } from '@/contexts/MovieStatusContext';
 import { toastSlice } from '@core/store/slices/toast.slice';
 
 // Create a test store
-const createTestStore = () => configureStore({
-  reducer: {
-    toast: toastSlice.reducer,
-  },
-});
+const createTestStore = () =>
+  configureStore({
+    reducer: {
+      toast: toastSlice.reducer,
+    },
+  });
 
 // Create test theme
 const theme = createTheme();
@@ -30,10 +31,13 @@ const mockSession = {
   expires: '2025-12-31T23:59:59.999Z',
 };
 
+import { Session } from 'next-auth';
+import { Store } from '@reduxjs/toolkit';
+
 interface TestWrapperProps {
   children: React.ReactNode;
-  session?: any;
-  store?: any;
+  session?: Session | null;
+  store?: Store;
 }
 
 export const TestWrapper: React.FC<TestWrapperProps> = ({
@@ -47,9 +51,7 @@ export const TestWrapper: React.FC<TestWrapperProps> = ({
         <ThemeProvider theme={theme}>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <ToastProvider>
-              <MovieStatusProvider>
-                {children}
-              </MovieStatusProvider>
+              <MovieStatusProvider>{children}</MovieStatusProvider>
             </ToastProvider>
           </LocalizationProvider>
         </ThemeProvider>
@@ -61,16 +63,12 @@ export const TestWrapper: React.FC<TestWrapperProps> = ({
 export const renderWithProviders = (
   ui: React.ReactElement,
   options?: {
-    session?: any;
-    store?: any;
-  }
+    session?: Session | null;
+    store?: Store;
+  },
 ) => {
   return {
-    ...render(
-      <TestWrapper {...options}>
-        {ui}
-      </TestWrapper>
-    ),
+    ...render(<TestWrapper {...options}>{ui}</TestWrapper>),
   };
 };
 

@@ -5,7 +5,7 @@ class MovieService {
 
   async searchMovies(query: string, page = 1) {
     const response = await axios.get(`${this.baseUrl}/movies/search`, {
-      params: { query, page }
+      params: { query, page },
     });
     return response.data;
   }
@@ -18,14 +18,14 @@ class MovieService {
   async addToWatchlist(movieId: number) {
     const response = await axios.post(`${this.baseUrl}/user/watchlist`, {
       movieId,
-      mediaType: 'movie'
+      mediaType: 'movie',
     });
     return response.data;
   }
 
   async removeFromWatchlist(movieId: number) {
     const response = await axios.delete(`${this.baseUrl}/user/watchlist`, {
-      data: { movieId, mediaType: 'movie' }
+      data: { movieId, mediaType: 'movie' },
     });
     return response.data;
   }
@@ -34,7 +34,7 @@ class MovieService {
     const response = await axios.post(`${this.baseUrl}/user/watched`, {
       movieId,
       mediaType: 'movie',
-      rating
+      rating,
     });
     return response.data;
   }
@@ -51,14 +51,14 @@ class MovieService {
 
   async getMovieStatus(movieId: number) {
     const response = await axios.get(`${this.baseUrl}/user/movie-status`, {
-      params: { movieId }
+      params: { movieId },
     });
     return response.data;
   }
 
   async getBrowseMovies(category: string, page = 1) {
     const response = await axios.get(`${this.baseUrl}/browse`, {
-      params: { category, page }
+      params: { category, page },
     });
     return response.data;
   }

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
-import { useSession } from 'next-auth/react';
 
 import { Box, Container, Grid, Typography, Chip } from '@mui/material';
 
@@ -59,7 +58,6 @@ const TV_GENRES: Genre[] = [
 ];
 
 export default function TVPage() {
-  const { data: session } = useSession();
   const { showToast } = useToast();
 
   const [tvShows, setTvShows] = useState<TVShow[]>([]);
@@ -77,49 +75,51 @@ export default function TVPage() {
     try {
       const params = new URLSearchParams({
         page: page.toString(),
-        mediaType: 'tv',
-        sortBy: sortBy,
+        type: 'tv',
+        sort: sortBy,
       });
 
       if (debouncedSearchQuery) {
-        params.append('search', debouncedSearchQuery);
+        params.append('query', debouncedSearchQuery);
       }
 
       if (selectedGenre) {
-        params.append('genres', selectedGenre.value.toString());
+        params.append('genre', selectedGenre.value.toString());
       }
 
       const response = await fetch(`/api/browse?${params}`);
       const data = await response.json();
 
       if (data.results) {
-        interface TMDBShow {
-          id: number;
-          name?: string;
-          original_name?: string;
-          overview?: string;
-          poster_path?: string | null;
-          backdrop_path?: string | null;
-          first_air_date?: string;
-          vote_average?: number;
-          vote_count?: number;
-          popularity?: number;
-          genre_ids?: number[];
-        }
-        const transformedShows = data.results.map((show: TMDBShow) => ({
-          id: show.id,
-          tmdbId: show.id,
-          mediaType: 'tv' as const,
-          title: show.name || show.original_name,
-          overview: show.overview,
-          posterPath: show.poster_path,
-          backdropPath: show.backdrop_path,
-          date: show.first_air_date,
-          voteAverage: show.vote_average,
-          voteCount: show.vote_count,
-          popularity: show.popularity,
-          genreIds: show.genre_ids,
-        }));
+        // The API already returns data in the correct format
+        const transformedShows = data.results.map(
+          (show: {
+            id?: number;
+            tmdbId?: number;
+            name?: string;
+            title?: string;
+            posterPath?: string;
+            poster_path?: string;
+            overview?: string;
+            firstAirDate?: string;
+            first_air_date?: string;
+            voteAverage?: number;
+            vote_average?: number;
+          }) => ({
+            id: show.id || show.tmdbId,
+            tmdbId: show.tmdbId || show.id,
+            mediaType: 'tv' as const,
+            title: show.title || show.name,
+            overview: show.overview,
+            posterPath: show.posterPath,
+            backdropPath: show.backdropPath,
+            date: show.date,
+            voteAverage: show.voteAverage,
+            voteCount: show.voteCount,
+            popularity: show.popularity,
+            genreIds: show.genreIds,
+          }),
+        );
         setTvShows(transformedShows);
         setTotalPages(data.totalPages || 0);
         setTotalResults(data.totalResults || 0);
@@ -265,18 +265,12 @@ export default function TVPage() {
         {loading ? (
           <Grid container spacing={3}>
             {Array.from({ length: 12 }).map((_, index) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={index}>
+              <Grid size={{ xs: 4, sm: 6, md: 4, lg: 3 }} key={index}>
                 <Box
                   sx={{
                     height: 400,
                     bgcolor: 'action.hover',
                     borderRadius: 2,
-                    animation: 'pulse 1.5s ease-in-out infinite',
-                    '@keyframes pulse': {
-                      '0%': { opacity: 0.6 },
-                      '50%': { opacity: 1 },
-                      '100%': { opacity: 0.6 },
-                    },
                   }}
                 />
               </Grid>
@@ -294,9 +288,9 @@ export default function TVPage() {
           />
         ) : (
           <>
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
               {tvShows.map((tvShow) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={`tv-${tvShow.tmdbId}`}>
+                <Grid size={{ xs: 4, sm: 6, md: 4, lg: 3 }} key={`tv-${tvShow.tmdbId}`}>
                   <ContentCard item={tvShow} />
                 </Grid>
               ))}

@@ -5,14 +5,22 @@ const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_API_BASE_URL = process.env.TMDB_API_URL || 'https://api.themoviedb.org/3';
 
 async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
+  let lastError: Error | null = null;
+
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await fetch(url, {
         headers: {
           'Content-Type': 'application/json',
         },
+        signal: controller.signal,
         next: { revalidate: 3600 }, // Cache for 1 hour
       });
+
+      clearTimeout(timeout);
 
       if (response.ok) {
         return response;
@@ -22,20 +30,30 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
         throw new Error(`TMDb API error: ${response.status}`);
       }
 
-      if (attempt < retries) {
-        const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
-        await new Promise((resolve) => setTimeout(resolve, waitTime));
+      lastError = new Error(`HTTP ${response.status}`);
+    } catch (error: unknown) {
+      lastError = error as Error;
+
+      // Log connection errors
+      if (
+        error instanceof Error &&
+        ((error.cause as { code: string })?.code === 'ECONNRESET' || error.name === 'AbortError')
+      ) {
+        console.log(
+          `Network error on attempt ${attempt}/${retries}:`,
+          (error.cause as { code: string })?.code || error.name,
+        );
       }
-    } catch (error) {
-      if (attempt === retries) {
-        throw error;
-      }
+    }
+
+    // Wait before retry (except on last attempt)
+    if (attempt < retries) {
       const waitTime = Math.min(1000 * Math.pow(2, attempt - 1), 5000);
       await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
   }
 
-  throw new Error('Failed after all retries');
+  throw lastError || new Error('Failed after all retries');
 }
 
 export async function GET(request: NextRequest) {

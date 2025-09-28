@@ -49,10 +49,8 @@ export async function GET(request: NextRequest) {
       numberOfEpisodes: userShow.tvShow.numberOfEpisodes,
       genres: userShow.tvShow.genres.map((g) => g.genre.name),
       status: userShow.status,
-      currentSeason: userShow.currentSeason,
-      currentEpisode: userShow.currentEpisode,
       rating: userShow.rating,
-      notes: userShow.notes,
+      comment: userShow.comment,
       startedAt: userShow.startedAt,
       completedAt: userShow.completedAt,
       addedAt: userShow.createdAt,
@@ -92,7 +90,8 @@ export async function POST(request: NextRequest) {
       if (!response.ok) {
         return NextResponse.json({ error: 'Failed to fetch TV show data' }, { status: 404 });
       }
-      const tvShowData = await response.json();
+      // const tvShowData = await response.json(); // Unused variable
+      await response.json(); // We fetch the data but don't use it
       tvShow = await prisma.tVShow.findUnique({
         where: { tmdbId: parseInt(tmdbId) },
       });

@@ -17,44 +17,27 @@ describe('AppEmptyState', () => {
 
   it('renders with title and description', () => {
     renderWithTheme(
-      <AppEmptyState
-        title="No movies"
-        description="Start adding movies to your watchlist"
-      />
+      <AppEmptyState title="No movies" description="Start adding movies to your watchlist" />,
     );
     expect(screen.getByText('No movies')).toBeInTheDocument();
     expect(screen.getByText('Start adding movies to your watchlist')).toBeInTheDocument();
   });
 
   it('renders with custom icon', () => {
-    renderWithTheme(
-      <AppEmptyState
-        title="Empty"
-        icon="mdi:movie-off"
-      />
-    );
+    renderWithTheme(<AppEmptyState title="Empty" icon="mdi:movie-off" />);
     // Check that the component renders without errors
     expect(screen.getByText('Empty')).toBeInTheDocument();
   });
 
   it('renders with fullHeight', () => {
-    renderWithTheme(
-      <AppEmptyState
-        title="Empty"
-        fullHeight
-      />
-    );
+    renderWithTheme(<AppEmptyState title="Empty" fullHeight />);
     expect(screen.getByText('Empty')).toBeInTheDocument();
   });
 
   it('renders with action button', () => {
     const handleAction = vi.fn();
     renderWithTheme(
-      <AppEmptyState
-        title="No results"
-        actionLabel="Try again"
-        onAction={handleAction}
-      />
+      <AppEmptyState title="No results" actionLabel="Try again" onAction={handleAction} />,
     );
 
     const button = screen.getByRole('button', { name: 'Try again' });
@@ -65,22 +48,12 @@ describe('AppEmptyState', () => {
   });
 
   it('renders with different sizes', () => {
-    renderWithTheme(
-      <AppEmptyState
-        title="Small empty state"
-        size="small"
-      />
-    );
+    renderWithTheme(<AppEmptyState title="Small empty state" size="small" />);
     expect(screen.getByText('Small empty state')).toBeInTheDocument();
   });
 
   it('renders with minimal variant', () => {
-    renderWithTheme(
-      <AppEmptyState
-        title="Minimal"
-        variant="minimal"
-      />
-    );
+    renderWithTheme(<AppEmptyState title="Minimal" variant="minimal" />);
     expect(screen.getByText('Minimal')).toBeInTheDocument();
   });
 });

@@ -792,7 +792,7 @@ export default function MovieDetailPage() {
             <AppDatePicker
               label="Watch Date"
               value={watchedDate}
-              onChange={(newValue) => newValue && setWatchedDate(newValue)}
+              onChange={(newValue: dayjs.Dayjs | null) => newValue && setWatchedDate(newValue)}
               maxDate={dayjs()}
               fullWidth
               sx={{ mb: 3 }}

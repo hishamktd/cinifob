@@ -5,7 +5,7 @@ class TVShowService {
 
   async searchTVShows(query: string, page = 1) {
     const response = await axios.get('/api/tv/search', {
-      params: { query, page }
+      params: { query, page },
     });
     return response.data;
   }
@@ -17,21 +17,21 @@ class TVShowService {
 
   async addToWatchlist(tvShowId: number) {
     const response = await axios.post('/api/user/tv/watchlist', {
-      tvShowId
+      tvShowId,
     });
     return response.data;
   }
 
   async removeFromWatchlist(tvShowId: number) {
     const response = await axios.delete('/api/user/tv/watchlist', {
-      data: { tvShowId }
+      data: { tvShowId },
     });
     return response.data;
   }
 
   async markAsWatching(tvShowId: number) {
     const response = await axios.post('/api/user/tv/watching', {
-      tvShowId
+      tvShowId,
     });
     return response.data;
   }
@@ -39,7 +39,7 @@ class TVShowService {
   async markAsCompleted(tvShowId: number, rating?: number) {
     const response = await axios.post('/api/user/tv/completed', {
       tvShowId,
-      rating
+      rating,
     });
     return response.data;
   }
@@ -53,7 +53,7 @@ class TVShowService {
     const response = await axios.post('/api/user/episodes/watched', {
       tvShowId,
       seasonNumber,
-      episodeNumber
+      episodeNumber,
     });
     return response.data;
   }
@@ -70,14 +70,14 @@ class TVShowService {
 
   async getTVShowStatus(tvShowId: number) {
     const response = await axios.get('/api/user/tv/status', {
-      params: { tvShowId }
+      params: { tvShowId },
     });
     return response.data;
   }
 
   async getEpisodeStatus(tvShowId: number, seasonNumber: number) {
     const response = await axios.get('/api/user/episodes/status', {
-      params: { tvShowId, seasonNumber }
+      params: { tvShowId, seasonNumber },
     });
     return response.data;
   }
@@ -85,14 +85,14 @@ class TVShowService {
   async updateProgress(tvShowId: number, progress: number) {
     const response = await axios.put('/api/user/tv/progress', {
       tvShowId,
-      progress
+      progress,
     });
     return response.data;
   }
 
   async getBrowseTVShows(category: string, page = 1) {
     const response = await axios.get('/api/tv/browse', {
-      params: { category, page }
+      params: { category, page },
     });
     return response.data;
   }

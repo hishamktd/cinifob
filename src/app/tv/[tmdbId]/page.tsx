@@ -13,13 +13,8 @@ import {
   Container,
   Divider,
   Grid,
-  Rating,
   Skeleton,
   Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Tabs,
   Tab,
   Avatar,
@@ -103,8 +98,6 @@ export default function TVShowDetailPage() {
   const [tvShow, setTVShow] = useState<TVShow | null>(null);
   const [loading, setLoading] = useState(true);
   const [tabValue, setTabValue] = useState(0);
-  const [rating, setRating] = useState<number | null>(null);
-  const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
   const [userStatus, setUserStatus] = useState<'WATCHLIST' | 'WATCHING' | 'COMPLETED' | null>(null);
   const [toast, setToast] = useState({
@@ -145,7 +138,7 @@ export default function TVShowDetailPage() {
       const response = await fetch('/api/user/tv');
       if (response.ok) {
         const shows = await response.json();
-        const currentShow = shows.find((s: any) => s.tmdbId === parseInt(tmdbId));
+        const currentShow = shows.find((s: { tmdbId: number }) => s.tmdbId === parseInt(tmdbId));
         if (currentShow) {
           setUserStatus(currentShow.status);
         }
@@ -174,7 +167,11 @@ export default function TVShowDetailPage() {
           setUserStatus(null);
         } else {
           const error = await response.json();
-          setToast({ open: true, message: error.error || 'Failed to remove from watchlist', severity: 'error' });
+          setToast({
+            open: true,
+            message: error.error || 'Failed to remove from watchlist',
+            severity: 'error',
+          });
         }
       } else {
         // Add to watchlist
@@ -192,10 +189,14 @@ export default function TVShowDetailPage() {
           setUserStatus('WATCHLIST');
         } else {
           const error = await response.json();
-          setToast({ open: true, message: error.error || 'Failed to add to watchlist', severity: 'error' });
+          setToast({
+            open: true,
+            message: error.error || 'Failed to add to watchlist',
+            severity: 'error',
+          });
         }
       }
-    } catch (error) {
+    } catch (_error) {
       setToast({ open: true, message: 'Failed to update watchlist', severity: 'error' });
     } finally {
       setActionLoading(false);
@@ -221,7 +222,11 @@ export default function TVShowDetailPage() {
           setUserStatus(null);
         } else {
           const error = await response.json();
-          setToast({ open: true, message: error.error || 'Failed to remove watched status', severity: 'error' });
+          setToast({
+            open: true,
+            message: error.error || 'Failed to remove watched status',
+            severity: 'error',
+          });
         }
       } else {
         // Mark as watched
@@ -239,10 +244,14 @@ export default function TVShowDetailPage() {
           setUserStatus('COMPLETED');
         } else {
           const error = await response.json();
-          setToast({ open: true, message: error.error || 'Failed to mark as watched', severity: 'error' });
+          setToast({
+            open: true,
+            message: error.error || 'Failed to mark as watched',
+            severity: 'error',
+          });
         }
       }
-    } catch (error) {
+    } catch (_error) {
       setToast({ open: true, message: 'Failed to update watched status', severity: 'error' });
     } finally {
       setActionLoading(false);
@@ -390,20 +399,26 @@ export default function TVShowDetailPage() {
                 <Button
                   variant="contained"
                   fullWidth
-                  startIcon={<AppIcon icon={userStatus === 'WATCHLIST' ? "mdi:bookmark-check" : "mdi:bookmark-plus"} />}
+                  startIcon={
+                    <AppIcon
+                      icon={userStatus === 'WATCHLIST' ? 'mdi:bookmark-check' : 'mdi:bookmark-plus'}
+                    />
+                  }
                   onClick={handleAddToWatchlist}
                   disabled={actionLoading}
-                  color={userStatus === 'WATCHLIST' ? "success" : "primary"}
+                  color={userStatus === 'WATCHLIST' ? 'success' : 'primary'}
                 >
                   {userStatus === 'WATCHLIST' ? 'Remove from Watchlist' : 'Add to Watchlist'}
                 </Button>
                 <Button
                   variant="outlined"
                   fullWidth
-                  startIcon={<AppIcon icon={userStatus === 'COMPLETED' ? "mdi:check-circle" : "mdi:check"} />}
+                  startIcon={
+                    <AppIcon icon={userStatus === 'COMPLETED' ? 'mdi:check-circle' : 'mdi:check'} />
+                  }
                   onClick={handleMarkAsWatched}
                   disabled={actionLoading}
-                  color={userStatus === 'COMPLETED' ? "success" : "inherit"}
+                  color={userStatus === 'COMPLETED' ? 'success' : 'inherit'}
                 >
                   {userStatus === 'COMPLETED' ? 'Remove Watched' : 'Mark as Watched'}
                 </Button>
@@ -536,14 +551,15 @@ export default function TVShowDetailPage() {
                 <Box sx={{ py: 3 }}>
                   <EpisodeTracker
                     tvShowId={tvShow.tmdbId}
-                    tvShowName={tvShow.name}
-                    seasons={tvShow.seasons?.map(s => ({
-                      ...s,
-                      season_number: s.seasonNumber || s.season_number,
-                      episode_count: s.episodeCount || s.episode_count,
-                      air_date: s.airDate || s.air_date,
-                      poster_path: s.posterPath || s.poster_path,
-                    })) || []}
+                    seasons={
+                      tvShow.seasons?.map((s) => ({
+                        ...s,
+                        season_number: s.seasonNumber || s.season_number,
+                        episode_count: s.episodeCount || s.episode_count,
+                        air_date: s.airDate || s.air_date,
+                        poster_path: s.posterPath || s.poster_path,
+                      })) || []
+                    }
                     onEpisodeStatusChange={(season, episode, status) => {
                       console.log(`Episode ${season}x${episode} marked as ${status}`);
                     }}

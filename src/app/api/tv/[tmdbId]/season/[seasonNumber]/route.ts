@@ -166,7 +166,7 @@ export async function GET(
     const response = await fetchWithRetry(url);
     const data: TMDBSeason = await response.json();
 
-    if (!data || data.success === false) {
+    if (!data) {
       return NextResponse.json({ error: 'Season not found' }, { status: 404 });
     }
 

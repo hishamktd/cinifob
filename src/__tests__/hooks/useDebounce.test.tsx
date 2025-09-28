@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { useDebounce } from '@hooks/useDebounce';
 
@@ -18,12 +18,9 @@ describe('useDebounce', () => {
   });
 
   it('debounces value changes', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      {
-        initialProps: { value: 'initial', delay: 500 }
-      }
-    );
+    const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 'initial', delay: 500 },
+    });
 
     expect(result.current).toBe('initial');
 
@@ -43,12 +40,9 @@ describe('useDebounce', () => {
   });
 
   it('cancels previous timeout on rapid changes', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      {
-        initialProps: { value: 'first', delay: 500 }
-      }
-    );
+    const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 'first', delay: 500 },
+    });
 
     // Make rapid changes
     rerender({ value: 'second', delay: 500 });
@@ -76,12 +70,9 @@ describe('useDebounce', () => {
   });
 
   it('handles different delay values', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      {
-        initialProps: { value: 'initial', delay: 1000 }
-      }
-    );
+    const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 'initial', delay: 1000 },
+    });
 
     rerender({ value: 'updated', delay: 1000 });
 
@@ -97,12 +88,9 @@ describe('useDebounce', () => {
   });
 
   it('updates immediately when delay is 0', () => {
-    const { result, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      {
-        initialProps: { value: 'initial', delay: 0 }
-      }
-    );
+    const { result, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 'initial', delay: 0 },
+    });
 
     rerender({ value: 'updated', delay: 0 });
 
@@ -116,12 +104,9 @@ describe('useDebounce', () => {
   it('cleans up timeout on unmount', () => {
     const clearTimeoutSpy = vi.spyOn(global, 'clearTimeout');
 
-    const { unmount, rerender } = renderHook(
-      ({ value, delay }) => useDebounce(value, delay),
-      {
-        initialProps: { value: 'initial', delay: 500 }
-      }
-    );
+    const { unmount, rerender } = renderHook(({ value, delay }) => useDebounce(value, delay), {
+      initialProps: { value: 'initial', delay: 500 },
+    });
 
     rerender({ value: 'updated', delay: 500 });
 

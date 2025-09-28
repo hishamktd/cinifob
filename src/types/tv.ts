@@ -75,8 +75,8 @@ export interface UserTVShow {
   tvShowId: number;
   status: TVShowStatus;
   rating?: number | null;
-  startDate?: Date | string | null;
-  completedDate?: Date | string | null;
+  startedAt?: Date | string | null;
+  completedAt?: Date | string | null;
   currentSeason?: number | null;
   currentEpisode?: number | null;
   comment?: string | null;
@@ -106,10 +106,10 @@ export interface ContentItem {
   mediaType: 'movie' | 'tv';
   title: string; // For movies
   name?: string; // For TV shows
-  overview?: string | undefined;
-  posterPath?: string | null | undefined;
-  backdropPath?: string | null | undefined;
-  date?: string | undefined; // releaseDate for movies, firstAirDate for TV
+  overview?: string | null;
+  posterPath?: string | null;
+  backdropPath?: string | null;
+  date?: string; // releaseDate for movies, firstAirDate for TV
   voteAverage?: number | null;
   voteCount?: number | null;
   popularity?: number | null;
@@ -118,6 +118,9 @@ export interface ContentItem {
   genres?: string[] | { id: number; name: string }[] | null;
   genreIds?: number[];
   _createdAt?: string | Date; // For sorting by date added
+  _updatedAt?: string; // For sorting by update date
+  _completedAt?: string; // For watched/completed date
+  _rating?: number | null; // User rating
   numberOfSeasons?: number | null; // For TV shows
   numberOfEpisodes?: number | null; // For TV shows
   status?: string | null; // For TV shows

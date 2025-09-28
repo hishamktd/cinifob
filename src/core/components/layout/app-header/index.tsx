@@ -11,7 +11,6 @@ import {
   Badge,
   Box,
   Button,
-  Chip,
   Fade,
   IconButton,
   InputAdornment,
@@ -26,7 +25,7 @@ import {
   styled,
 } from '@mui/material';
 
-import { AppIcon, AppButton, AppSearchBar } from '@core/components';
+import { AppIcon } from '@core/components';
 import { useThemeContext } from '@/contexts/ThemeContext';
 import { MobileDrawer } from '@core/components/layout/mobile-drawer';
 import { ROUTES } from '@core/constants';
@@ -143,10 +142,6 @@ export const AppHeader = () => {
 
   const handleMobileDrawerOpen = useCallback(() => setMobileDrawerOpen(true), []);
   const handleMobileDrawerClose = useCallback(() => setMobileDrawerOpen(false), []);
-
-  const handleSearchChange = useCallback((value: string) => {
-    setSearchValue(value);
-  }, []);
 
   const handleSearchSubmit = useCallback((value: string) => {
     if (value.trim()) {
@@ -461,13 +456,35 @@ export const AppHeader = () => {
                 transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
               >
-                <MenuItem href={ROUTES.PROFILE} onClick={handleClose} sx={{ gap: 1.5, py: 1 }}>
+                <MenuItem
+                  onClick={() => {
+                    router.push(ROUTES.PROFILE);
+                    handleClose();
+                  }}
+                  sx={{ gap: 1.5, py: 1 }}
+                >
                   <AppIcon icon="solar:user-bold" size={18} />
                   Profile
                 </MenuItem>
-                <MenuItem href="/settings" onClick={handleClose} sx={{ gap: 1.5, py: 1 }}>
+                <MenuItem
+                  onClick={() => {
+                    router.push('/settings');
+                    handleClose();
+                  }}
+                  sx={{ gap: 1.5, py: 1 }}
+                >
                   <AppIcon icon="solar:settings-bold" size={18} />
                   Settings
+                </MenuItem>
+                <MenuItem
+                  onClick={() => {
+                    router.push('/feedback');
+                    handleClose();
+                  }}
+                  sx={{ gap: 1.5, py: 1 }}
+                >
+                  <AppIcon icon="mdi:message-alert" size={18} />
+                  Feedback
                 </MenuItem>
                 <MenuItem
                   onClick={handleSignOut}

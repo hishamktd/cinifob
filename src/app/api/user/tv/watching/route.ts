@@ -80,8 +80,8 @@ export async function POST(request: NextRequest) {
       numberOfSeasons,
       numberOfEpisodes,
       genres,
-      currentSeason,
-      currentEpisode,
+      // currentSeason, // Unused variable
+      // currentEpisode, // Unused variable
     } = data;
 
     // First, ensure the TV show exists in our database
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
         data: {
           status: 'WATCHING',
           startedAt: existingEntry.startedAt || new Date(),
-          // Remove currentSeason and currentEpisode as they don't exist in UserTVShow model
+          // currentSeason and currentEpisode are not used in UserTVShow model
           updatedAt: new Date(),
         },
         include: { tvShow: true },

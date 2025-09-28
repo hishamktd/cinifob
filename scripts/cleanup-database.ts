@@ -264,7 +264,9 @@ async function cleanupDatabase(options: CleanupOptions = {}) {
 
           // 15. Delete TVShowProductionCompany records
           const tvShowCompaniesDeleted = await tx.tVShowProductionCompany.deleteMany({});
-          results.push(`✅ Deleted ${tvShowCompaniesDeleted.count} TV show production company records`);
+          results.push(
+            `✅ Deleted ${tvShowCompaniesDeleted.count} TV show production company records`,
+          );
 
           // 16. Delete Episode records
           const episodesDeleted = await tx.episode.deleteMany({});

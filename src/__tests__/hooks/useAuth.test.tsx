@@ -1,4 +1,4 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useAuth } from '@/hooks/useAuth';
 import { SessionProvider } from 'next-auth/react';
@@ -10,7 +10,7 @@ vi.mock('next-auth/react', () => ({
   useSession: vi.fn(),
   signIn: vi.fn(),
   signOut: vi.fn(),
-  getSession: vi.fn()
+  getSession: vi.fn(),
 }));
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -27,15 +27,15 @@ describe('useAuth', () => {
       user: {
         id: 'user123',
         email: 'test@example.com',
-        name: 'Test User'
+        name: 'Test User',
       },
-      expires: '2025-01-01'
+      expires: '2025-01-01',
     };
 
     vi.mocked(useSession).mockReturnValue({
       data: mockSession,
       status: 'authenticated',
-      update: vi.fn()
+      update: vi.fn(),
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -49,7 +49,7 @@ describe('useAuth', () => {
     vi.mocked(useSession).mockReturnValue({
       data: null,
       status: 'unauthenticated',
-      update: vi.fn()
+      update: vi.fn(),
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -63,7 +63,7 @@ describe('useAuth', () => {
     vi.mocked(useSession).mockReturnValue({
       data: null,
       status: 'loading',
-      update: vi.fn()
+      update: vi.fn(),
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -77,14 +77,14 @@ describe('useAuth', () => {
     vi.mocked(useSession).mockReturnValue({
       data: null,
       status: 'unauthenticated',
-      update: vi.fn()
+      update: vi.fn(),
     });
 
     vi.mocked(signIn).mockResolvedValue({
       error: null,
       ok: true,
       status: 200,
-      url: '/dashboard'
+      url: '/dashboard',
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -92,7 +92,7 @@ describe('useAuth', () => {
     await act(async () => {
       const response = await result.current.login({
         email: 'test@example.com',
-        password: 'password123'
+        password: 'password123',
       });
       expect(response.ok).toBe(true);
     });
@@ -100,7 +100,7 @@ describe('useAuth', () => {
     expect(signIn).toHaveBeenCalledWith('credentials', {
       email: 'test@example.com',
       password: 'password123',
-      redirect: false
+      redirect: false,
     });
   });
 
@@ -108,14 +108,14 @@ describe('useAuth', () => {
     vi.mocked(useSession).mockReturnValue({
       data: null,
       status: 'unauthenticated',
-      update: vi.fn()
+      update: vi.fn(),
     });
 
     vi.mocked(signIn).mockResolvedValue({
       error: 'Invalid credentials',
       ok: false,
       status: 401,
-      url: null
+      url: null,
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -123,7 +123,7 @@ describe('useAuth', () => {
     await act(async () => {
       const response = await result.current.login({
         email: 'test@example.com',
-        password: 'wrongpassword'
+        password: 'wrongpassword',
       });
       expect(response.ok).toBe(false);
       expect(response.error).toBe('Invalid credentials');
@@ -133,13 +133,13 @@ describe('useAuth', () => {
   it('handles logout', async () => {
     const mockSession = {
       user: { id: 'user123', email: 'test@example.com' },
-      expires: '2025-01-01'
+      expires: '2025-01-01',
     };
 
     vi.mocked(useSession).mockReturnValue({
       data: mockSession,
       status: 'authenticated',
-      update: vi.fn()
+      update: vi.fn(),
     });
 
     vi.mocked(signOut).mockResolvedValue({ url: '/' });
@@ -157,12 +157,12 @@ describe('useAuth', () => {
     vi.mocked(useSession).mockReturnValue({
       data: null,
       status: 'unauthenticated',
-      update: vi.fn()
+      update: vi.fn(),
     });
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ message: 'User created successfully' })
+      json: async () => ({ message: 'User created successfully' }),
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -171,7 +171,7 @@ describe('useAuth', () => {
       const response = await result.current.register({
         name: 'New User',
         email: 'new@example.com',
-        password: 'password123'
+        password: 'password123',
       });
       expect(response.ok).toBe(true);
     });
@@ -182,8 +182,8 @@ describe('useAuth', () => {
       body: JSON.stringify({
         name: 'New User',
         email: 'new@example.com',
-        password: 'password123'
-      })
+        password: 'password123',
+      }),
     });
   });
 
@@ -191,13 +191,13 @@ describe('useAuth', () => {
     vi.mocked(useSession).mockReturnValue({
       data: null,
       status: 'unauthenticated',
-      update: vi.fn()
+      update: vi.fn(),
     });
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 400,
-      json: async () => ({ error: 'Email already exists' })
+      json: async () => ({ error: 'Email already exists' }),
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -206,7 +206,7 @@ describe('useAuth', () => {
       const response = await result.current.register({
         name: 'New User',
         email: 'existing@example.com',
-        password: 'password123'
+        password: 'password123',
       });
       expect(response.ok).toBe(false);
       expect(response.error).toBe('Email already exists');
@@ -218,7 +218,7 @@ describe('useAuth', () => {
     vi.mocked(useSession).mockReturnValue({
       data: { user: { id: 'user123' }, expires: '2025-01-01' },
       status: 'authenticated',
-      update: updateFn
+      update: updateFn,
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -235,15 +235,15 @@ describe('useAuth', () => {
       user: {
         id: 'user123',
         email: 'test@example.com',
-        role: 'admin'
+        role: 'admin',
       },
-      expires: '2025-01-01'
+      expires: '2025-01-01',
     };
 
     vi.mocked(useSession).mockReturnValue({
       data: mockSession,
       status: 'authenticated',
-      update: vi.fn()
+      update: vi.fn(),
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -255,13 +255,13 @@ describe('useAuth', () => {
   it('checks if session is expired', () => {
     const expiredSession = {
       user: { id: 'user123' },
-      expires: '2020-01-01' // Past date
+      expires: '2020-01-01', // Past date
     };
 
     vi.mocked(useSession).mockReturnValue({
       data: expiredSession,
       status: 'authenticated',
-      update: vi.fn()
+      update: vi.fn(),
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -273,18 +273,18 @@ describe('useAuth', () => {
     const mockSession = {
       user: { id: 'user123' },
       expires: '2025-01-01',
-      accessToken: 'old-token'
+      accessToken: 'old-token',
     };
 
     vi.mocked(useSession).mockReturnValue({
       data: mockSession,
       status: 'authenticated',
-      update: vi.fn()
+      update: vi.fn(),
     });
 
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ accessToken: 'new-token' })
+      json: async () => ({ accessToken: 'new-token' }),
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -298,13 +298,13 @@ describe('useAuth', () => {
   it('gets current session', async () => {
     const mockSession = {
       user: { id: 'user123', email: 'test@example.com' },
-      expires: '2025-01-01'
+      expires: '2025-01-01',
     };
 
     vi.mocked(useSession).mockReturnValue({
       data: mockSession,
       status: 'authenticated',
-      update: vi.fn()
+      update: vi.fn(),
     });
 
     const { result } = renderHook(() => useAuth(), { wrapper });

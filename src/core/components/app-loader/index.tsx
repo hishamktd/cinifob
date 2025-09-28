@@ -144,10 +144,18 @@ export const AppLoader = React.memo(
     );
 
     if (fullscreen) {
-      return <Box sx={containerSx} data-testid="app-loader">{renderLoader()}</Box>;
+      return (
+        <Box sx={containerSx} data-testid="app-loader">
+          {renderLoader()}
+        </Box>
+      );
     }
 
-    return <Box sx={{ py: type === 'linear' ? 1 : 4, ...containerSx }} data-testid="app-loader">{renderLoader()}</Box>;
+    return (
+      <Box sx={{ py: type === 'linear' ? 1 : 4, ...containerSx }} data-testid="app-loader">
+        {renderLoader()}
+      </Box>
+    );
   },
 );
 

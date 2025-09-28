@@ -6,8 +6,8 @@ import React from 'react';
 
 const mockTheme = createTheme({
   palette: {
-    mode: 'light'
-  }
+    mode: 'light',
+  },
 });
 
 const wrapper = ({ children }: { children: React.ReactNode }) => (
@@ -21,17 +21,17 @@ const localStorageMock: Storage = {
   removeItem: vi.fn(),
   clear: vi.fn(),
   key: vi.fn(),
-  length: 0
+  length: 0,
 };
 Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
-  writable: true
+  writable: true,
 });
 
 // Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  value: vi.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     addEventListener: vi.fn(),

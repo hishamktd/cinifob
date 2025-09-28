@@ -12,12 +12,10 @@ import {
   Chip,
   CircularProgress,
   Fade,
-  SxProps,
-  Theme,
 } from '@mui/material';
 import { AppIcon } from '../app-icon';
 import { useDebounce } from '@/hooks/useDebounce';
-import { AppSearchBarProps, SearchSuggestion } from './types';
+import { AppSearchBarProps } from './types';
 
 export const AppSearchBar = ({
   value,

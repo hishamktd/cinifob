@@ -5,81 +5,102 @@ export const WatchlistPageContainer = styled(Container)(({ theme }) => ({
     padding: theme.spacing(4, 0),
 
     [theme.breakpoints.down('sm')]: {
-      padding: theme.spacing(2),
+      padding: theme.spacing(2, 0),
     },
   },
 
   ['& .page-header']: {
     marginBottom: theme.spacing(4),
+    borderBottom: `1px solid ${theme.palette.divider}`,
+    paddingBottom: theme.spacing(2),
 
     ['& .header-content']: {
-      marginBottom: theme.spacing(2),
+      marginBottom: theme.spacing(3),
     },
 
     ['& .page-title']: {
-      fontSize: '2.125rem',
-      marginBottom: theme.spacing(1),
+      fontSize: '2.5rem',
+      fontWeight: 700,
+      marginBottom: theme.spacing(0.5),
+      background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+      backgroundClip: 'text',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
 
       [theme.breakpoints.down('md')]: {
-        fontSize: '1.75rem',
+        fontSize: '2rem',
       },
 
       [theme.breakpoints.down('sm')]: {
-        fontSize: '1.5rem',
+        fontSize: '1.75rem',
       },
     },
 
     ['& .page-subtitle']: {
       color: theme.palette.text.secondary,
+      fontSize: '0.95rem',
+      fontWeight: 500,
     },
+  },
+
+  ['& .content-filter']: {
+    marginBottom: theme.spacing(2),
   },
 
   ['& .sort-chips-container']: {
     display: 'flex',
     gap: theme.spacing(1),
-    overflowX: 'auto',
-    paddingBottom: theme.spacing(1),
+    flexWrap: 'wrap',
+    alignItems: 'center',
 
     [theme.breakpoints.down('sm')]: {
-      gap: theme.spacing(0.5),
-    },
-
-    '&::-webkit-scrollbar': {
-      height: 4,
-    },
-
-    '&::-webkit-scrollbar-track': {
-      backgroundColor: theme.palette.action.hover,
-      borderRadius: 2,
-    },
-
-    '&::-webkit-scrollbar-thumb': {
-      backgroundColor: theme.palette.action.disabled,
-      borderRadius: 2,
+      gap: theme.spacing(0.75),
     },
 
     ['& .MuiChip-root']: {
-      flexShrink: 0,
+      fontWeight: 500,
+      transition: 'all 0.2s ease',
+      cursor: 'pointer',
+
+      '&:hover': {
+        transform: 'translateY(-2px)',
+        boxShadow: theme.shadows[2],
+      },
+
+      '&.MuiChip-filled': {
+        boxShadow: theme.shadows[1],
+      },
     },
   },
 }));
 
 export const WatchlistGrid = styled(Box)(({ theme }) => ({
   display: 'grid',
-  gridTemplateColumns: 'repeat(4, 1fr)',
-  gap: theme.spacing(3),
+  gridTemplateColumns: 'repeat(3, 1fr)',
+  gap: theme.spacing(1.5),
+  paddingTop: theme.spacing(2),
 
-  [theme.breakpoints.down('lg')]: {
+  [theme.breakpoints.up('sm')]: {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+    gap: theme.spacing(2.5),
+  },
+
+  [theme.breakpoints.up('md')]: {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+    gap: theme.spacing(3),
+  },
+
+  [theme.breakpoints.up('lg')]: {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+  },
+
+  [theme.breakpoints.up('xl')]: {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+  },
+
+  [theme.breakpoints.down('xs')]: {
     gridTemplateColumns: 'repeat(3, 1fr)',
-  },
-
-  [theme.breakpoints.down('md')]: {
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: theme.spacing(2),
-  },
-
-  [theme.breakpoints.down('sm')]: {
-    gridTemplateColumns: '1fr',
-    gap: theme.spacing(2),
+    gap: theme.spacing(1),
+    paddingTop: theme.spacing(1),
   },
 }));

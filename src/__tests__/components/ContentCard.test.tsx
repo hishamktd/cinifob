@@ -33,7 +33,7 @@ const mockContent = {
   backdropPath: '/test-backdrop.jpg',
   date: '2024-01-01',
   voteAverage: 8.5,
-  mediaType: 'movie' as const
+  mediaType: 'movie' as const,
 };
 
 describe('ContentCard', () => {
@@ -66,9 +66,11 @@ describe('ContentCard', () => {
 
   it('navigates to correct URL when card is clicked', () => {
     const mockPush = vi.fn();
-    vi.mocked(vi.mocked(() => ({
-      useRouter: () => ({ push: mockPush })
-    })));
+    vi.mocked(
+      vi.mocked(() => ({
+        useRouter: () => ({ push: mockPush }),
+      })),
+    );
 
     renderWithTheme(<ContentCard item={mockContent} />);
 
@@ -106,7 +108,7 @@ describe('ContentCard', () => {
         item={mockContent}
         onAddToWatchlist={handleWatchlist}
         onMarkAsWatched={handleWatched}
-      />
+      />,
     );
 
     // Action buttons are in the overlay that appears on hover
@@ -118,10 +120,7 @@ describe('ContentCard', () => {
     const handleWatchlist = vi.fn();
 
     const { container } = renderWithTheme(
-      <ContentCard
-        item={mockContent}
-        onAddToWatchlist={handleWatchlist}
-      />
+      <ContentCard item={mockContent} onAddToWatchlist={handleWatchlist} />,
     );
 
     const watchlistButton = container.querySelector('.action-buttons button:last-child');
@@ -135,10 +134,7 @@ describe('ContentCard', () => {
     const handleWatched = vi.fn();
 
     const { container } = renderWithTheme(
-      <ContentCard
-        item={mockContent}
-        onMarkAsWatched={handleWatched}
-      />
+      <ContentCard item={mockContent} onMarkAsWatched={handleWatched} />,
     );
 
     const watchedButton = container.querySelector('.action-buttons button:first-child');

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { MovieCard } from '@components/movie/movie-card';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -14,7 +14,9 @@ vi.mock('next/navigation', () => ({
 // Mock next/image
 vi.mock('next/image', () => ({
   __esModule: true,
-  default: ({ alt, ...props }: any) => <img alt={alt} {...props} />,
+  default: ({ alt, ...props }: { alt: string; [key: string]: unknown }) => (
+    <img alt={alt} {...props} />
+  ),
 }));
 
 // Mock the movie worker
@@ -30,10 +32,8 @@ const theme = createTheme();
 const renderWithProviders = (component: React.ReactElement) => {
   return render(
     <SessionProvider session={null}>
-      <ThemeProvider theme={theme}>
-        {component}
-      </ThemeProvider>
-    </SessionProvider>
+      <ThemeProvider theme={theme}>{component}</ThemeProvider>
+    </SessionProvider>,
   );
 };
 
@@ -65,36 +65,21 @@ describe('MovieCard', () => {
   });
 
   it('shows action buttons when showActions is true', () => {
-    renderWithProviders(
-      <MovieCard
-        movie={mockMovie}
-        showActions={true}
-      />
-    );
+    renderWithProviders(<MovieCard movie={mockMovie} showActions={true} />);
 
     const buttons = screen.getAllByRole('button');
     expect(buttons.length).toBeGreaterThan(1);
   });
 
   it('hides action buttons when showActions is false', () => {
-    renderWithProviders(
-      <MovieCard
-        movie={mockMovie}
-        showActions={false}
-      />
-    );
+    renderWithProviders(<MovieCard movie={mockMovie} showActions={false} />);
 
     const buttons = screen.getAllByRole('button');
     expect(buttons.length).toBe(1);
   });
 
   it('displays user rating when provided', () => {
-    renderWithProviders(
-      <MovieCard
-        movie={mockMovie}
-        userRating={4}
-      />
-    );
+    renderWithProviders(<MovieCard movie={mockMovie} userRating={4} />);
 
     // Rating component with read-only shows as img role with aria-label
     const ratingElement = screen.getByRole('img', { name: /4 Stars/i });

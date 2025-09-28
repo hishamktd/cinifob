@@ -8,8 +8,8 @@ import { toastSlice } from '@core/store/slices/toastSlice';
 const createMockStore = () => {
   return configureStore({
     reducer: {
-      toast: toastSlice.reducer
-    }
+      toast: toastSlice.reducer,
+    },
   });
 };
 
@@ -30,7 +30,7 @@ describe('useToast', () => {
     expect(result.current.toasts).toHaveLength(1);
     expect(result.current.toasts[0]).toMatchObject({
       message: 'Operation successful!',
-      severity: 'success'
+      severity: 'success',
     });
   });
 
@@ -44,7 +44,7 @@ describe('useToast', () => {
     expect(result.current.toasts).toHaveLength(1);
     expect(result.current.toasts[0]).toMatchObject({
       message: 'An error occurred',
-      severity: 'error'
+      severity: 'error',
     });
   });
 
@@ -58,7 +58,7 @@ describe('useToast', () => {
     expect(result.current.toasts).toHaveLength(1);
     expect(result.current.toasts[0]).toMatchObject({
       message: 'Warning message',
-      severity: 'warning'
+      severity: 'warning',
     });
   });
 
@@ -72,7 +72,7 @@ describe('useToast', () => {
     expect(result.current.toasts).toHaveLength(1);
     expect(result.current.toasts[0]).toMatchObject({
       message: 'Information message',
-      severity: 'info'
+      severity: 'info',
     });
   });
 
@@ -136,7 +136,7 @@ describe('useToast', () => {
       result.current.success('Toast 2');
     });
 
-    const ids = result.current.toasts.map(t => t.id);
+    const ids = result.current.toasts.map((t) => t.id);
     expect(ids[0]).not.toBe(ids[1]);
 
     vi.restoreAllMocks();
@@ -152,7 +152,7 @@ describe('useToast', () => {
     expect(result.current.toasts[0]).toMatchObject({
       message: 'Custom duration',
       severity: 'info',
-      duration: 5000
+      duration: 5000,
     });
   });
 
@@ -161,7 +161,7 @@ describe('useToast', () => {
 
     const customAction = {
       label: 'Undo',
-      onClick: () => console.log('Undo clicked')
+      onClick: () => console.log('Undo clicked'),
     };
 
     act(() => {

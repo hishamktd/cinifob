@@ -316,9 +316,9 @@ export default function BrowsePage() {
     return (
       <>
         {loading ? (
-          <Grid container spacing={3}>
+          <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
             {Array.from({ length: 12 }).map((_, index) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={index}>
+              <Grid size={{ xs: 4, sm: 6, md: 4, lg: 3 }} key={index}>
                 <ContentCardSkeleton />
               </Grid>
             ))}
@@ -335,10 +335,10 @@ export default function BrowsePage() {
           />
         ) : (
           <>
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 1.5, sm: 2, md: 3 }}>
               {content.map((item) => (
                 <Grid
-                  size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+                  size={{ xs: 4, sm: 6, md: 4, lg: 3 }}
                   key={`${item.mediaType}-${item.tmdbId}`}
                 >
                   <ContentCard

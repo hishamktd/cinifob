@@ -1,30 +1,51 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET, POST, DELETE } from '@/app/api/user/watchlist/route';
-import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
+import { MovieStatus } from '@core/enums/movie.enum';
 
-// Mock dependencies
-vi.mock('@/lib/prisma', () => ({
+// Mock the modules
+vi.mock('@core/lib/prisma', () => ({
   prisma: {
     userMovie: {
       findMany: vi.fn(),
       create: vi.fn(),
       delete: vi.fn(),
-      findFirst: vi.fn()
+      findUnique: vi.fn(),
+      update: vi.fn(),
     },
     movie: {
-      upsert: vi.fn()
-    }
-  }
+      upsert: vi.fn(),
+      findUnique: vi.fn(),
+    },
+    user: {
+      findUniqueOrThrow: vi.fn(),
+      create: vi.fn(),
+    },
+    genre: {
+      findFirst: vi.fn(),
+      findMany: vi.fn(),
+      create: vi.fn(),
+    },
+    movieGenre: {
+      upsert: vi.fn(),
+    },
+  },
 }));
 
 vi.mock('next-auth', () => ({
-  getServerSession: vi.fn()
+  getServerSession: vi.fn(),
 }));
+
+vi.mock('@/lib/auth', () => ({
+  authOptions: {},
+}));
+
+// Import the mocked modules
+import { prisma } from '@core/lib/prisma';
+import { getServerSession } from 'next-auth';
 
 describe('/api/user/watchlist', () => {
   const mockSession = {
-    user: { id: 'user123', email: 'test@example.com' }
+    user: { id: '123', email: 'test@example.com' },
   };
 
   beforeEach(() => {
@@ -38,30 +59,36 @@ describe('/api/user/watchlist', () => {
       const mockWatchlist = [
         {
           id: '1',
-          userId: 'user123',
+          userId: 123,
           movieId: 'movie1',
-          isWatchlist: true,
-          isWatched: false,
+          status: MovieStatus.WATCHLIST,
           movie: {
             id: 'movie1',
             tmdbId: 123,
             title: 'Test Movie 1',
-            posterPath: '/poster1.jpg'
-          }
+            posterPath: '/poster1.jpg',
+            genres: [],
+            videos: [],
+            cast: [],
+            crew: [],
+          },
         },
         {
           id: '2',
-          userId: 'user123',
+          userId: 123,
           movieId: 'movie2',
-          isWatchlist: true,
-          isWatched: false,
+          status: MovieStatus.WATCHLIST,
           movie: {
             id: 'movie2',
             tmdbId: 456,
             title: 'Test Movie 2',
-            posterPath: '/poster2.jpg'
-          }
-        }
+            posterPath: '/poster2.jpg',
+            genres: [],
+            videos: [],
+            cast: [],
+            crew: [],
+          },
+        },
       ];
 
       vi.mocked(prisma.userMovie.findMany).mockResolvedValue(mockWatchlist);
@@ -71,18 +98,35 @@ describe('/api/user/watchlist', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toEqual(mockWatchlist);
+      expect(data.watchlist).toHaveLength(2);
       expect(prisma.userMovie.findMany).toHaveBeenCalledWith({
         where: {
-          userId: 'user123',
-          isWatchlist: true
+          userId: 123,
+          status: MovieStatus.WATCHLIST,
         },
         include: {
-          movie: true
+          movie: {
+            include: {
+              genres: {
+                include: {
+                  genre: true,
+                },
+              },
+              videos: true,
+              cast: {
+                orderBy: { order: 'asc' },
+                take: 5,
+              },
+              crew: {
+                where: { job: 'Director' },
+                take: 2,
+              },
+            },
+          },
         },
         orderBy: {
-          createdAt: 'desc'
-        }
+          createdAt: 'desc',
+        },
       });
     });
 
@@ -107,79 +151,83 @@ describe('/api/user/watchlist', () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data).toEqual([]);
+      expect(data.watchlist).toEqual([]);
     });
   });
 
   describe('POST', () => {
     it('adds movie to watchlist', async () => {
       vi.mocked(getServerSession).mockResolvedValue(mockSession);
-      vi.mocked(prisma.userMovie.findFirst).mockResolvedValue(null);
+      vi.mocked(prisma.userMovie.findUnique).mockResolvedValue(null);
+      vi.mocked(prisma.user.findUniqueOrThrow).mockResolvedValue({
+        id: 123,
+        email: 'test@example.com',
+        name: 'Test',
+      });
 
       const mockMovie = {
         id: 'movie123',
         tmdbId: 123,
         title: 'Test Movie',
-        posterPath: '/poster.jpg'
+        posterPath: '/poster.jpg',
       };
 
       vi.mocked(prisma.movie.upsert).mockResolvedValue(mockMovie);
       vi.mocked(prisma.userMovie.create).mockResolvedValue({
         id: 'usermovie1',
-        userId: 'user123',
+        userId: 123,
         movieId: 'movie123',
-        isWatchlist: true,
-        isWatched: false,
+        status: MovieStatus.WATCHLIST,
         rating: null,
         watchedDate: null,
         comment: null,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
+        movie: mockMovie,
       });
 
       const request = new Request('http://localhost:3000/api/user/watchlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          movieId: 123,
+          tmdbId: 123,
           title: 'Test Movie',
           posterPath: '/poster.jpg',
           releaseDate: '2024-01-01',
-          voteAverage: 8.5
-        })
+          voteAverage: 8.5,
+        }),
       });
 
       const response = await POST(request);
       const data = await response.json();
 
-      expect(response.status).toBe(201);
-      expect(data.message).toBe('Added to watchlist');
+      expect(response.status).toBe(200);
+      expect(data.userMovie).toBeDefined();
       expect(prisma.movie.upsert).toHaveBeenCalled();
       expect(prisma.userMovie.create).toHaveBeenCalled();
     });
 
     it('returns error if movie already in watchlist', async () => {
       vi.mocked(getServerSession).mockResolvedValue(mockSession);
-      vi.mocked(prisma.userMovie.findFirst).mockResolvedValue({
+      vi.mocked(prisma.userMovie.findUnique).mockResolvedValue({
         id: 'existing',
-        userId: 'user123',
+        userId: 123,
         movieId: 'movie123',
-        isWatchlist: true,
-        isWatched: false,
+        status: MovieStatus.WATCHLIST,
         rating: null,
         watchedDate: null,
         comment: null,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
       const request = new Request('http://localhost:3000/api/user/watchlist', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          movieId: 123,
-          title: 'Test Movie'
-        })
+          tmdbId: 123,
+          title: 'Test Movie',
+        }),
       });
 
       const response = await POST(request);
@@ -197,16 +245,16 @@ describe('/api/user/watchlist', () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          // Missing movieId
-          title: 'Test Movie'
-        })
+          // Missing tmdbId
+          title: 'Test Movie',
+        }),
       });
 
       const response = await POST(request);
       const data = await response.json();
 
       expect(response.status).toBe(400);
-      expect(data.error).toBeDefined();
+      expect(data.error).toBe('Missing required fields: tmdbId and title');
       expect(prisma.userMovie.create).not.toHaveBeenCalled();
     });
   });
@@ -214,71 +262,56 @@ describe('/api/user/watchlist', () => {
   describe('DELETE', () => {
     it('removes movie from watchlist', async () => {
       vi.mocked(getServerSession).mockResolvedValue(mockSession);
-      vi.mocked(prisma.userMovie.findFirst).mockResolvedValue({
-        id: 'usermovie1',
-        userId: 'user123',
-        movieId: 'movie123',
-        isWatchlist: true,
-        isWatched: false,
-        rating: null,
-        watchedDate: null,
-        comment: null,
-        createdAt: new Date(),
-        updatedAt: new Date()
+      vi.mocked(prisma.movie.findUnique).mockResolvedValue({
+        id: 'movie123',
+        tmdbId: 123,
+        title: 'Test Movie',
       });
-
       vi.mocked(prisma.userMovie.delete).mockResolvedValue({
         id: 'usermovie1',
-        userId: 'user123',
+        userId: 123,
         movieId: 'movie123',
-        isWatchlist: false,
-        isWatched: false,
+        status: MovieStatus.WATCHLIST,
         rating: null,
         watchedDate: null,
         comment: null,
         createdAt: new Date(),
-        updatedAt: new Date()
+        updatedAt: new Date(),
       });
 
-      const request = new Request('http://localhost:3000/api/user/watchlist', {
+      const request = new Request('http://localhost:3000/api/user/watchlist?tmdbId=123', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ movieId: 123 })
       });
 
       const response = await DELETE(request);
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.message).toBe('Removed from watchlist');
+      expect(data.success).toBe(true);
       expect(prisma.userMovie.delete).toHaveBeenCalled();
     });
 
     it('returns error if movie not in watchlist', async () => {
       vi.mocked(getServerSession).mockResolvedValue(mockSession);
-      vi.mocked(prisma.userMovie.findFirst).mockResolvedValue(null);
+      vi.mocked(prisma.movie.findUnique).mockResolvedValue(null);
 
-      const request = new Request('http://localhost:3000/api/user/watchlist', {
+      const request = new Request('http://localhost:3000/api/user/watchlist?tmdbId=123', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ movieId: 123 })
       });
 
       const response = await DELETE(request);
       const data = await response.json();
 
       expect(response.status).toBe(404);
-      expect(data.error).toBe('Movie not found in watchlist');
+      expect(data.error).toBe('Movie not found');
       expect(prisma.userMovie.delete).not.toHaveBeenCalled();
     });
 
     it('returns 401 when not authenticated', async () => {
       vi.mocked(getServerSession).mockResolvedValue(null);
 
-      const request = new Request('http://localhost:3000/api/user/watchlist', {
+      const request = new Request('http://localhost:3000/api/user/watchlist?tmdbId=123', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ movieId: 123 })
       });
 
       const response = await DELETE(request);

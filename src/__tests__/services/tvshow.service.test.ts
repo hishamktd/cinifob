@@ -17,11 +17,11 @@ describe('TVShowService', () => {
           page: 1,
           results: [
             { id: 1, name: 'Breaking Bad' },
-            { id: 2, name: 'Better Call Saul' }
+            { id: 2, name: 'Better Call Saul' },
           ],
           total_pages: 1,
-          total_results: 2
-        }
+          total_results: 2,
+        },
       };
 
       vi.mocked(axios.get).mockResolvedValue(mockResponse);
@@ -30,7 +30,7 @@ describe('TVShowService', () => {
 
       expect(result).toEqual(mockResponse.data);
       expect(axios.get).toHaveBeenCalledWith('/api/tv/search', {
-        params: { query: 'breaking', page: 1 }
+        params: { query: 'breaking', page: 1 },
       });
     });
   });
@@ -45,7 +45,7 @@ describe('TVShowService', () => {
         vote_average: 9.0,
         poster_path: '/test.jpg',
         number_of_seasons: 5,
-        number_of_episodes: 62
+        number_of_episodes: 62,
       };
 
       vi.mocked(axios.get).mockResolvedValue({ data: mockShow });
@@ -62,8 +62,8 @@ describe('TVShowService', () => {
       const mockResponse = {
         data: {
           success: true,
-          message: 'Added to watchlist'
-        }
+          message: 'Added to watchlist',
+        },
       };
 
       vi.mocked(axios.post).mockResolvedValue(mockResponse);
@@ -72,7 +72,7 @@ describe('TVShowService', () => {
 
       expect(result).toEqual(mockResponse.data);
       expect(axios.post).toHaveBeenCalledWith('/api/user/tv/watchlist', {
-        tvShowId: 123
+        tvShowId: 123,
       });
     });
   });
@@ -82,8 +82,8 @@ describe('TVShowService', () => {
       const mockResponse = {
         data: {
           success: true,
-          message: 'Removed from watchlist'
-        }
+          message: 'Removed from watchlist',
+        },
       };
 
       vi.mocked(axios.delete).mockResolvedValue(mockResponse);
@@ -92,7 +92,7 @@ describe('TVShowService', () => {
 
       expect(result).toEqual(mockResponse.data);
       expect(axios.delete).toHaveBeenCalledWith('/api/user/tv/watchlist', {
-        data: { tvShowId: 123 }
+        data: { tvShowId: 123 },
       });
     });
   });
@@ -102,8 +102,8 @@ describe('TVShowService', () => {
       const mockResponse = {
         data: {
           success: true,
-          message: 'Marked as watching'
-        }
+          message: 'Marked as watching',
+        },
       };
 
       vi.mocked(axios.post).mockResolvedValue(mockResponse);
@@ -112,7 +112,7 @@ describe('TVShowService', () => {
 
       expect(result).toEqual(mockResponse.data);
       expect(axios.post).toHaveBeenCalledWith('/api/user/tv/watching', {
-        tvShowId: 123
+        tvShowId: 123,
       });
     });
   });
@@ -122,8 +122,8 @@ describe('TVShowService', () => {
       const mockResponse = {
         data: {
           success: true,
-          message: 'Marked as completed'
-        }
+          message: 'Marked as completed',
+        },
       };
 
       vi.mocked(axios.post).mockResolvedValue(mockResponse);
@@ -133,7 +133,7 @@ describe('TVShowService', () => {
       expect(result).toEqual(mockResponse.data);
       expect(axios.post).toHaveBeenCalledWith('/api/user/tv/completed', {
         tvShowId: 123,
-        rating: 5
+        rating: 5,
       });
     });
   });
@@ -146,8 +146,8 @@ describe('TVShowService', () => {
         name: 'Season 1',
         episodes: [
           { id: 1, episode_number: 1, name: 'Pilot' },
-          { id: 2, episode_number: 2, name: 'Episode 2' }
-        ]
+          { id: 2, episode_number: 2, name: 'Episode 2' },
+        ],
       };
 
       vi.mocked(axios.get).mockResolvedValue({ data: mockSeason });
@@ -164,8 +164,8 @@ describe('TVShowService', () => {
       const mockResponse = {
         data: {
           success: true,
-          message: 'Episode marked as watched'
-        }
+          message: 'Episode marked as watched',
+        },
       };
 
       vi.mocked(axios.post).mockResolvedValue(mockResponse);
@@ -176,7 +176,7 @@ describe('TVShowService', () => {
       expect(axios.post).toHaveBeenCalledWith('/api/user/episodes/watched', {
         tvShowId: 123,
         seasonNumber: 1,
-        episodeNumber: 1
+        episodeNumber: 1,
       });
     });
   });
@@ -188,14 +188,14 @@ describe('TVShowService', () => {
           id: 1,
           tvShowId: 123,
           tvShow: { name: 'Show 1' },
-          progress: 50
+          progress: 50,
         },
         {
           id: 2,
           tvShowId: 456,
           tvShow: { name: 'Show 2' },
-          progress: 30
-        }
+          progress: 30,
+        },
       ];
 
       vi.mocked(axios.get).mockResolvedValue({ data: mockShows });
@@ -215,8 +215,8 @@ describe('TVShowService', () => {
           tvShowId: 123,
           tvShow: { name: 'Completed Show 1' },
           rating: 5,
-          completedAt: '2024-01-01'
-        }
+          completedAt: '2024-01-01',
+        },
       ];
 
       vi.mocked(axios.get).mockResolvedValue({ data: mockShows });
@@ -236,9 +236,9 @@ describe('TVShowService', () => {
         isCompleted: false,
         watchedEpisodes: [
           { season: 1, episode: 1 },
-          { season: 1, episode: 2 }
+          { season: 1, episode: 2 },
         ],
-        rating: null
+        rating: null,
       };
 
       vi.mocked(axios.get).mockResolvedValue({ data: mockStatus });
@@ -247,7 +247,7 @@ describe('TVShowService', () => {
 
       expect(result).toEqual(mockStatus);
       expect(axios.get).toHaveBeenCalledWith('/api/user/tv/status', {
-        params: { tvShowId: 123 }
+        params: { tvShowId: 123 },
       });
     });
   });
@@ -258,8 +258,8 @@ describe('TVShowService', () => {
         episodes: [
           { season: 1, episode: 1, watched: true },
           { season: 1, episode: 2, watched: true },
-          { season: 1, episode: 3, watched: false }
-        ]
+          { season: 1, episode: 3, watched: false },
+        ],
       };
 
       vi.mocked(axios.get).mockResolvedValue({ data: mockStatus });
@@ -268,7 +268,7 @@ describe('TVShowService', () => {
 
       expect(result).toEqual(mockStatus);
       expect(axios.get).toHaveBeenCalledWith('/api/user/episodes/status', {
-        params: { tvShowId: 123, seasonNumber: 1 }
+        params: { tvShowId: 123, seasonNumber: 1 },
       });
     });
   });
@@ -278,8 +278,8 @@ describe('TVShowService', () => {
       const mockResponse = {
         data: {
           success: true,
-          progress: 75
-        }
+          progress: 75,
+        },
       };
 
       vi.mocked(axios.put).mockResolvedValue(mockResponse);
@@ -289,7 +289,7 @@ describe('TVShowService', () => {
       expect(result).toEqual(mockResponse.data);
       expect(axios.put).toHaveBeenCalledWith('/api/user/tv/progress', {
         tvShowId: 123,
-        progress: 75
+        progress: 75,
       });
     });
   });
@@ -300,10 +300,10 @@ describe('TVShowService', () => {
         page: 1,
         results: [
           { id: 1, name: 'Popular Show 1' },
-          { id: 2, name: 'Popular Show 2' }
+          { id: 2, name: 'Popular Show 2' },
         ],
         total_pages: 10,
-        total_results: 200
+        total_results: 200,
       };
 
       vi.mocked(axios.get).mockResolvedValue({ data: mockShows });
@@ -312,7 +312,7 @@ describe('TVShowService', () => {
 
       expect(result).toEqual(mockShows);
       expect(axios.get).toHaveBeenCalledWith('/api/tv/browse', {
-        params: { category: 'popular', page: 1 }
+        params: { category: 'popular', page: 1 },
       });
     });
   });

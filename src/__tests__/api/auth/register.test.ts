@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { POST } from '@/app/api/auth/register/route';
-import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
 
-// Mock Prisma
+// Mock the modules before import
 vi.mock('@core/lib/prisma', () => ({
   prisma: {
     user: {
@@ -13,12 +11,15 @@ vi.mock('@core/lib/prisma', () => ({
   },
 }));
 
-// Mock bcrypt
 vi.mock('bcryptjs', () => ({
   default: {
     hash: vi.fn(),
   },
 }));
+
+// Import the mocked modules
+import { prisma } from '@core/lib/prisma';
+import bcrypt from 'bcryptjs';
 
 describe('POST /api/auth/register', () => {
   beforeEach(() => {
@@ -42,9 +43,7 @@ describe('POST /api/auth/register', () => {
       id: '1',
       email: 'test@example.com',
       name: 'Test User',
-      password: 'hashedPassword',
       createdAt: new Date(),
-      updatedAt: new Date(),
     });
 
     const response = await POST(mockRequest);
@@ -57,6 +56,12 @@ describe('POST /api/auth/register', () => {
         email: 'test@example.com',
         password: 'hashedPassword',
         name: 'Test User',
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        createdAt: true,
       },
     });
   });
@@ -103,7 +108,7 @@ describe('POST /api/auth/register', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toBeDefined();
+    expect(data.error).toBe('Validation error');
     expect(prisma.user.create).not.toHaveBeenCalled();
   });
 
@@ -122,7 +127,7 @@ describe('POST /api/auth/register', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toBeDefined();
+    expect(data.error).toBe('Validation error');
     expect(prisma.user.create).not.toHaveBeenCalled();
   });
 
@@ -141,7 +146,7 @@ describe('POST /api/auth/register', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toBeDefined();
+    expect(data.error).toBe('Validation error');
     expect(prisma.user.create).not.toHaveBeenCalled();
   });
 

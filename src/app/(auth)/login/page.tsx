@@ -15,6 +15,8 @@ import {
   Divider,
   TextField,
   Typography,
+  IconButton,
+  InputAdornment,
 } from '@mui/material';
 
 import { AppIcon, AppButton } from '@core/components';
@@ -29,6 +31,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -101,7 +104,7 @@ export default function LoginPage() {
               <TextField
                 fullWidth
                 label="Password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 margin="normal"
                 error={!!errors.password}
                 helperText={errors.password?.message}
@@ -112,6 +115,19 @@ export default function LoginPage() {
                     message: 'Password must be at least 6 characters',
                   },
                 })}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="toggle password visibility"
+                        onClick={() => setShowPassword(!showPassword)}
+                        edge="end"
+                      >
+                        <AppIcon icon={showPassword ? 'mdi:eye-off' : 'mdi:eye'} />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
 
               <AppButton

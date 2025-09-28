@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@core/lib/prisma';
 import { tmdbService } from '@/lib/tmdb';
 import { TMDbMovie } from '@/types';
-import { TMDBGenre, TMDBVideo, TMDBCastMember, TMDBCrewMember } from '@/types/tmdb';
 
 // Background job to store movie data
 async function storeMovieDataInBackground(tmdbMovie: TMDbMovie, tmdbId: number) {
@@ -67,7 +66,7 @@ async function storeMovieDataInBackground(tmdbMovie: TMDbMovie, tmdbId: number) 
 
     // Store genres - create them if they don't exist
     if (tmdbMovie.genres && Array.isArray(tmdbMovie.genres)) {
-      const genrePromises = tmdbMovie.genres.map(async (genre: TMDBGenre) => {
+      const genrePromises = tmdbMovie.genres.map(async (genre) => {
         try {
           // First ensure genre exists
           await prisma.genre.upsert({
@@ -93,7 +92,7 @@ async function storeMovieDataInBackground(tmdbMovie: TMDbMovie, tmdbId: number) 
 
     // Store videos
     if (tmdbMovie.videos?.results) {
-      const videoPromises = tmdbMovie.videos.results.slice(0, 10).map((video: TMDBVideo) =>
+      const videoPromises = tmdbMovie.videos.results.slice(0, 10).map((video) =>
         prisma.video
           .create({
             data: {
@@ -116,50 +115,48 @@ async function storeMovieDataInBackground(tmdbMovie: TMDbMovie, tmdbId: number) 
     if (tmdbMovie.credits) {
       // Store cast
       if (tmdbMovie.credits.cast && Array.isArray(tmdbMovie.credits.cast)) {
-        const castPromises = tmdbMovie.credits.cast
-          .slice(0, 20)
-          .map(async (member: TMDBCastMember) => {
-            try {
-              // First ensure person exists
-              await prisma.person.upsert({
-                where: { id: member.id },
-                update: {
-                  name: member.name,
-                  profilePath: member.profile_path,
-                },
-                create: {
-                  id: member.id,
-                  name: member.name,
-                  profilePath: member.profile_path,
-                },
-              });
+        const castPromises = tmdbMovie.credits.cast.slice(0, 20).map(async (member) => {
+          try {
+            // First ensure person exists
+            await prisma.person.upsert({
+              where: { id: member.id },
+              update: {
+                name: member.name,
+                profilePath: member.profile_path,
+              },
+              create: {
+                id: member.id,
+                name: member.name,
+                profilePath: member.profile_path,
+              },
+            });
 
-              // Then create cast relation
-              await prisma.cast.upsert({
-                where: {
-                  movieId_personId_character: {
-                    movieId: updatedMovie.id,
-                    personId: member.id,
-                    character: member.character || 'Unknown',
-                  },
-                },
-                update: {
-                  order: member.order,
-                },
-                create: {
+            // Then create cast relation
+            await prisma.cast.upsert({
+              where: {
+                movieId_personId_character: {
                   movieId: updatedMovie.id,
                   personId: member.id,
                   character: member.character || 'Unknown',
-                  order: member.order,
                 },
-              });
-            } catch (error) {
-              // Only log if it's not a unique constraint violation
-              if (!error || !String(error).includes('Unique constraint')) {
-                console.log('Cast member error:', error);
-              }
+              },
+              update: {
+                order: member.order,
+              },
+              create: {
+                movieId: updatedMovie.id,
+                personId: member.id,
+                character: member.character || 'Unknown',
+                order: member.order,
+              },
+            });
+          } catch (error) {
+            // Only log if it's not a unique constraint violation
+            if (!error || !String(error).includes('Unique constraint')) {
+              console.log('Cast member error:', error);
             }
-          });
+          }
+        });
 
         await Promise.all(castPromises);
       }
@@ -167,13 +164,13 @@ async function storeMovieDataInBackground(tmdbMovie: TMDbMovie, tmdbId: number) 
       // Store crew
       if (tmdbMovie.credits.crew && Array.isArray(tmdbMovie.credits.crew)) {
         const crewPromises = tmdbMovie.credits.crew
-          .filter((member: TMDBCrewMember) =>
+          .filter((member) =>
             ['Director', 'Producer', 'Screenplay', 'Writer', 'Executive Producer'].includes(
               member.job,
             ),
           )
           .slice(0, 20)
-          .map(async (member: TMDBCrewMember) => {
+          .map(async (member) => {
             try {
               // First ensure person exists
               await prisma.person.upsert({
@@ -375,9 +372,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tmd
             cast: tmdbMovie.credits.cast?.slice(0, 10) || [],
             crew:
               tmdbMovie.credits.crew
-                ?.filter((c: TMDBCrewMember) =>
-                  ['Director', 'Producer', 'Screenplay', 'Writer'].includes(c.job),
-                )
+                ?.filter((c) => ['Director', 'Producer', 'Screenplay', 'Writer'].includes(c.job))
                 .slice(0, 10) || [],
           }
         : null,

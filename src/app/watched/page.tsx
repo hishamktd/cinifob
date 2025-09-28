@@ -5,70 +5,79 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Dayjs } from 'dayjs';
 
-import { Container } from '@mui/material';
-
-import { AppLoader, MainLayout } from '@core/components';
+import { MainLayout } from '@core/components';
 import WatchedPageView from '@/views/watched';
 import { useToast } from '@/hooks/useToast';
 import { movieService } from '@/services/movie.service';
+import { tvShowService } from '@/services/tvshow.service';
 import { MovieSortBy } from '@core/enums';
-import { UserMovie } from '@/types';
+import { UserMovie, UserTVShow, ContentItem } from '@/types';
+import { ContentLoadingPage } from '@/components/content-loading';
 
 export default function WatchedPage() {
   const { status } = useSession();
   const router = useRouter();
   const { showToast } = useToast();
   const [movies, setMovies] = useState<UserMovie[]>([]);
+  const [tvShows, setTVShows] = useState<UserTVShow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [contentType, setContentType] = useState<'all' | 'movies' | 'tv'>('all');
   const [sortBy, setSortBy] = useState<MovieSortBy>(MovieSortBy.RECENTLY_WATCHED);
   const [editingDateId, setEditingDateId] = useState<number | null>(null);
   const [stats, setStats] = useState({
     totalWatched: 0,
     totalRuntime: 0,
     averageRating: 0,
-    highestRated: null as UserMovie | null,
+    highestRated: null as UserMovie | UserTVShow | null,
   });
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/login');
     } else if (status === 'authenticated') {
-      fetchWatchedMovies();
+      fetchWatchedContent();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status, router]);
 
-  const fetchWatchedMovies = async () => {
+  const fetchWatchedContent = async () => {
     try {
-      const response = await movieService.getWatchedMovies();
-      setMovies(response.watched);
-      calculateStats(response.watched);
+      // Fetch watched movies
+      const moviesResponse = await movieService.getWatchedMovies();
+      setMovies(moviesResponse.watched);
+
+      // Fetch completed TV shows
+      const tvResponse = await tvShowService.getCompletedShows();
+      setTVShows(Array.isArray(tvResponse) ? tvResponse : []);
+
+      calculateStats(moviesResponse.watched, Array.isArray(tvResponse) ? tvResponse : []);
     } catch {
-      showToast('Failed to load watched movies', 'error');
+      showToast('Failed to load watched content', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const calculateStats = useCallback((watchedMovies: UserMovie[]) => {
-    if (watchedMovies.length === 0) return;
+  const calculateStats = useCallback((watchedMovies: UserMovie[], completedShows: UserTVShow[]) => {
+    const allContent = [...watchedMovies, ...completedShows];
+    if (allContent.length === 0) return;
 
     const totalRuntime = watchedMovies.reduce((sum, m) => sum + (m.movie?.runtime || 0), 0);
-    const ratedMovies = watchedMovies.filter((m) => m.rating);
+    const ratedContent = allContent.filter((item) => item.rating);
     const averageRating =
-      ratedMovies.length > 0
-        ? ratedMovies.reduce((sum, m) => sum + (m.rating || 0), 0) / ratedMovies.length
+      ratedContent.length > 0
+        ? ratedContent.reduce((sum, item) => sum + (item.rating || 0), 0) / ratedContent.length
         : 0;
     const highestRated =
-      ratedMovies.length > 0
-        ? ratedMovies.reduce(
-            (max, m) => ((m.rating || 0) > (max?.rating || 0) ? m : max),
-            ratedMovies[0],
+      ratedContent.length > 0
+        ? ratedContent.reduce(
+            (max, item) => ((item.rating || 0) > (max?.rating || 0) ? item : max),
+            ratedContent[0],
           )
         : null;
 
     setStats({
-      totalWatched: watchedMovies.length,
+      totalWatched: allContent.length,
       totalRuntime,
       averageRating,
       highestRated,
@@ -76,18 +85,30 @@ export default function WatchedPage() {
   }, []);
 
   const handleRemoveFromWatched = useCallback(
-    async (tmdbId: number) => {
+    async (tmdbId: number, mediaType: 'movie' | 'tv') => {
       try {
-        await movieService.removeFromWatched(tmdbId);
-        const updatedMovies = movies.filter((m) => m.movie?.tmdbId !== tmdbId);
-        setMovies(updatedMovies);
-        calculateStats(updatedMovies);
+        if (mediaType === 'movie') {
+          await movieService.removeFromWatched(tmdbId);
+          const updatedMovies = movies.filter((m) => m.movie?.tmdbId !== tmdbId);
+          setMovies(updatedMovies);
+          calculateStats(updatedMovies, tvShows);
+        } else {
+          // For TV shows, move back to watching or remove entirely
+          const response = await fetch(`/api/user/tv/status?tmdbId=${tmdbId}`, {
+            method: 'DELETE',
+          });
+          if (response.ok) {
+            const updatedShows = tvShows.filter((s) => s.tvShow?.tmdbId !== tmdbId);
+            setTVShows(updatedShows);
+            calculateStats(movies, updatedShows);
+          }
+        }
         showToast('Marked as unwatched', 'success');
       } catch {
-        showToast('Failed to remove from watched movies', 'error');
+        showToast('Failed to remove from watched content', 'error');
       }
     },
-    [movies, calculateStats, showToast],
+    [movies, tvShows, calculateStats, showToast],
   );
 
   const handleUpdateWatchedDate = useCallback(
@@ -128,43 +149,58 @@ export default function WatchedPage() {
   );
 
   const handleAddToWatchlist = useCallback(
-    async (movie: UserMovie['movie']) => {
+    async (item: ContentItem) => {
       try {
-        if (movie) {
-          await movieService.addToWatchlist(movie);
+        if (item.mediaType === 'movie') {
+          const movie = movies.find((m) => m.movie?.tmdbId === item.tmdbId)?.movie;
+          if (movie) {
+            await movieService.addToWatchlist(movie);
+          }
+        } else {
+          const tvShow = tvShows.find((s) => s.tvShow?.tmdbId === item.tmdbId)?.tvShow;
+          if (tvShow) {
+            const response = await fetch('/api/user/tv/watchlist', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(tvShow),
+            });
+            if (!response.ok) throw new Error();
+          }
         }
         showToast('Added to watchlist', 'success');
       } catch {
         showToast('Failed to add to watchlist', 'error');
       }
     },
-    [showToast],
+    [movies, tvShows, showToast],
   );
 
-  const sortMovies = useCallback(
-    (movies: UserMovie[]) => {
-      const sorted = [...movies];
+  const sortContent = useCallback(
+    (content: ContentItem[]) => {
+      const sorted = [...content];
       switch (sortBy) {
         case MovieSortBy.RECENTLY_WATCHED:
           return sorted.sort((a, b) => {
-            const dateA = a.watchedAt ? new Date(a.watchedAt).getTime() : 0;
-            const dateB = b.watchedAt ? new Date(b.watchedAt).getTime() : 0;
+            const dateA = a._completedAt ? new Date(a._completedAt).getTime() : 0;
+            const dateB = b._completedAt ? new Date(b._completedAt).getTime() : 0;
             return dateB - dateA;
           });
         case MovieSortBy.DATE_ADDED:
           return sorted.sort(
-            (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+            (a, b) => new Date(b._updatedAt || 0).getTime() - new Date(a._updatedAt || 0).getTime(),
           );
         case MovieSortBy.TITLE:
-          return sorted.sort((a, b) => (a.movie?.title || '').localeCompare(b.movie?.title || ''));
+          return sorted.sort((a, b) =>
+            (a.title || a.name || '').localeCompare(b.title || b.name || ''),
+          );
         case MovieSortBy.RELEASE_DATE:
           return sorted.sort((a, b) => {
-            const dateA = a.movie?.releaseDate ? new Date(a.movie.releaseDate).getTime() : 0;
-            const dateB = b.movie?.releaseDate ? new Date(b.movie?.releaseDate).getTime() : 0;
+            const dateA = a.date ? new Date(a.date).getTime() : 0;
+            const dateB = b.date ? new Date(b.date).getTime() : 0;
             return dateB - dateA;
           });
         case MovieSortBy.RATING:
-          return sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+          return sorted.sort((a, b) => (b._rating || 0) - (a._rating || 0));
         default:
           return sorted;
       }
@@ -183,14 +219,63 @@ export default function WatchedPage() {
     return `${hours}h ${minutes % 60}m`;
   }, []);
 
-  const sortedMovies = useMemo(() => sortMovies(movies), [sortMovies, movies]);
+  // Convert to ContentItem format and combine
+  const sortedContent = useMemo(() => {
+    let content: ContentItem[] = [];
+
+    if (contentType === 'all' || contentType === 'movies') {
+      const movieItems: ContentItem[] = movies.map((m) => ({
+        id: m.movie?.id || 0,
+        tmdbId: m.movie?.tmdbId || 0,
+        mediaType: 'movie' as const,
+        title: m.movie?.title || 'Unknown',
+        overview: m.movie?.overview,
+        posterPath: m.movie?.posterPath,
+        backdropPath: m.movie?.backdropPath,
+        date: m.movie?.releaseDate?.toString(),
+        voteAverage: m.movie?.voteAverage,
+        voteCount: m.movie?.voteCount,
+        popularity: m.movie?.popularity,
+        runtime: m.movie?.runtime,
+        genres: m.movie?.genres,
+        _rating: m.rating,
+        _completedAt: m.watchedAt?.toString(),
+        _updatedAt: m.updatedAt.toString(),
+      }));
+      content = [...content, ...movieItems];
+    }
+
+    if (contentType === 'all' || contentType === 'tv') {
+      const tvItems: ContentItem[] = tvShows.map((s) => ({
+        id: s.tvShow?.id || 0,
+        tmdbId: s.tvShow?.tmdbId || 0,
+        mediaType: 'tv' as const,
+        title: s.tvShow?.name || 'Unknown',
+        name: s.tvShow?.name,
+        overview: s.tvShow?.overview ?? undefined,
+        posterPath: s.tvShow?.posterPath,
+        backdropPath: s.tvShow?.backdropPath,
+        date: s.tvShow?.firstAirDate?.toString(),
+        voteAverage: s.tvShow?.voteAverage,
+        voteCount: s.tvShow?.voteCount,
+        popularity: s.tvShow?.popularity,
+        numberOfSeasons: s.tvShow?.numberOfSeasons,
+        numberOfEpisodes: s.tvShow?.numberOfEpisodes,
+        genres: s.tvShow?.genres,
+        _rating: s.rating,
+        _completedAt: s.completedAt?.toString(),
+        _updatedAt: s.updatedAt.toString(),
+      }));
+      content = [...content, ...tvItems];
+    }
+
+    return sortContent(content);
+  }, [movies, tvShows, contentType, sortContent]);
 
   if (loading) {
     return (
       <MainLayout>
-        <Container>
-          <AppLoader type="circular" message="Loading watched movies..." />
-        </Container>
+        <ContentLoadingPage type="watched" />
       </MainLayout>
     );
   }
@@ -199,10 +284,13 @@ export default function WatchedPage() {
     <MainLayout>
       <WatchedPageView
         movies={movies}
+        tvShows={tvShows}
         stats={stats}
         sortBy={sortBy}
+        contentType={contentType}
         editingDateId={editingDateId}
-        sortedMovies={sortedMovies}
+        sortedContent={sortedContent}
+        onContentTypeChange={setContentType}
         onSortChange={setSortBy}
         onEditDateClick={setEditingDateId}
         onCancelEditDate={() => setEditingDateId(null)}

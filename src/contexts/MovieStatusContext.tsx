@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useState, ReactNode } from 'react';
 
 interface MovieStatus {
   isInWatchlist: boolean;
@@ -26,20 +26,22 @@ export const MovieStatusProvider: React.FC<MovieStatusProviderProps> = ({ childr
   const [movieStatuses, setMovieStatuses] = useState<Record<number, MovieStatus>>({});
 
   const updateMovieStatus = (movieId: number, status: Partial<MovieStatus>) => {
-    setMovieStatuses(prev => ({
+    setMovieStatuses((prev) => ({
       ...prev,
       [movieId]: {
         ...prev[movieId],
-        ...status
-      }
+        ...status,
+      },
     }));
   };
 
   const getMovieStatus = (movieId: number): MovieStatus => {
-    return movieStatuses[movieId] || {
-      isInWatchlist: false,
-      isWatched: false
-    };
+    return (
+      movieStatuses[movieId] || {
+        isInWatchlist: false,
+        isWatched: false,
+      }
+    );
   };
 
   return (
@@ -47,7 +49,7 @@ export const MovieStatusProvider: React.FC<MovieStatusProviderProps> = ({ childr
       value={{
         movieStatuses,
         updateMovieStatus,
-        getMovieStatus
+        getMovieStatus,
       }}
     >
       {children}

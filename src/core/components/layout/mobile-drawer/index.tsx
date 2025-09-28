@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useCallback, useMemo, useState, useEffect } from 'react';
-import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useSession, signOut } from 'next-auth/react';
 
@@ -133,7 +132,7 @@ export const MobileDrawer = React.memo(({ open, onClose }: MobileDrawerProps) =>
     watchedCount: 0,
     favoriteGenre: 'Unknown',
   });
-  const [statsLoading, setStatsLoading] = useState(false);
+  // const [statsLoading, setStatsLoading] = useState(false); // Unused variable
 
   const handleSignOut = useCallback(async () => {
     await signOut({ redirect: true, callbackUrl: ROUTES.LOGIN });
@@ -219,6 +218,13 @@ export const MobileDrawer = React.memo(({ open, onClose }: MobileDrawerProps) =>
         color: 'primary',
         description: 'Your viewing analytics',
         protected: true,
+      },
+      {
+        title: 'Feedback',
+        icon: 'mdi:message-alert',
+        href: '/feedback',
+        color: 'info',
+        description: 'Report issues & suggestions',
       },
     ],
     [userStats],

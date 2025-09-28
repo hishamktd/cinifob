@@ -3,7 +3,7 @@
 import React, { useState, useCallback, useMemo, SyntheticEvent } from 'react';
 import { Box, Tab, Tabs, Typography, Badge } from '@mui/material';
 import { AppIcon } from '@core/components/app-icon';
-import { TabPanelProps, AppTabItem, AppTabsProps } from './types';
+import { TabPanelProps, AppTabsProps } from './types';
 
 const TabPanel = React.memo((props: TabPanelProps) => {
   const { children, value, index, ...other } = props;

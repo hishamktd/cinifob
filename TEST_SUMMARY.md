@@ -3,16 +3,19 @@
 ## Testing Strategy Overview
 
 ### 1. Unit Tests (Vitest)
+
 - **Location**: `src/__tests__/`
 - **Coverage Target**: 70%+ for all metrics
 - **Test Runner**: Vitest with React Testing Library
 
 ### 2. End-to-End Tests (Playwright)
+
 - **Location**: `e2e/`
 - **Browsers**: Chrome, Firefox, Safari, Mobile Chrome, Mobile Safari
 - **Test Runner**: Playwright
 
 ### 3. Integration Tests
+
 - **API Routes**: Testing with mocked Prisma client
 - **Services**: Testing with mocked axios/fetch
 
@@ -21,6 +24,7 @@
 ### ✅ Component Tests (Unit)
 
 #### Core Components
+
 - [x] AppButton - Complete with accessibility tests
 - [x] AppIcon - Basic rendering tests
 - [x] AppLoader - Loading states
@@ -34,11 +38,13 @@
 - [x] Toast - Notification system
 
 #### Layout Components
+
 - [x] MainLayout - Page layout structure
 - [x] AppHeader - Navigation header
 - [ ] MobileDrawer - Mobile navigation (TODO)
 
 #### Feature Components
+
 - [x] MovieCard - Movie card display and interactions
 - [ ] ContentCard - Content card (TODO)
 - [ ] WatchedMovieCard - Watched movie card (TODO)
@@ -46,25 +52,29 @@
 - [ ] EpisodeTracker - Episode tracking (TODO)
 
 ### ✅ Hook Tests
+
 - [x] useDebounce - Input debouncing
 - [x] useToast - Toast notifications
 - [ ] useAuth - Authentication hook (TODO)
 - [ ] useTheme - Theme management (TODO)
 
 ### ✅ Service Tests
+
 - [x] MovieService - Movie API operations
 - [x] TVShowService - TV show API operations
 - [x] TMDbService - External API integration
 - [ ] AuthService - Authentication service (TODO)
 
 ### ✅ API Route Tests
+
 - [x] /api/auth/register - User registration
 - [x] /api/movies/search - Movie search
 - [x] /api/user/watchlist - Watchlist operations
 - [ ] /api/user/watched - Watched movies (TODO)
-- [ ] /api/tv/* - TV show endpoints (TODO)
+- [ ] /api/tv/\* - TV show endpoints (TODO)
 
 ### ✅ E2E Test Suites
+
 - [x] Authentication - Login, register, logout flows
 - [x] Movies - Browse, search, watchlist, watched
 - [x] TV Shows - Browse, episode tracking
@@ -79,6 +89,7 @@
 ## Running Tests
 
 ### Unit/Integration Tests
+
 ```bash
 # Run all tests
 npm test
@@ -94,6 +105,7 @@ npm test -- --run
 ```
 
 ### E2E Tests
+
 ```bash
 # Run all E2E tests
 npm run test:e2e
@@ -109,29 +121,35 @@ npm run test:e2e:run
 ```
 
 ### All Tests
+
 ```bash
 # Run unit and E2E tests
 npm run test:all
 ```
 
 ## Test Configuration Files
+
 - `vitest.config.ts` - Vitest configuration
 - `playwright.config.ts` - Playwright configuration
 - `src/__tests__/setup.tsx` - Test setup and mocks
 
 ## Coverage Thresholds
+
 - Branches: 70%
 - Functions: 70%
 - Lines: 70%
 - Statements: 70%
 
 ## CI/CD Integration
+
 Tests are configured to run on:
+
 - Pre-commit (linting)
 - Pre-push (type checking and tests)
 - Pull requests (full test suite)
 
 ## Known Issues & TODOs
+
 1. Complete remaining component tests
 2. Add more edge case testing
 3. Implement visual regression tests
@@ -141,11 +159,13 @@ Tests are configured to run on:
 7. Implement contract testing for external APIs
 
 ## Test Data Management
+
 - Test users are created with timestamps
 - Cleanup functions remove test data
 - Mock data is consistent across test suites
 
 ## Best Practices
+
 1. Each test file matches its source file location
 2. Tests are isolated and don't depend on each other
 3. Mock external dependencies

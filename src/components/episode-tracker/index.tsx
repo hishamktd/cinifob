@@ -6,7 +6,6 @@ import {
   Box,
   Card,
   Typography,
-  Checkbox,
   IconButton,
   Collapse,
   List,
@@ -15,7 +14,6 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   Chip,
-  Button,
   CircularProgress,
   Tooltip,
   LinearProgress,
@@ -49,7 +47,7 @@ interface Season {
 
 interface EpisodeTrackerProps {
   tvShowId: number;
-  tvShowName: string;
+  // tvShowName: string; // Unused prop
   seasons: Season[];
   onEpisodeStatusChange?: (
     seasonNumber: number,
@@ -64,7 +62,7 @@ interface EpisodeStatus {
 
 export const EpisodeTracker = ({
   tvShowId,
-  tvShowName,
+  // tvShowName, // Unused prop
   seasons,
   onEpisodeStatusChange,
 }: EpisodeTrackerProps) => {
@@ -83,12 +81,20 @@ export const EpisodeTracker = ({
           const data = await response.json();
           // Transform the data to our local format
           const transformedStatus: EpisodeStatus = {};
-          data.forEach((userEpisode: any) => {
-            if (userEpisode.watched) {
-              const key = `${userEpisode.episode.seasonNumber}-${userEpisode.episode.episodeNumber}`;
-              transformedStatus[key] = 'watched';
-            }
-          });
+          data.forEach(
+            (userEpisode: {
+              status: string;
+              episode: { seasonNumber: number; episodeNumber: number };
+            }) => {
+              if (userEpisode.status === 'watched') {
+                const key = `${userEpisode.episode.seasonNumber}-${userEpisode.episode.episodeNumber}`;
+                transformedStatus[key] = 'watched';
+              } else if (userEpisode.status === 'planned') {
+                const key = `${userEpisode.episode.seasonNumber}-${userEpisode.episode.episodeNumber}`;
+                transformedStatus[key] = 'planned';
+              }
+            },
+          );
           setEpisodeStatus(transformedStatus);
         }
       } catch (error) {

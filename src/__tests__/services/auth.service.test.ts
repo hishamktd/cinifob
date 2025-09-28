@@ -8,7 +8,7 @@ vi.mock('axios');
 vi.mock('next-auth/react', () => ({
   signIn: vi.fn(),
   signOut: vi.fn(),
-  getSession: vi.fn()
+  getSession: vi.fn(),
 }));
 
 describe('AuthService', () => {
@@ -22,24 +22,24 @@ describe('AuthService', () => {
         error: null,
         ok: true,
         status: 200,
-        url: '/dashboard'
+        url: '/dashboard',
       });
 
       const result = await authService.login({
         email: 'test@example.com',
-        password: 'password123'
+        password: 'password123',
       });
 
       expect(result).toEqual({
         ok: true,
         error: null,
-        url: '/dashboard'
+        url: '/dashboard',
       });
 
       expect(signIn).toHaveBeenCalledWith('credentials', {
         email: 'test@example.com',
         password: 'password123',
-        redirect: false
+        redirect: false,
       });
     });
 
@@ -48,12 +48,12 @@ describe('AuthService', () => {
         error: 'Invalid credentials',
         ok: false,
         status: 401,
-        url: null
+        url: null,
       });
 
       const result = await authService.login({
         email: 'test@example.com',
-        password: 'wrongpassword'
+        password: 'wrongpassword',
       });
 
       expect(result.ok).toBe(false);
@@ -64,8 +64,8 @@ describe('AuthService', () => {
       await expect(
         authService.login({
           email: 'invalid-email',
-          password: 'password123'
-        })
+          password: 'password123',
+        }),
       ).rejects.toThrow('Invalid email format');
 
       expect(signIn).not.toHaveBeenCalled();
@@ -75,8 +75,8 @@ describe('AuthService', () => {
       await expect(
         authService.login({
           email: 'test@example.com',
-          password: '123'
-        })
+          password: '123',
+        }),
       ).rejects.toThrow('Password must be at least 6 characters');
 
       expect(signIn).not.toHaveBeenCalled();
@@ -91,28 +91,28 @@ describe('AuthService', () => {
           user: {
             id: 'user123',
             email: 'new@example.com',
-            name: 'New User'
-          }
-        }
+            name: 'New User',
+          },
+        },
       });
 
       const result = await authService.register({
         name: 'New User',
         email: 'new@example.com',
-        password: 'password123'
+        password: 'password123',
       });
 
       expect(result.success).toBe(true);
       expect(result.user).toEqual({
         id: 'user123',
         email: 'new@example.com',
-        name: 'New User'
+        name: 'New User',
       });
 
       expect(axios.post).toHaveBeenCalledWith('/api/auth/register', {
         name: 'New User',
         email: 'new@example.com',
-        password: 'password123'
+        password: 'password123',
       });
     });
 
@@ -120,14 +120,14 @@ describe('AuthService', () => {
       vi.mocked(axios.post).mockRejectedValue({
         response: {
           status: 400,
-          data: { error: 'Email already exists' }
-        }
+          data: { error: 'Email already exists' },
+        },
       });
 
       const result = await authService.register({
         name: 'New User',
         email: 'existing@example.com',
-        password: 'password123'
+        password: 'password123',
       });
 
       expect(result.success).toBe(false);
@@ -139,24 +139,24 @@ describe('AuthService', () => {
         authService.register({
           name: '',
           email: 'test@example.com',
-          password: 'password123'
-        })
+          password: 'password123',
+        }),
       ).rejects.toThrow('Name is required');
 
       await expect(
         authService.register({
           name: 'Test',
           email: 'invalid',
-          password: 'password123'
-        })
+          password: 'password123',
+        }),
       ).rejects.toThrow('Invalid email format');
 
       await expect(
         authService.register({
           name: 'Test',
           email: 'test@example.com',
-          password: '123'
-        })
+          password: '123',
+        }),
       ).rejects.toThrow('Password must be at least 6 characters');
     });
 
@@ -164,28 +164,31 @@ describe('AuthService', () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: {
           message: 'User created successfully',
-          user: { id: 'user123', email: 'new@example.com' }
-        }
+          user: { id: 'user123', email: 'new@example.com' },
+        },
       });
 
       vi.mocked(signIn).mockResolvedValue({
         error: null,
         ok: true,
         status: 200,
-        url: '/dashboard'
+        url: '/dashboard',
       });
 
-      const result = await authService.register({
-        name: 'New User',
-        email: 'new@example.com',
-        password: 'password123'
-      }, true); // autoLogin = true
+      const result = await authService.register(
+        {
+          name: 'New User',
+          email: 'new@example.com',
+          password: 'password123',
+        },
+        true,
+      ); // autoLogin = true
 
       expect(result.success).toBe(true);
       expect(signIn).toHaveBeenCalledWith('credentials', {
         email: 'new@example.com',
         password: 'password123',
-        redirect: false
+        redirect: false,
       });
     });
   });
@@ -216,7 +219,7 @@ describe('AuthService', () => {
 
       expect(signOut).toHaveBeenCalledWith({
         redirect: true,
-        callbackUrl: '/goodbye'
+        callbackUrl: '/goodbye',
       });
     });
   });
@@ -227,9 +230,9 @@ describe('AuthService', () => {
         user: {
           id: 'user123',
           email: 'test@example.com',
-          name: 'Test User'
+          name: 'Test User',
         },
-        expires: '2025-01-01'
+        expires: '2025-01-01',
       };
 
       vi.mocked(getSession).mockResolvedValue(mockSession);
@@ -251,18 +254,18 @@ describe('AuthService', () => {
   describe('updatePassword', () => {
     it('successfully updates password', async () => {
       vi.mocked(axios.put).mockResolvedValue({
-        data: { message: 'Password updated successfully' }
+        data: { message: 'Password updated successfully' },
       });
 
       const result = await authService.updatePassword({
         currentPassword: 'oldpass123',
-        newPassword: 'newpass123'
+        newPassword: 'newpass123',
       });
 
       expect(result.success).toBe(true);
       expect(axios.put).toHaveBeenCalledWith('/api/auth/password', {
         currentPassword: 'oldpass123',
-        newPassword: 'newpass123'
+        newPassword: 'newpass123',
       });
     });
 
@@ -270,13 +273,13 @@ describe('AuthService', () => {
       vi.mocked(axios.put).mockRejectedValue({
         response: {
           status: 401,
-          data: { error: 'Current password is incorrect' }
-        }
+          data: { error: 'Current password is incorrect' },
+        },
       });
 
       const result = await authService.updatePassword({
         currentPassword: 'wrongpass',
-        newPassword: 'newpass123'
+        newPassword: 'newpass123',
       });
 
       expect(result.success).toBe(false);
@@ -287,8 +290,8 @@ describe('AuthService', () => {
       await expect(
         authService.updatePassword({
           currentPassword: 'oldpass123',
-          newPassword: '123'
-        })
+          newPassword: '123',
+        }),
       ).rejects.toThrow('New password must be at least 6 characters');
     });
   });
@@ -296,7 +299,7 @@ describe('AuthService', () => {
   describe('forgotPassword', () => {
     it('sends password reset email', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { message: 'Password reset email sent' }
+        data: { message: 'Password reset email sent' },
       });
 
       const result = await authService.forgotPassword('test@example.com');
@@ -304,13 +307,13 @@ describe('AuthService', () => {
       expect(result.success).toBe(true);
       expect(result.message).toBe('Password reset email sent');
       expect(axios.post).toHaveBeenCalledWith('/api/auth/forgot-password', {
-        email: 'test@example.com'
+        email: 'test@example.com',
       });
     });
 
     it('handles non-existent email', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { message: 'If the email exists, a reset link will be sent' }
+        data: { message: 'If the email exists, a reset link will be sent' },
       });
 
       const result = await authService.forgotPassword('nonexistent@example.com');
@@ -324,18 +327,18 @@ describe('AuthService', () => {
   describe('resetPassword', () => {
     it('successfully resets password with token', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { message: 'Password reset successfully' }
+        data: { message: 'Password reset successfully' },
       });
 
       const result = await authService.resetPassword({
         token: 'reset-token-123',
-        newPassword: 'newpass123'
+        newPassword: 'newpass123',
       });
 
       expect(result.success).toBe(true);
       expect(axios.post).toHaveBeenCalledWith('/api/auth/reset-password', {
         token: 'reset-token-123',
-        newPassword: 'newpass123'
+        newPassword: 'newpass123',
       });
     });
 
@@ -343,13 +346,13 @@ describe('AuthService', () => {
       vi.mocked(axios.post).mockRejectedValue({
         response: {
           status: 400,
-          data: { error: 'Invalid or expired token' }
-        }
+          data: { error: 'Invalid or expired token' },
+        },
       });
 
       const result = await authService.resetPassword({
         token: 'invalid-token',
-        newPassword: 'newpass123'
+        newPassword: 'newpass123',
       });
 
       expect(result.success).toBe(false);
@@ -360,14 +363,14 @@ describe('AuthService', () => {
   describe('verifyEmail', () => {
     it('verifies email with token', async () => {
       vi.mocked(axios.post).mockResolvedValue({
-        data: { message: 'Email verified successfully' }
+        data: { message: 'Email verified successfully' },
       });
 
       const result = await authService.verifyEmail('verification-token');
 
       expect(result.success).toBe(true);
       expect(axios.post).toHaveBeenCalledWith('/api/auth/verify-email', {
-        token: 'verification-token'
+        token: 'verification-token',
       });
     });
 
@@ -375,8 +378,8 @@ describe('AuthService', () => {
       vi.mocked(axios.post).mockRejectedValue({
         response: {
           status: 400,
-          data: { error: 'Invalid verification token' }
-        }
+          data: { error: 'Invalid verification token' },
+        },
       });
 
       const result = await authService.verifyEmail('invalid-token');
@@ -391,8 +394,8 @@ describe('AuthService', () => {
       vi.mocked(axios.post).mockResolvedValue({
         data: {
           accessToken: 'new-access-token',
-          refreshToken: 'new-refresh-token'
-        }
+          refreshToken: 'new-refresh-token',
+        },
       });
 
       const tokens = await authService.refreshToken('old-refresh-token');
@@ -405,13 +408,13 @@ describe('AuthService', () => {
       vi.mocked(axios.post).mockRejectedValue({
         response: {
           status: 401,
-          data: { error: 'Invalid refresh token' }
-        }
+          data: { error: 'Invalid refresh token' },
+        },
       });
 
-      await expect(
-        authService.refreshToken('invalid-token')
-      ).rejects.toThrow('Invalid refresh token');
+      await expect(authService.refreshToken('invalid-token')).rejects.toThrow(
+        'Invalid refresh token',
+      );
     });
   });
 
@@ -419,7 +422,7 @@ describe('AuthService', () => {
     it('validates active session', async () => {
       vi.mocked(getSession).mockResolvedValue({
         user: { id: 'user123' },
-        expires: new Date(Date.now() + 3600000).toISOString() // 1 hour from now
+        expires: new Date(Date.now() + 3600000).toISOString(), // 1 hour from now
       });
 
       const isValid = await authService.validateSession();
@@ -430,7 +433,7 @@ describe('AuthService', () => {
     it('invalidates expired session', async () => {
       vi.mocked(getSession).mockResolvedValue({
         user: { id: 'user123' },
-        expires: new Date(Date.now() - 3600000).toISOString() // 1 hour ago
+        expires: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
       });
 
       const isValid = await authService.validateSession();

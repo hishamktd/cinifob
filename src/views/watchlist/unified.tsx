@@ -11,6 +11,7 @@ import {
   DialogActions,
   ToggleButton,
   ToggleButtonGroup,
+  Box,
 } from '@mui/material';
 import dayjs, { Dayjs } from 'dayjs';
 
@@ -18,7 +19,7 @@ import { AppButton, AppEmptyState, AppRating, AppDatePicker, AppIcon } from '@co
 import { ContentCard } from '@/components/content-card';
 import { MovieSortBy } from '@core/enums';
 import { UserMovie, UserTVShow, ContentItem } from '@/types';
-import { UnifiedWatchlistContainer, ContentGrid, ContentTypeToggle } from './styled-components';
+import { WatchlistPageContainer, WatchlistGrid } from './styled-components';
 
 interface UnifiedWatchlistPageViewProps {
   movies: UserMovie[];
@@ -80,11 +81,11 @@ const UnifiedWatchlistPageView: React.FC<UnifiedWatchlistPageViewProps> = ({
   };
 
   return (
-    <UnifiedWatchlistContainer>
+    <WatchlistPageContainer>
       <div className="page-wrapper">
         <div className="page-header">
           <div className="header-content">
-            <Typography variant="h4" component="h1" className="page-title">
+            <Typography variant="h3" component="h1" className="page-title">
               My Watchlist
             </Typography>
             <Typography variant="body1" className="page-subtitle">
@@ -92,60 +93,88 @@ const UnifiedWatchlistPageView: React.FC<UnifiedWatchlistPageViewProps> = ({
             </Typography>
           </div>
 
-          <ContentTypeToggle>
+          {/* Content Type Filter */}
+          <Box className="content-filter" sx={{ mb: 2 }}>
             <ToggleButtonGroup
               value={contentType}
               exclusive
               onChange={(_, value) => value && onContentTypeChange(value)}
               size="small"
+              sx={{
+                backgroundColor: 'background.paper',
+                '& .MuiToggleButton-root': {
+                  px: 2,
+                  py: 0.75,
+                  textTransform: 'none',
+                  fontSize: '0.875rem',
+                  '&.Mui-selected': {
+                    backgroundColor: 'primary.main',
+                    color: 'primary.contrastText',
+                    '&:hover': {
+                      backgroundColor: 'primary.dark',
+                    },
+                  },
+                },
+              }}
             >
               <ToggleButton value="all">
-                <AppIcon icon="mdi:view-grid" style={{ marginRight: 8 }} />
+                <AppIcon icon="mdi:view-grid" size={16} style={{ marginRight: 6 }} />
                 All
               </ToggleButton>
               <ToggleButton value="movies">
-                <AppIcon icon="mdi:movie" style={{ marginRight: 8 }} />
+                <AppIcon icon="mdi:movie" size={16} style={{ marginRight: 6 }} />
                 Movies ({movies.length})
               </ToggleButton>
               <ToggleButton value="tv">
-                <AppIcon icon="mdi:television-classic" style={{ marginRight: 8 }} />
+                <AppIcon icon="mdi:television-classic" size={16} style={{ marginRight: 6 }} />
                 TV Shows ({tvShows.length})
               </ToggleButton>
             </ToggleButtonGroup>
-          </ContentTypeToggle>
+          </Box>
 
-          <div className="sort-chips-container">
+          {/* Sort Options */}
+          <Box className="sort-chips-container">
             <Chip
               label="Date Added"
               onClick={() => onSortChange('date_added')}
               color={sortBy === 'date_added' ? 'primary' : 'default'}
-              size="small"
+              variant={sortBy === 'date_added' ? 'filled' : 'outlined'}
+              size="medium"
+              sx={{ borderRadius: 2 }}
             />
             <Chip
               label="Title"
               onClick={() => onSortChange('title')}
               color={sortBy === 'title' ? 'primary' : 'default'}
-              size="small"
+              variant={sortBy === 'title' ? 'filled' : 'outlined'}
+              size="medium"
+              sx={{ borderRadius: 2 }}
             />
             <Chip
               label="Release Date"
               onClick={() => onSortChange('release_date')}
               color={sortBy === 'release_date' ? 'primary' : 'default'}
-              size="small"
+              variant={sortBy === 'release_date' ? 'filled' : 'outlined'}
+              size="medium"
+              sx={{ borderRadius: 2 }}
             />
             <Chip
               label="Rating"
               onClick={() => onSortChange('rating')}
               color={sortBy === 'rating' ? 'primary' : 'default'}
-              size="small"
+              variant={sortBy === 'rating' ? 'filled' : 'outlined'}
+              size="medium"
+              sx={{ borderRadius: 2 }}
             />
             <Chip
               label="Type"
               onClick={() => onSortChange('type')}
               color={sortBy === 'type' ? 'primary' : 'default'}
-              size="small"
+              variant={sortBy === 'type' ? 'filled' : 'outlined'}
+              size="medium"
+              sx={{ borderRadius: 2 }}
             />
-          </div>
+          </Box>
         </div>
 
         {totalCount === 0 ? (
@@ -155,7 +184,7 @@ const UnifiedWatchlistPageView: React.FC<UnifiedWatchlistPageViewProps> = ({
             description="Add movies and TV shows to your watchlist to keep track of what you want to watch."
             actionLabel="Browse Content"
             actionIcon="mdi:compass"
-            onAction={() => router.push('/movies')}
+            onAction={() => router.push('/browse')}
           />
         ) : sortedContent.length === 0 ? (
           <AppEmptyState
@@ -167,7 +196,7 @@ const UnifiedWatchlistPageView: React.FC<UnifiedWatchlistPageViewProps> = ({
             onAction={() => router.push(contentType === 'tv' ? '/tv' : '/movies')}
           />
         ) : (
-          <ContentGrid>
+          <WatchlistGrid>
             {sortedContent.map((item) => (
               <ContentCard
                 key={`${item.mediaType}-${item.tmdbId}`}
@@ -190,7 +219,7 @@ const UnifiedWatchlistPageView: React.FC<UnifiedWatchlistPageViewProps> = ({
                 }}
               />
             ))}
-          </ContentGrid>
+          </WatchlistGrid>
         )}
       </div>
 
@@ -234,7 +263,7 @@ const UnifiedWatchlistPageView: React.FC<UnifiedWatchlistPageViewProps> = ({
           </AppButton>
         </DialogActions>
       </Dialog>
-    </UnifiedWatchlistContainer>
+    </WatchlistPageContainer>
   );
 };
 

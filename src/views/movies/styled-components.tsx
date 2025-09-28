@@ -27,41 +27,49 @@ export const MoviesPageContainer = styled(Container)(({ theme }) => ({
 
 export const MoviesGrid = styled(Box)(({ theme }) => ({
   display: 'grid',
-  gridTemplateColumns: 'repeat(4, 1fr)',
-  gap: theme.spacing(3),
+  gridTemplateColumns: 'repeat(3, 1fr)',
+  gap: theme.spacing(1.5),
 
-  [theme.breakpoints.down('lg')]: {
-    gridTemplateColumns: 'repeat(3, 1fr)',
+  [theme.breakpoints.up('sm')]: {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+    gap: theme.spacing(2.5),
   },
 
-  [theme.breakpoints.down('md')]: {
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: theme.spacing(2),
+  [theme.breakpoints.up('md')]: {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+    gap: theme.spacing(3),
   },
 
-  [theme.breakpoints.down('sm')]: {
-    gridTemplateColumns: '1fr',
-    gap: theme.spacing(2),
+  [theme.breakpoints.up('lg')]: {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+  },
+
+  [theme.breakpoints.up('xl')]: {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
   },
 }));
 
 export const SkeletonGrid = styled(Box)(({ theme }) => ({
   display: 'grid',
-  gridTemplateColumns: 'repeat(4, 1fr)',
-  gap: theme.spacing(3),
+  gridTemplateColumns: 'repeat(3, 1fr)',
+  gap: theme.spacing(1.5),
 
-  [theme.breakpoints.down('lg')]: {
-    gridTemplateColumns: 'repeat(3, 1fr)',
+  [theme.breakpoints.up('sm')]: {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
+    gap: theme.spacing(2.5),
   },
 
-  [theme.breakpoints.down('md')]: {
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: theme.spacing(2),
+  [theme.breakpoints.up('md')]: {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+    gap: theme.spacing(3),
   },
 
-  [theme.breakpoints.down('sm')]: {
-    gridTemplateColumns: '1fr',
-    gap: theme.spacing(2),
+  [theme.breakpoints.up('lg')]: {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+  },
+
+  [theme.breakpoints.up('xl')]: {
+    gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
   },
 }));
 

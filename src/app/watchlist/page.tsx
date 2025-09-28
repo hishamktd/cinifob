@@ -1,154 +1,264 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import dayjs, { Dayjs } from 'dayjs';
 
-import { Container } from '@mui/material';
-
-import { AppLoader, MainLayout } from '@core/components';
-import WatchlistPageView from '@/views/watchlist';
+import UnifiedWatchlistPageView from '@/views/watchlist/unified';
+import { UserMovie, UserTVShow, ContentItem } from '@/types';
+import { MainLayout } from '@core/components/layout';
 import { useToast } from '@/hooks/useToast';
-import { movieService } from '@/services/movie.service';
-import { MovieSortBy } from '@core/enums';
-import { UserMovie } from '@/types';
+import { ContentLoadingPage } from '@/components/content-loading';
 
-export default function WatchlistPage() {
-  const { status } = useSession();
+const WatchlistPage = () => {
+  const { data: session } = useSession();
   const router = useRouter();
   const { showToast } = useToast();
+
   const [movies, setMovies] = useState<UserMovie[]>([]);
+  const [tvShows, setTVShows] = useState<UserTVShow[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<MovieSortBy>(MovieSortBy.DATE_ADDED);
+  const [contentType, setContentType] = useState<'all' | 'movies' | 'tv'>('all');
+  const [sortBy, setSortBy] = useState('date_added');
   const [ratingDialog, setRatingDialog] = useState<{
     open: boolean;
-    movie: UserMovie | null;
+    item: UserMovie | UserTVShow | null;
     rating: number | null;
     watchedDate: Dayjs;
-  }>({ open: false, movie: null, rating: null, watchedDate: dayjs() });
+    mediaType: 'movie' | 'tv';
+  }>({
+    open: false,
+    item: null,
+    rating: null,
+    watchedDate: dayjs(),
+    mediaType: 'movie',
+  });
 
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/auth/login');
-    } else if (status === 'authenticated') {
-      fetchWatchlist();
+    if (!session?.user) {
+      router.push('/login');
+      return;
     }
+    fetchWatchlist();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, router]);
+  }, [session]);
 
-  const fetchWatchlist = async () => {
+  const fetchWatchlist = useCallback(async () => {
     try {
-      const response = await movieService.getWatchlist();
-      setMovies(response.watchlist);
-    } catch {
+      setLoading(true);
+
+      // Fetch movies watchlist
+      const moviesRes = await fetch('/api/user/watchlist');
+      if (moviesRes.ok) {
+        const moviesData = await moviesRes.json();
+        setMovies(Array.isArray(moviesData.watchlist) ? moviesData.watchlist : []);
+      }
+
+      // Fetch TV shows watchlist
+      const tvRes = await fetch('/api/user/tv/watchlist');
+      if (tvRes.ok) {
+        const tvData = await tvRes.json();
+        setTVShows(Array.isArray(tvData) ? tvData : []);
+      }
+    } catch (error) {
+      console.error('Error fetching watchlist:', error);
       showToast('Failed to load watchlist', 'error');
     } finally {
       setLoading(false);
     }
+  }, [showToast]);
+
+  const handleRemoveFromWatchlist = async (tmdbId: number, mediaType: 'movie' | 'tv') => {
+    try {
+      const endpoint =
+        mediaType === 'movie'
+          ? `/api/user/watchlist?tmdbId=${tmdbId}`
+          : `/api/user/tv/watchlist?tmdbId=${tmdbId}`;
+
+      const response = await fetch(endpoint, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        if (mediaType === 'movie') {
+          setMovies(movies.filter((m) => m.movie?.tmdbId !== tmdbId));
+        } else {
+          setTVShows(tvShows.filter((s) => s.tvShow?.tmdbId !== tmdbId));
+        }
+        showToast(`Removed from watchlist`, 'success');
+      }
+    } catch (error) {
+      console.error('Error removing from watchlist:', error);
+      showToast('Failed to remove from watchlist', 'error');
+    }
   };
 
-  const handleRemoveFromWatchlist = useCallback(
-    async (tmdbId: number) => {
-      try {
-        await movieService.removeFromWatchlist(tmdbId);
-        setMovies(movies.filter((m) => m.movie?.tmdbId !== tmdbId));
-        showToast('Removed from watchlist', 'success');
-      } catch {
-        showToast('Failed to remove from watchlist', 'error');
-      }
-    },
-    [movies, showToast],
-  );
+  const handleMarkAsWatched = (item: UserMovie | UserTVShow, mediaType: 'movie' | 'tv') => {
+    setRatingDialog({
+      open: true,
+      item,
+      rating: null,
+      watchedDate: dayjs(),
+      mediaType,
+    });
+  };
 
-  const handleMarkAsWatched = useCallback((movie: UserMovie) => {
-    setRatingDialog({ open: true, movie, rating: null, watchedDate: dayjs() });
-  }, []);
-
-  const handleSaveWatched = useCallback(async () => {
-    if (!ratingDialog.movie) return;
+  const handleSaveWatched = async () => {
+    if (!ratingDialog.item) return;
 
     try {
-      await movieService.markAsWatched(
-        ratingDialog.movie.movie || {},
-        ratingDialog.rating || undefined,
-        undefined,
-        ratingDialog.watchedDate.toDate(),
-      );
-      setMovies(movies.filter((m) => m.movie?.tmdbId !== ratingDialog.movie?.movie?.tmdbId));
-      showToast('Marked as watched', 'success');
-      setRatingDialog({ open: false, movie: null, rating: null, watchedDate: dayjs() });
-    } catch {
-      showToast('Failed to mark as watched', 'error');
-    }
-  }, [ratingDialog.movie, ratingDialog.rating, ratingDialog.watchedDate, movies, showToast]);
+      if (ratingDialog.mediaType === 'movie') {
+        const movie = (ratingDialog.item as UserMovie).movie;
+        if (!movie) return;
 
-  const sortMovies = useCallback(
-    (movies: UserMovie[]) => {
-      const sorted = [...movies];
-      switch (sortBy) {
-        case MovieSortBy.DATE_ADDED:
-          return sorted.sort(
-            (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-          );
-        case MovieSortBy.TITLE:
-          return sorted.sort((a, b) => (a.movie?.title || '').localeCompare(b.movie?.title || ''));
-        case MovieSortBy.RELEASE_DATE:
-          return sorted.sort((a, b) => {
-            const dateA = a.movie?.releaseDate ? new Date(a.movie.releaseDate).getTime() : 0;
-            const dateB = b.movie?.releaseDate ? new Date(b.movie.releaseDate).getTime() : 0;
-            return dateB - dateA;
-          });
-        case MovieSortBy.RATING:
-          return sorted.sort((a, b) => (b?.movie?.voteAverage || 0) - (a?.movie?.voteAverage || 0));
-        default:
-          return sorted;
+        const response = await fetch('/api/user/watched', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...movie,
+            rating: ratingDialog.rating,
+            watchedDate: ratingDialog.watchedDate.toISOString(),
+          }),
+        });
+
+        if (response.ok) {
+          setMovies(movies.filter((m) => m.movie?.tmdbId !== movie.tmdbId));
+          showToast('Marked as watched', 'success');
+        }
+      } else {
+        const tvShow = (ratingDialog.item as UserTVShow).tvShow;
+        if (!tvShow) return;
+
+        const response = await fetch('/api/user/tv/watching', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...tvShow,
+            currentSeason: 1,
+            currentEpisode: 1,
+          }),
+        });
+
+        if (response.ok) {
+          setTVShows(tvShows.filter((s) => s.tvShow?.tmdbId !== tvShow.tmdbId));
+          showToast('Started watching', 'success');
+          router.push(`/tv/${tvShow.tmdbId}`);
+        }
       }
-    },
-    [sortBy],
-  );
 
-  const sortedMovies = useMemo(() => sortMovies(movies), [sortMovies, movies]);
-
-  if (loading) {
-    return (
-      <MainLayout>
-        <Container>
-          <AppLoader type="circular" message="Loading watchlist..." />
-        </Container>
-      </MainLayout>
-    );
-  }
-
-  const handleRatingChange = (rating: number | null) => {
-    setRatingDialog((prev) => ({ ...prev, rating }));
-  };
-
-  const handleDateChange = (date: Dayjs | null) => {
-    if (date) {
-      setRatingDialog((prev) => ({ ...prev, watchedDate: date }));
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      showToast('Failed to update status', 'error');
     }
   };
 
   const handleCloseDialog = () => {
-    setRatingDialog({ open: false, movie: null, rating: null, watchedDate: dayjs() });
+    setRatingDialog({
+      open: false,
+      item: null,
+      rating: null,
+      watchedDate: dayjs(),
+      mediaType: 'movie',
+    });
   };
+
+  const sortedContent = useMemo(() => {
+    let content: ContentItem[] = [];
+
+    // Convert to ContentItem format
+    if (contentType === 'all' || contentType === 'movies') {
+      const movieItems: ContentItem[] = (Array.isArray(movies) ? movies : []).map((m) => ({
+        id: m.movie?.id || 0,
+        tmdbId: m.movie?.tmdbId || 0,
+        mediaType: 'movie' as const,
+        title: m.movie?.title || 'Unknown',
+        overview: m.movie?.overview,
+        posterPath: m.movie?.posterPath,
+        backdropPath: m.movie?.backdropPath,
+        date: m.movie?.releaseDate?.toString(),
+        voteAverage: m.movie?.voteAverage,
+        voteCount: m.movie?.voteCount,
+        popularity: m.movie?.popularity,
+        runtime: m.movie?.runtime,
+        genres: m.movie?.genres,
+        _createdAt: m.createdAt,
+      }));
+      content = [...content, ...movieItems];
+    }
+
+    if (contentType === 'all' || contentType === 'tv') {
+      const tvItems: ContentItem[] = (Array.isArray(tvShows) ? tvShows : []).map((s) => ({
+        id: s.tvShow?.id || 0,
+        tmdbId: s.tvShow?.tmdbId || 0,
+        mediaType: 'tv' as const,
+        title: s.tvShow?.name || 'Unknown',
+        name: s.tvShow?.name,
+        overview: s.tvShow?.overview,
+        posterPath: s.tvShow?.posterPath,
+        backdropPath: s.tvShow?.backdropPath,
+        date: s.tvShow?.firstAirDate?.toString(),
+        voteAverage: s.tvShow?.voteAverage,
+        voteCount: s.tvShow?.voteCount,
+        popularity: s.tvShow?.popularity,
+        numberOfSeasons: s.tvShow?.numberOfSeasons,
+        numberOfEpisodes: s.tvShow?.numberOfEpisodes,
+        genres: s.tvShow?.genres,
+        _createdAt: s.createdAt,
+      }));
+      content = [...content, ...tvItems];
+    }
+
+    // Sort content
+    return content.sort((a, b) => {
+      switch (sortBy) {
+        case 'date_added':
+          return (
+            new Date(b._createdAt as string).getTime() - new Date(a._createdAt as string).getTime()
+          );
+        case 'title':
+          return (a.title || a.name || '').localeCompare(b.title || b.name || '');
+        case 'release_date':
+          return new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime();
+        case 'rating':
+          return (b.voteAverage || 0) - (a.voteAverage || 0);
+        case 'type':
+          return a.mediaType.localeCompare(b.mediaType);
+        default:
+          return 0;
+      }
+    });
+  }, [movies, tvShows, contentType, sortBy]);
+
+  if (loading) {
+    return (
+      <MainLayout>
+        <ContentLoadingPage type="watchlist" />
+      </MainLayout>
+    );
+  }
 
   return (
     <MainLayout>
-      <WatchlistPageView
+      <UnifiedWatchlistPageView
         movies={movies}
+        tvShows={tvShows}
         sortBy={sortBy}
-        sortedMovies={sortedMovies}
+        contentType={contentType}
+        sortedContent={sortedContent}
         ratingDialog={ratingDialog}
+        onContentTypeChange={setContentType}
         onSortChange={setSortBy}
         onRemoveFromWatchlist={handleRemoveFromWatchlist}
         onMarkAsWatched={handleMarkAsWatched}
-        onRatingChange={handleRatingChange}
-        onDateChange={handleDateChange}
+        onRatingChange={(rating) => setRatingDialog({ ...ratingDialog, rating })}
+        onDateChange={(date) => setRatingDialog({ ...ratingDialog, watchedDate: date || dayjs() })}
         onSaveWatched={handleSaveWatched}
         onCloseDialog={handleCloseDialog}
       />
     </MainLayout>
   );
-}
+};
+
+export default WatchlistPage;

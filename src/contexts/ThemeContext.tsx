@@ -50,7 +50,7 @@ export const AppThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => 
           mode,
         },
       }),
-    [mode]
+    [mode],
   );
 
   return (

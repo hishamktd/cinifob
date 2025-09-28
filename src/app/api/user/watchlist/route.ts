@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     }
 
     // First, ensure the movie exists in our database
-    let movie: Awaited<ReturnType<typeof prisma.movie.upsert>>;
+    let movie: Awaited<ReturnType<typeof prisma.movie.upsert>> | null;
     try {
       movie = await prisma.movie.upsert({
         where: { tmdbId },
@@ -138,21 +138,23 @@ export async function POST(request: Request) {
           }
 
           // Create MovieGenre relation
-          await prisma.movieGenre
-            .upsert({
-              where: {
-                movieId_genreId: {
+          if (movie) {
+            await prisma.movieGenre
+              .upsert({
+                where: {
+                  movieId_genreId: {
+                    movieId: movie.id,
+                    genreId: genre.id,
+                  },
+                },
+                update: {},
+                create: {
                   movieId: movie.id,
                   genreId: genre.id,
                 },
-              },
-              update: {},
-              create: {
-                movieId: movie.id,
-                genreId: genre.id,
-              },
-            })
-            .catch(() => null); // Ignore duplicate errors
+              })
+              .catch(() => null); // Ignore duplicate errors
+          }
         });
 
         await Promise.all(genrePromises);
