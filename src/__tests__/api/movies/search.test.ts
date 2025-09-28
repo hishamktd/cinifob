@@ -1,11 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET } from '@/app/api/movies/search/route';
-import { tmdbService } from '@/services/tmdb.service';
+import { tmdbService } from '@/lib/tmdb';
+
+// Mock Prisma
+vi.mock('@core/lib/prisma', () => ({
+  prisma: {
+    genre: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+    movie: {
+      findMany: vi.fn().mockResolvedValue([]),
+    },
+  },
+}));
 
 // Mock TMDb service
-vi.mock('@core/services/tmdb.service', () => ({
+vi.mock('@/lib/tmdb', () => ({
   tmdbService: {
     searchMovies: vi.fn(),
+    getPopularMovies: vi.fn(),
   },
 }));
 
@@ -54,10 +67,19 @@ describe('GET /api/movies/search', () => {
 
     expect(response.status).toBe(200);
     expect(data).toEqual(mockMovies);
-    expect(tmdbService.searchMovies).toHaveBeenCalledWith('Matrix', 1);
+    expect(tmdbService.searchMovies).toHaveBeenCalledWith({ query: 'Matrix', page: 1 });
   });
 
-  it('returns error when query is missing', async () => {
+  it('returns popular movies when query is missing', async () => {
+    const mockMovies = {
+      page: 1,
+      results: [{ id: 1, title: 'Popular Movie' }],
+      total_pages: 1,
+      total_results: 1,
+    };
+
+    vi.mocked(tmdbService.getPopularMovies).mockResolvedValue(mockMovies);
+
     const url = new URL('http://localhost:3000/api/movies/search');
     // No query parameter
 
@@ -68,9 +90,9 @@ describe('GET /api/movies/search', () => {
     const response = await GET(mockRequest);
     const data = await response.json();
 
-    expect(response.status).toBe(400);
-    expect(data.error).toBe('Query parameter is required');
-    expect(tmdbService.searchMovies).not.toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(data.movies).toHaveLength(1);
+    expect(tmdbService.getPopularMovies).toHaveBeenCalled();
   });
 
   it('returns empty results when no movies found', async () => {
@@ -121,7 +143,7 @@ describe('GET /api/movies/search', () => {
 
     expect(response.status).toBe(200);
     expect(data.page).toBe(2);
-    expect(tmdbService.searchMovies).toHaveBeenCalledWith('Star Wars', 2);
+    expect(tmdbService.searchMovies).toHaveBeenCalledWith({ query: 'Star Wars', page: 2 });
   });
 
   it('defaults to page 1 when page not specified', async () => {
@@ -143,7 +165,7 @@ describe('GET /api/movies/search', () => {
 
     await GET(mockRequest);
 
-    expect(tmdbService.searchMovies).toHaveBeenCalledWith('Inception', 1);
+    expect(tmdbService.searchMovies).toHaveBeenCalledWith({ query: 'Inception', page: 1 });
   });
 
   it('handles TMDb service errors', async () => {
@@ -161,8 +183,8 @@ describe('GET /api/movies/search', () => {
     const response = await GET(mockRequest);
     const data = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(data.error).toBe('Failed to search movies');
+    expect(response.status).toBe(503);
+    expect(data.error).toBe('Failed to fetch movies. TMDb API is currently unavailable.');
   });
 
   it('trims whitespace from query', async () => {
@@ -184,6 +206,6 @@ describe('GET /api/movies/search', () => {
 
     await GET(mockRequest);
 
-    expect(tmdbService.searchMovies).toHaveBeenCalledWith('Avatar', 1);
+    expect(tmdbService.searchMovies).toHaveBeenCalledWith({ query: 'Avatar', page: 1 });
   });
 });

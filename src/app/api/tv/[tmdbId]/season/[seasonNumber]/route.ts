@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { TMDBSeason, TMDBEpisode } from '@/types/tmdb';
+import prisma from '@/lib/prisma';
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_API_BASE_URL = process.env.TMDB_API_URL || 'https://api.themoviedb.org/3';
@@ -38,6 +39,115 @@ async function fetchWithRetry(url: string, retries = 3): Promise<Response> {
   throw new Error('Failed after all retries');
 }
 
+async function storeSeasonData(tmdbId: number, seasonData: TMDBSeason) {
+  try {
+    // First ensure the TV show exists
+    const tvShow = await prisma.tVShow.findUnique({
+      where: { tmdbId },
+    });
+
+    if (!tvShow) {
+      // Fetch and store the TV show first
+      const tvResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/tv/${tmdbId}`,
+      );
+      if (!tvResponse.ok) {
+        console.error('Failed to fetch TV show for season storage');
+        return;
+      }
+    }
+
+    // Find the TV show again
+    const existingTvShow = await prisma.tVShow.findUnique({
+      where: { tmdbId },
+    });
+
+    if (!existingTvShow) {
+      console.error('TV show still not found after fetch');
+      return;
+    }
+
+    // Store or update the season
+    await prisma.season.upsert({
+      where: {
+        tvShowId_seasonNumber: {
+          tvShowId: existingTvShow.id,
+          seasonNumber: seasonData.season_number,
+        },
+      },
+      update: {
+        name: seasonData.name,
+        overview: seasonData.overview || null,
+        posterPath: seasonData.poster_path || null,
+        airDate: seasonData.air_date ? new Date(seasonData.air_date) : null,
+        episodeCount: seasonData.episodes?.length || 0,
+      },
+      create: {
+        tvShowId: existingTvShow.id,
+        seasonNumber: seasonData.season_number,
+        name: seasonData.name,
+        overview: seasonData.overview || null,
+        posterPath: seasonData.poster_path || null,
+        airDate: seasonData.air_date ? new Date(seasonData.air_date) : null,
+        episodeCount: seasonData.episodes?.length || 0,
+      },
+    });
+
+    // Store episodes
+    if (seasonData.episodes && seasonData.episodes.length > 0) {
+      const season = await prisma.season.findUnique({
+        where: {
+          tvShowId_seasonNumber: {
+            tvShowId: existingTvShow.id,
+            seasonNumber: seasonData.season_number,
+          },
+        },
+      });
+
+      if (season) {
+        for (const episode of seasonData.episodes) {
+          await prisma.episode.upsert({
+            where: {
+              tvShowId_seasonNumber_episodeNumber: {
+                tvShowId: existingTvShow.id,
+                seasonNumber: seasonData.season_number,
+                episodeNumber: episode.episode_number,
+              },
+            },
+            update: {
+              name: episode.name,
+              overview: episode.overview || null,
+              stillPath: episode.still_path || null,
+              airDate: episode.air_date ? new Date(episode.air_date) : null,
+              runtime: episode.runtime || null,
+              voteAverage: episode.vote_average || null,
+              voteCount: episode.vote_count || null,
+              productionCode: episode.production_code || null,
+              seasonId: season.id,
+            },
+            create: {
+              tvShowId: existingTvShow.id,
+              seasonId: season.id,
+              seasonNumber: seasonData.season_number,
+              episodeNumber: episode.episode_number,
+              name: episode.name,
+              overview: episode.overview || null,
+              stillPath: episode.still_path || null,
+              airDate: episode.air_date ? new Date(episode.air_date) : null,
+              runtime: episode.runtime || null,
+              voteAverage: episode.vote_average || null,
+              voteCount: episode.vote_count || null,
+              productionCode: episode.production_code || null,
+            },
+          });
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error storing season data:', error);
+  }
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ tmdbId: string; seasonNumber: string }> },
@@ -59,6 +169,9 @@ export async function GET(
     if (!data || data.success === false) {
       return NextResponse.json({ error: 'Season not found' }, { status: 404 });
     }
+
+    // Store season and episodes in database
+    await storeSeasonData(tmdbId, data);
 
     // Transform the response
     const season = {

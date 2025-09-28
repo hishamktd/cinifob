@@ -62,13 +62,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // Find the TV show
-    const tvShow = await prisma.tVShow.findUnique({
+    // Find the TV show or fetch it from API if it doesn't exist
+    let tvShow = await prisma.tVShow.findUnique({
       where: { tmdbId: parseInt(tmdbId) },
     });
 
     if (!tvShow) {
-      return NextResponse.json({ error: 'TV show not found' }, { status: 404 });
+      // Fetch TV show from our API to ensure it's saved to database
+      const tvResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000'}/api/tv/${tmdbId}`,
+      );
+
+      if (!tvResponse.ok) {
+        return NextResponse.json({ error: 'Failed to fetch TV show' }, { status: 404 });
+      }
+
+      // Try to find it again after the API call (which should have saved it)
+      tvShow = await prisma.tVShow.findUnique({
+        where: { tmdbId: parseInt(tmdbId) },
+      });
+
+      if (!tvShow) {
+        return NextResponse.json({ error: 'TV show not found' }, { status: 404 });
+      }
     }
 
     // Find or create the episode

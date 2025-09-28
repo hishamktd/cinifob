@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 // Mock Prisma
-vi.mock('@lib/prisma', () => ({
+vi.mock('@core/lib/prisma', () => ({
   prisma: {
     user: {
       findUnique: vi.fn(),
@@ -85,7 +85,7 @@ describe('POST /api/auth/register', () => {
     const data = await response.json();
 
     expect(response.status).toBe(400);
-    expect(data.error).toBe('User already exists');
+    expect(data.error).toBe('User already exists with this email');
     expect(prisma.user.create).not.toHaveBeenCalled();
   });
 
@@ -164,6 +164,6 @@ describe('POST /api/auth/register', () => {
     const data = await response.json();
 
     expect(response.status).toBe(500);
-    expect(data.error).toBe('Failed to create user');
+    expect(data.error).toBe('Internal server error');
   });
 });
