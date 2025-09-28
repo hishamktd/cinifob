@@ -6,6 +6,7 @@ export * from './app-loader';
 export * from './app-empty-state';
 export * from './app-rating';
 export * from './app-search-bar';
+export * from './app-tabs';
 
 // Existing Components
 export * from './app-icon';

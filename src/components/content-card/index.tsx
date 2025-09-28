@@ -8,6 +8,7 @@ import { Box, Card, CardContent, IconButton, Skeleton, Typography, Chip } from '
 
 import { AppIcon } from '@core/components/app-icon';
 import { TMDB_CONFIG } from '@core/constants';
+import { useContentPrefetch } from '@/hooks/useContentPrefetch';
 
 interface ContentCardProps {
   item: {
@@ -38,6 +39,7 @@ export const ContentCard = ({
   isWatched = false,
 }: ContentCardProps) => {
   const router = useRouter();
+  const { handleHover, handleHoverEnd } = useContentPrefetch();
 
   const handleCardClick = () => {
     const path = item.mediaType === 'tv' ? `/tv/${item.tmdbId}` : `/movies/${item.tmdbId}`;
@@ -80,6 +82,8 @@ export const ContentCard = ({
         position: 'relative',
       }}
       onClick={handleCardClick}
+      onMouseEnter={() => handleHover(item.tmdbId, item.mediaType)}
+      onMouseLeave={handleHoverEnd}
     >
       <Box sx={{ position: 'relative', paddingTop: '150%', overflow: 'hidden' }}>
         {item.posterPath ? (

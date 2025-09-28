@@ -74,12 +74,12 @@ export const EpisodeTracker = ({
   const [seasonEpisodes, setSeasonEpisodes] = useState<{ [key: number]: Episode[] }>({});
   const [loadingSeasons, setLoadingSeasons] = useState<number[]>([]);
 
-  // Load saved episode status from localStorage (in a real app, this would be from the database)
+  // Episode status would be loaded from the database via API
   useEffect(() => {
-    const savedStatus = localStorage.getItem(`tv_episodes_${tvShowId}`);
-    if (savedStatus) {
-      setEpisodeStatus(JSON.parse(savedStatus));
-    }
+    // TODO: Fetch episode status from API
+    // const response = await fetch(`/api/tv/${tvShowId}/episodes/status`);
+    // const data = await response.json();
+    // setEpisodeStatus(data);
   }, [tvShowId]);
 
   const toggleSeasonExpand = async (seasonNumber: number) => {
@@ -129,8 +129,11 @@ export const EpisodeTracker = ({
 
     setEpisodeStatus(newStatus);
 
-    // Save to localStorage (in a real app, this would be an API call)
-    localStorage.setItem(`tv_episodes_${tvShowId}`, JSON.stringify(newStatus));
+    // TODO: Save to database via API
+    // await fetch(`/api/tv/${tvShowId}/episodes/status`, {
+    //   method: 'POST',
+    //   body: JSON.stringify(newStatus)
+    // });
 
     if (onEpisodeStatusChange) {
       onEpisodeStatusChange(seasonNumber, episodeNumber, status);
@@ -173,7 +176,11 @@ export const EpisodeTracker = ({
     });
 
     setEpisodeStatus(newStatus);
-    localStorage.setItem(`tv_episodes_${tvShowId}`, JSON.stringify(newStatus));
+    // TODO: Save to database via API
+    // await fetch(`/api/tv/${tvShowId}/episodes/status`, {
+    //   method: 'POST',
+    //   body: JSON.stringify(newStatus)
+    // });
     showToast(`Marked Season ${seasonNumber} as watched`, 'success');
   };
 

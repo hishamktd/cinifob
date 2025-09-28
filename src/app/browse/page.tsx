@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, ChangeEvent } from 'react';
 import { useSession } from 'next-auth/react';
 
 import {
@@ -8,17 +8,14 @@ import {
   Container,
   Grid,
   Typography,
-  ToggleButtonGroup,
-  ToggleButton,
   FormControl,
   Select,
   MenuItem,
   Chip,
-  Stack,
 } from '@mui/material';
 
 import { ContentCard, ContentCardSkeleton } from '@/components/content-card';
-import { AppIcon, AppSearchBar, AppPagination, AppEmptyState, MainLayout } from '@core/components';
+import { AppSearchBar, AppPagination, AppEmptyState, MainLayout, AppTabs, type AppTabItem } from '@core/components';
 import { useToast } from '@/hooks/useToast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useMovieStatus } from '@/hooks/useMovieStatus';
@@ -96,7 +93,7 @@ export default function BrowsePage() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [mediaType, setMediaType] = useState<'all' | 'movie' | 'tv'>('all');
-  const [sortBy, setSortBy] = useState<string>('popular');
+  const [sortBy] = useState<string>('popular');
   const [selectedGenre, setSelectedGenre] = useState<string>('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
@@ -139,23 +136,17 @@ export default function BrowsePage() {
     fetchContent();
   }, [fetchContent]);
 
-  const handleMediaTypeChange = (_: React.MouseEvent<HTMLElement>, newType: string | null) => {
-    if (newType) {
-      setMediaType(newType as 'all' | 'movie' | 'tv');
+  const handleTabChange = (tabId: string) => {
+    const newType = tabId as 'all' | 'movie' | 'tv';
+    if (newType !== mediaType) {
+      setMediaType(newType);
       setSelectedGenre(''); // Reset genre when changing media type
       setPage(1);
     }
   };
 
-  const handleSortChange = (_: React.MouseEvent<HTMLElement>, newSort: string | null) => {
-    if (newSort) {
-      setSortBy(newSort);
-      setPage(1);
-    }
-  };
-
-  const handleGenreChange = (event: { target: { value: string } }) => {
-    setSelectedGenre(event.target.value);
+  const handleGenreChange = (event: ChangeEvent<{ value: unknown }>) => {
+    setSelectedGenre(event.target.value as string);
     setPage(1);
   };
 
@@ -170,32 +161,26 @@ export default function BrowsePage() {
     return unique.sort((a, b) => a.name.localeCompare(b.name));
   };
 
-  const getSortOptions = () => {
-    if (mediaType === 'movie') {
-      return [
-        { value: 'popular', label: 'Popular', icon: 'mdi:fire' },
-        { value: 'trending', label: 'Trending', icon: 'mdi:trending-up' },
-        { value: 'top_rated', label: 'Top Rated', icon: 'mdi:star' },
-        { value: 'now_playing', label: 'Now Playing', icon: 'mdi:play-circle' },
-        { value: 'upcoming', label: 'Upcoming', icon: 'mdi:calendar-clock' },
-      ];
-    } else if (mediaType === 'tv') {
-      return [
-        { value: 'popular', label: 'Popular', icon: 'mdi:fire' },
-        { value: 'trending', label: 'Trending', icon: 'mdi:trending-up' },
-        { value: 'top_rated', label: 'Top Rated', icon: 'mdi:star' },
-        { value: 'on_the_air', label: 'On The Air', icon: 'mdi:broadcast' },
-        { value: 'airing_today', label: 'Airing Today', icon: 'mdi:calendar-today' },
-      ];
-    }
-
-    // For 'all' media type, show only common filters
-    return [
-      { value: 'popular', label: 'Popular', icon: 'mdi:fire' },
-      { value: 'trending', label: 'Trending', icon: 'mdi:trending-up' },
-      { value: 'top_rated', label: 'Top Rated', icon: 'mdi:star' },
-    ];
-  };
+  const getTabItems = (): AppTabItem[] => [
+    {
+      id: 'all',
+      label: 'All',
+      icon: 'mdi:all-inclusive',
+      content: renderContent(),
+    },
+    {
+      id: 'movie',
+      label: 'Movies',
+      icon: 'mdi:movie-open-outline',
+      content: renderContent(),
+    },
+    {
+      id: 'tv',
+      label: 'TV Shows',
+      icon: 'mdi:television-classic',
+      content: renderContent(),
+    },
+  ];
 
   const handleContentAction = async (item: ContentItem, action: 'watchlist' | 'watched') => {
     if (!session) {
@@ -220,7 +205,7 @@ export default function BrowsePage() {
           removeFromWatchlist(item.tmdbId);
           showToast('Removed from watchlist', 'success');
         } else {
-          await movieService.addToWatchlist(item);
+          await movieService.addToWatchlist(item as Partial<Movie>);
           addToWatchlist(item.tmdbId);
           showToast('Added to watchlist', 'success');
         }
@@ -229,7 +214,7 @@ export default function BrowsePage() {
         if (watched) {
           showToast('Already marked as watched', 'info');
         } else {
-          await movieService.markAsWatched(item);
+          await movieService.markAsWatched(item as Partial<Movie>);
           markAsWatched(item.tmdbId);
           showToast('Marked as watched', 'success');
         }
@@ -250,7 +235,6 @@ export default function BrowsePage() {
             Browse
           </Typography>
 
-          {/* Search Bar */}
           <AppSearchBar
             value={searchQuery}
             onChange={(value) => {
@@ -262,106 +246,29 @@ export default function BrowsePage() {
             sx={{ mb: 3 }}
           />
 
-          {/* Filters */}
-          <Stack spacing={2} sx={{ mb: 4 }}>
-            {/* Media Type Filter */}
-            <Box>
-              <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                Content Type
-              </Typography>
-              <ToggleButtonGroup
-                value={mediaType}
-                exclusive
-                onChange={handleMediaTypeChange}
-                aria-label="media type"
-                fullWidth
-                sx={{
-                  '& .MuiToggleButton-root': {
-                    py: 1,
-                  },
-                }}
+          {/* Genre Filter */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+              Genre
+            </Typography>
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <Select
+                value={selectedGenre}
+                onChange={handleGenreChange}
+                displayEmpty
+                sx={{ bgcolor: 'background.paper' }}
               >
-                <ToggleButton value="all" aria-label="all">
-                  <AppIcon icon="mdi:all-inclusive" size={20} style={{ marginRight: 8 }} />
-                  All
-                </ToggleButton>
-                <ToggleButton value="movie" aria-label="movies">
-                  <AppIcon icon="mdi:movie-open-outline" size={20} style={{ marginRight: 8 }} />
-                  Movies
-                </ToggleButton>
-                <ToggleButton value="tv" aria-label="tv shows">
-                  <AppIcon icon="mdi:television-classic" size={20} style={{ marginRight: 8 }} />
-                  TV Shows
-                </ToggleButton>
-              </ToggleButtonGroup>
-            </Box>
-
-            {/* Sort and Genre Row */}
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
-              {/* Sort Options */}
-              <Box sx={{ flex: { xs: '1 1 100%', sm: 1 } }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                    Sort By
-                  </Typography>
-                  {mediaType !== 'all' && (
-                    <Chip
-                      label={mediaType === 'movie' ? 'Movie Filters' : 'TV Filters'}
-                      size="small"
-                      color={mediaType === 'movie' ? 'success' : 'error'}
-                      sx={{ height: 20, fontSize: '0.7rem' }}
-                    />
-                  )}
-                </Box>
-                <ToggleButtonGroup
-                  value={sortBy}
-                  exclusive
-                  onChange={handleSortChange}
-                  aria-label="sort by"
-                  fullWidth
-                  sx={{
-                    '& .MuiToggleButton-root': {
-                      py: 1,
-                      fontSize: '0.875rem',
-                    },
-                  }}
-                >
-                  {getSortOptions().map((option) => (
-                    <ToggleButton key={option.value} value={option.value} aria-label={option.label}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <AppIcon icon={option.icon} size={18} />
-                        <span>{option.label}</span>
-                      </Box>
-                    </ToggleButton>
-                  ))}
-                </ToggleButtonGroup>
-              </Box>
-
-              {/* Genre Filter */}
-              <Box sx={{ flex: { xs: '1 1 100%', sm: '0 0 250px' } }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                  Genre
-                </Typography>
-                <FormControl fullWidth size="small">
-                  <Select
-                    value={selectedGenre}
-                    onChange={handleGenreChange}
-                    displayEmpty
-                    sx={{ bgcolor: 'background.paper' }}
-                  >
-                    <MenuItem value="">
-                      <em>All Genres</em>
-                    </MenuItem>
-                    {getGenreList().map((genre) => (
-                      <MenuItem key={genre.id} value={genre.id.toString()}>
-                        {genre.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-            </Box>
-          </Stack>
+                <MenuItem value="">
+                  <em>All Genres</em>
+                </MenuItem>
+                {getGenreList().map((genre) => (
+                  <MenuItem key={genre.id} value={genre.id.toString()}>
+                    {genre.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
 
           {/* Results Info */}
           {!loading && totalResults > 0 && (
@@ -379,62 +286,79 @@ export default function BrowsePage() {
             </Box>
           )}
 
-          {/* Content Grid */}
-          {loading ? (
-            <Grid container spacing={3}>
-              {Array.from({ length: 12 }).map((_, index) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={index}>
-                  <ContentCardSkeleton />
-                </Grid>
-              ))}
-            </Grid>
-          ) : content.length === 0 ? (
-            <AppEmptyState
-              icon="mdi:movie-search-outline"
-              title={searchQuery ? 'No results found' : 'No content available'}
-              description={
-                searchQuery
-                  ? 'Try adjusting your search or filters'
-                  : 'Start searching or browse popular content'
-              }
-            />
+          {searchQuery ? (
+            <Box sx={{ mb: 4 }}>{renderContent()}</Box>
           ) : (
-            <>
-              <Grid container spacing={3}>
-                {content.map((item) => (
-                  <Grid
-                    size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
-                    key={`${item.mediaType}-${item.tmdbId}`}
-                  >
-                    <ContentCard
-                      item={item}
-                      isInWatchlist={item.mediaType === 'movie' && isInWatchlist(item.tmdbId)}
-                      isWatched={item.mediaType === 'movie' && isWatched(item.tmdbId)}
-                      onAddToWatchlist={() => handleContentAction(item, 'watchlist')}
-                      onMarkAsWatched={() => handleContentAction(item, 'watched')}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <AppPagination
-                  currentPage={page}
-                  totalPages={totalPages}
-                  totalItems={totalResults}
-                  onPageChange={(newPage) => {
-                    setPage(newPage);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  showInfo
-                  position="center"
-                />
-              )}
-            </>
+            <AppTabs
+              tabs={getTabItems()}
+              defaultTab={mediaType}
+              onChange={handleTabChange}
+              variant="fullWidth"
+              sx={{ mb: 4 }}
+            />
           )}
         </Box>
       </Container>
     </MainLayout>
   );
+
+  function renderContent() {
+    return (
+      <>
+        {loading ? (
+          <Grid container spacing={3}>
+            {Array.from({ length: 12 }).map((_, index) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={index}>
+                <ContentCardSkeleton />
+              </Grid>
+            ))}
+          </Grid>
+        ) : content.length === 0 ? (
+          <AppEmptyState
+            icon="mdi:movie-search-outline"
+            title={searchQuery ? 'No results found' : 'No content available'}
+            description={
+              searchQuery
+                ? 'Try adjusting your search or filters'
+                : 'Start searching or browse popular content'
+            }
+          />
+        ) : (
+          <>
+            <Grid container spacing={3}>
+              {content.map((item) => (
+                <Grid
+                  size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+                  key={`${item.mediaType}-${item.tmdbId}`}
+                >
+                  <ContentCard
+                    item={item}
+                    isInWatchlist={item.mediaType === 'movie' && isInWatchlist(item.tmdbId)}
+                    isWatched={item.mediaType === 'movie' && isWatched(item.tmdbId)}
+                    onAddToWatchlist={() => handleContentAction(item, 'watchlist')}
+                    onMarkAsWatched={() => handleContentAction(item, 'watched')}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <AppPagination
+                currentPage={page}
+                totalPages={totalPages}
+                totalItems={totalResults}
+                onPageChange={(newPage) => {
+                  setPage(newPage);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                showInfo
+                position="center"
+              />
+            )}
+          </>
+        )}
+      </>
+    );
+  }
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, ChangeEvent } from 'react';
 import { useSession } from 'next-auth/react';
 
 import {
@@ -8,21 +8,14 @@ import {
   Container,
   Grid,
   Typography,
-  ToggleButtonGroup,
-  ToggleButton,
   FormControl,
   Select,
   MenuItem,
   Chip,
-  Stack,
 } from '@mui/material';
 
 import { ContentCard } from '@/components/content-card';
-import { AppIcon } from '@core/components/app-icon';
-import { AppSearchBar } from '@core/components/app-search-bar';
-import { AppPagination } from '@core/components/app-pagination';
-import { AppEmptyState } from '@core/components/app-empty-state';
-import { MainLayout } from '@core/components/layout/main-layout';
+import { AppSearchBar, AppPagination, AppEmptyState, MainLayout, AppTabs, type AppTabItem } from '@core/components';
 import { useToast } from '@/hooks/useToast';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -100,7 +93,20 @@ export default function TVPage() {
       const data = await response.json();
 
       if (data.results) {
-        const transformedShows = data.results.map((show: any) => ({
+        interface TMDBShow {
+          id: number;
+          name?: string;
+          original_name?: string;
+          overview?: string;
+          poster_path?: string | null;
+          backdrop_path?: string | null;
+          first_air_date?: string;
+          vote_average?: number;
+          vote_count?: number;
+          popularity?: number;
+          genre_ids?: number[];
+        }
+        const transformedShows = data.results.map((show: TMDBShow) => ({
           id: show.id,
           tmdbId: show.id,
           mediaType: 'tv' as const,
@@ -130,38 +136,44 @@ export default function TVPage() {
     fetchTVShows();
   }, [fetchTVShows]);
 
-  const handleSortChange = (_: React.MouseEvent<HTMLElement>, newSort: string | null) => {
-    if (newSort) {
-      setSortBy(newSort);
+  const handleTabChange = (tabId: string) => {
+    if (tabId !== sortBy) {
+      setSortBy(tabId);
       setPage(1);
     }
   };
 
-  const handleGenreChange = (event: { target: { value: string } }) => {
-    setSelectedGenre(event.target.value);
+  const handleGenreChange = (event: ChangeEvent<{ value: unknown }>) => {
+    setSelectedGenre(event.target.value as string);
     setPage(1);
   };
 
-  const getSortOptions = () => [
-    { value: 'popular', label: 'Popular', icon: 'mdi:fire' },
-    { value: 'trending', label: 'Trending', icon: 'mdi:trending-up' },
-    { value: 'top_rated', label: 'Top Rated', icon: 'mdi:star' },
-    { value: 'on_the_air', label: 'On The Air', icon: 'mdi:broadcast' },
-    { value: 'airing_today', label: 'Airing Today', icon: 'mdi:calendar-today' },
+  const getTabItems = (): AppTabItem[] => [
+    {
+      id: 'popular',
+      label: 'Popular',
+      icon: 'mdi:fire',
+      content: renderContent(),
+    },
+    {
+      id: 'on_the_air',
+      label: 'On The Air',
+      icon: 'mdi:broadcast',
+      content: renderContent(),
+    },
+    {
+      id: 'airing_today',
+      label: 'Airing Today',
+      icon: 'mdi:calendar-today',
+      content: renderContent(),
+    },
+    {
+      id: 'top_rated',
+      label: 'Top Rated',
+      icon: 'mdi:star',
+      content: renderContent(),
+    },
   ];
-
-  const handleTVAction = async (item: TVShow, action: 'watchlist' | 'watched') => {
-    if (!session) {
-      showToast(
-        `Please login to ${action === 'watchlist' ? 'add to watchlist' : 'mark as watched'}`,
-        'warning',
-      );
-      return;
-    }
-
-    // TV show support coming soon
-    showToast('TV show support coming soon!', 'info');
-  };
 
   return (
     <MainLayout>
@@ -171,7 +183,6 @@ export default function TVPage() {
             TV Shows
           </Typography>
 
-          {/* Search Bar */}
           <AppSearchBar
             value={searchQuery}
             onChange={(value) => {
@@ -183,72 +194,29 @@ export default function TVPage() {
             sx={{ mb: 3 }}
           />
 
-          {/* Filters */}
-          <Stack spacing={2} sx={{ mb: 4 }}>
-            {/* Sort and Genre Row */}
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
-              {/* Sort Options */}
-              <Box sx={{ flex: { xs: '1 1 100%', sm: 1 } }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                    Sort By
-                  </Typography>
-                  <Chip
-                    label="TV Filters"
-                    size="small"
-                    color="error"
-                    sx={{ height: 20, fontSize: '0.7rem' }}
-                  />
-                </Box>
-                <ToggleButtonGroup
-                  value={sortBy}
-                  exclusive
-                  onChange={handleSortChange}
-                  aria-label="sort by"
-                  fullWidth
-                  sx={{
-                    '& .MuiToggleButton-root': {
-                      py: 1,
-                      fontSize: '0.875rem',
-                    },
-                  }}
-                >
-                  {getSortOptions().map((option) => (
-                    <ToggleButton key={option.value} value={option.value} aria-label={option.label}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <AppIcon icon={option.icon} size={18} />
-                        <span>{option.label}</span>
-                      </Box>
-                    </ToggleButton>
-                  ))}
-                </ToggleButtonGroup>
-              </Box>
-
-              {/* Genre Filter */}
-              <Box sx={{ flex: { xs: '1 1 100%', sm: '0 0 250px' } }}>
-                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-                  Genre
-                </Typography>
-                <FormControl fullWidth size="small">
-                  <Select
-                    value={selectedGenre}
-                    onChange={handleGenreChange}
-                    displayEmpty
-                    sx={{ bgcolor: 'background.paper' }}
-                  >
-                    <MenuItem value="">
-                      <em>All Genres</em>
-                    </MenuItem>
-                    {TV_GENRES.map((genre) => (
-                      <MenuItem key={genre.id} value={genre.id.toString()}>
-                        {genre.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Box>
-            </Box>
-          </Stack>
+          {/* Genre Filter */}
+          <Box sx={{ mb: 3 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+              Genre
+            </Typography>
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <Select
+                value={selectedGenre}
+                onChange={handleGenreChange}
+                displayEmpty
+                sx={{ bgcolor: 'background.paper' }}
+              >
+                <MenuItem value="">
+                  <em>All Genres</em>
+                </MenuItem>
+                {TV_GENRES.map((genre) => (
+                  <MenuItem key={genre.id} value={genre.id.toString()}>
+                    {genre.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
 
           {/* Results Info */}
           {!loading && totalResults > 0 && (
@@ -266,65 +234,82 @@ export default function TVPage() {
             </Box>
           )}
 
-          {/* Content Grid */}
-          {loading ? (
-            <Grid container spacing={3}>
-              {Array.from({ length: 12 }).map((_, index) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={index}>
-                  <Box
-                    sx={{
-                      height: 400,
-                      bgcolor: 'action.hover',
-                      borderRadius: 2,
-                      animation: 'pulse 1.5s ease-in-out infinite',
-                      '@keyframes pulse': {
-                        '0%': { opacity: 0.6 },
-                        '50%': { opacity: 1 },
-                        '100%': { opacity: 0.6 },
-                      },
-                    }}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          ) : tvShows.length === 0 ? (
-            <AppEmptyState
-              icon="mdi:television-classic"
-              title={searchQuery ? 'No TV shows found' : 'No TV shows available'}
-              description={
-                searchQuery
-                  ? 'Try adjusting your search or filters'
-                  : 'Start searching or browse popular TV shows'
-              }
-            />
+          {searchQuery ? (
+            <Box sx={{ mb: 4 }}>{renderContent()}</Box>
           ) : (
-            <>
-              <Grid container spacing={3}>
-                {tvShows.map((tvShow) => (
-                  <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={`tv-${tvShow.tmdbId}`}>
-                    <ContentCard item={tvShow} />
-                  </Grid>
-                ))}
-              </Grid>
-
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <AppPagination
-                  currentPage={page}
-                  totalPages={totalPages}
-                  totalItems={totalResults}
-                  onPageChange={(newPage) => {
-                    setPage(newPage);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  showInfo
-                  position="center"
-                />
-              )}
-            </>
+            <AppTabs
+              tabs={getTabItems()}
+              defaultTab={sortBy}
+              onChange={handleTabChange}
+              variant="fullWidth"
+              sx={{ mb: 4 }}
+            />
           )}
         </Box>
       </Container>
     </MainLayout>
   );
+
+  function renderContent() {
+    return (
+      <>
+        {loading ? (
+          <Grid container spacing={3}>
+            {Array.from({ length: 12 }).map((_, index) => (
+              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={index}>
+                <Box
+                  sx={{
+                    height: 400,
+                    bgcolor: 'action.hover',
+                    borderRadius: 2,
+                    animation: 'pulse 1.5s ease-in-out infinite',
+                    '@keyframes pulse': {
+                      '0%': { opacity: 0.6 },
+                      '50%': { opacity: 1 },
+                      '100%': { opacity: 0.6 },
+                    },
+                  }}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        ) : tvShows.length === 0 ? (
+          <AppEmptyState
+            icon="mdi:television-classic"
+            title={searchQuery ? 'No TV shows found' : 'No TV shows available'}
+            description={
+              searchQuery
+                ? 'Try adjusting your search or filters'
+                : 'Start searching or browse popular TV shows'
+            }
+          />
+        ) : (
+          <>
+            <Grid container spacing={3}>
+              {tvShows.map((tvShow) => (
+                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={`tv-${tvShow.tmdbId}`}>
+                  <ContentCard item={tvShow} />
+                </Grid>
+              ))}
+            </Grid>
+
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <AppPagination
+                currentPage={page}
+                totalPages={totalPages}
+                totalItems={totalResults}
+                onPageChange={(newPage) => {
+                  setPage(newPage);
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                showInfo
+                position="center"
+              />
+            )}
+          </>
+        )}
+      </>
+    );
+  }
 }
