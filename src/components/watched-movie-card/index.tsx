@@ -6,11 +6,8 @@ import Image from 'next/image';
 import dayjs, { Dayjs } from 'dayjs';
 
 import { Box, CardContent, Typography, Chip, IconButton } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
-import { AppIcon, AppButton } from '@core/components';
+import { AppIcon, AppButton, AppDatePicker } from '@core/components';
 import { TMDB_CONFIG } from '@core/constants';
 import { UserMovie } from '@/types';
 import {
@@ -138,26 +135,24 @@ export const WatchedMovieCard: React.FC<WatchedMovieCardProps> = ({
       {/* Watched Date Section */}
       <WatchedDateSection>
         {isEditingDate ? (
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <DatePicker
-                label="Date"
-                value={dayjs(userMovie.watchedAt)}
-                onChange={(newDate) => onUpdateDate(userMovie.id, newDate)}
-                maxDate={dayjs()}
-                slotProps={{
-                  textField: {
-                    size: 'small',
-                    fullWidth: true,
-                    sx: { '& .MuiInputBase-input': { fontSize: '0.75rem' } },
-                  },
-                }}
-              />
-              <IconButton size="small" onClick={onCancelEditDate} sx={{ p: 0.5 }}>
-                <AppIcon icon="mdi:close" size={16} />
-              </IconButton>
-            </Box>
-          </LocalizationProvider>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <AppDatePicker
+              label="Date"
+              value={dayjs(userMovie.watchedAt)}
+              onChange={(newDate) => onUpdateDate(userMovie.id, newDate)}
+              maxDate={dayjs()}
+              size="small"
+              fullWidth
+              slotProps={{
+                textField: {
+                  sx: { '& .MuiInputBase-input': { fontSize: '0.75rem' } },
+                },
+              }}
+            />
+            <IconButton size="small" onClick={onCancelEditDate} sx={{ p: 0.5 }}>
+              <AppIcon icon="mdi:close" size={16} />
+            </IconButton>
+          </Box>
         ) : (
           <DateDisplay>
             <div className="date-info">

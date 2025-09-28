@@ -76,10 +76,28 @@ export const EpisodeTracker = ({
 
   // Episode status would be loaded from the database via API
   useEffect(() => {
-    // TODO: Fetch episode status from API
-    // const response = await fetch(`/api/tv/${tvShowId}/episodes/status`);
-    // const data = await response.json();
-    // setEpisodeStatus(data);
+    const fetchEpisodeStatuses = async () => {
+      try {
+        const response = await fetch(`/api/user/episodes/status?tvShowId=${tvShowId}`);
+        if (response.ok) {
+          const data = await response.json();
+          // Transform the data to our local format
+          const transformedStatus: EpisodeStatus = {};
+          Object.entries(data).forEach(([,]: [string, unknown]) => {
+            // We'll need to map tmdbId to season-episode format
+            // This will be handled once we have the episodes loaded
+          });
+          // For now, store the raw status data
+          setEpisodeStatus(data);
+        }
+      } catch (error) {
+        console.error('Error fetching episode statuses:', error);
+      }
+    };
+
+    if (tvShowId) {
+      fetchEpisodeStatuses();
+    }
   }, [tvShowId]);
 
   const toggleSeasonExpand = async (seasonNumber: number) => {
@@ -116,7 +134,7 @@ export const EpisodeTracker = ({
     }
   };
 
-  const handleEpisodeStatusChange = (
+  const handleEpisodeStatusChange = async (
     seasonNumber: number,
     episodeNumber: number,
     status: 'watched' | 'planned' | null,
@@ -129,11 +147,36 @@ export const EpisodeTracker = ({
 
     setEpisodeStatus(newStatus);
 
-    // TODO: Save to database via API
-    // await fetch(`/api/tv/${tvShowId}/episodes/status`, {
-    //   method: 'POST',
-    //   body: JSON.stringify(newStatus)
-    // });
+    // Find the episode to get its tmdbId
+    const episodes = seasonEpisodes[seasonNumber];
+    if (episodes) {
+      const episode = episodes.find((e) => e.episode_number === episodeNumber);
+      if (episode) {
+        try {
+          // Save to database via API
+          const apiStatus =
+            status === 'watched' ? 'WATCHED' : status === 'planned' ? 'PLANNED' : 'SKIPPED';
+          const response = await fetch(`/api/user/episodes/status`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              episodeTmdbId: episode.id, // Using the episode id as tmdbId
+              status: apiStatus,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to update episode status');
+          }
+        } catch (error) {
+          console.error('Error saving episode status:', error);
+          showToast('Failed to update episode status', 'error');
+          // Revert the status on error
+          setEpisodeStatus(episodeStatus);
+          return;
+        }
+      }
+    }
 
     if (onEpisodeStatusChange) {
       onEpisodeStatusChange(seasonNumber, episodeNumber, status);
@@ -165,7 +208,7 @@ export const EpisodeTracker = ({
     handleEpisodeStatusChange(seasonNumber, episodeNumber, newStatus);
   };
 
-  const markSeasonAsWatched = (seasonNumber: number) => {
+  const markSeasonAsWatched = async (seasonNumber: number) => {
     const episodes = seasonEpisodes[seasonNumber];
     if (!episodes) return;
 
@@ -176,12 +219,28 @@ export const EpisodeTracker = ({
     });
 
     setEpisodeStatus(newStatus);
-    // TODO: Save to database via API
-    // await fetch(`/api/tv/${tvShowId}/episodes/status`, {
-    //   method: 'POST',
-    //   body: JSON.stringify(newStatus)
-    // });
-    showToast(`Marked Season ${seasonNumber} as watched`, 'success');
+
+    try {
+      // Save all episodes as watched via API
+      const promises = episodes.map((episode) =>
+        fetch(`/api/user/episodes/status`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            episodeTmdbId: episode.id,
+            status: 'WATCHED',
+          }),
+        }),
+      );
+
+      await Promise.all(promises);
+      showToast(`Marked Season ${seasonNumber} as watched`, 'success');
+    } catch (error) {
+      console.error('Error marking season as watched:', error);
+      showToast('Failed to mark season as watched', 'error');
+      // Revert on error
+      setEpisodeStatus(episodeStatus);
+    }
   };
 
   const getSeasonProgress = (seasonNumber: number, episodeCount: number) => {

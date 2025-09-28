@@ -1,125 +1,44 @@
 'use client';
 
 import React from 'react';
-import ReactDatePicker from 'react-datepicker';
+import { DatePicker, DatePickerProps } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { Dayjs } from 'dayjs';
 
-import { FormControl, FormHelperText, FormLabel, TextField, useTheme } from '@mui/material';
+export interface AppDatePickerProps extends Omit<DatePickerProps<Dayjs>, 'renderInput'> {
+  fullWidth?: boolean;
+  size?: 'small' | 'medium';
+  error?: boolean;
+  helperText?: string;
+}
 
-import 'react-datepicker/dist/react-datepicker.css';
-import { DATE_FORMATS } from '@core/constants';
-
-import { AppIcon } from '../app-icon';
-import { DatePickerStyles } from './DatePickerStyles';
-import { AppDatePickerProps } from './types';
-
-export const AppDatePicker = ({
-  label,
-  error,
+export const AppDatePicker: React.FC<AppDatePickerProps> = ({
+  fullWidth = false,
+  size = 'medium',
+  error = false,
   helperText,
-  required,
-  value,
-  onChange,
-  fullWidth = true,
-  placeholderText = 'Select date',
-  dateFormat = DATE_FORMATS.DEFAULT,
-  minDate,
-  maxDate,
-  disabled,
-  readOnly,
-  showTimeSelect,
-  timeFormat,
-  timeIntervals,
-  className,
-}: AppDatePickerProps) => {
-  const theme = useTheme();
-
-  interface CustomInputProps {
-    value?: string;
-    onClick?: () => void;
-    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
-    placeholder?: string;
-  }
-
-  const CustomInput = React.forwardRef<HTMLInputElement, CustomInputProps>(
-    ({ value, onClick, onChange: inputOnChange, placeholder }, ref) => (
-      <TextField
-        ref={ref}
-        value={value}
-        onClick={onClick}
-        onChange={inputOnChange}
-        placeholder={placeholder}
-        fullWidth={fullWidth}
-        error={error}
-        InputProps={{
-          endAdornment: (
-            <AppIcon
-              icon="solar:calendar-line-duotone"
-              size={20}
-              style={{ color: theme.palette.text.secondary, cursor: 'pointer' }}
-            />
-          ),
-        }}
-        sx={{
-          '& .MuiOutlinedInput-root': {
-            backgroundColor: theme.palette.background.paper,
-            '& fieldset': {
-              borderColor: error ? theme.palette.error.main : theme.palette.divider,
-            },
-            '&:hover fieldset': {
-              borderColor: theme.palette.text.primary,
-            },
-            '&.Mui-focused fieldset': {
-              borderColor: theme.palette.primary.main,
-              borderWidth: 2,
-            },
+  slotProps,
+  ...datePickerProps
+}) => {
+  return (
+    <LocalizationProvider dateAdapter={AdapterDayjs}>
+      <DatePicker
+        {...datePickerProps}
+        slotProps={{
+          ...slotProps,
+          textField: {
+            fullWidth,
+            size,
+            error,
+            helperText,
+            ...slotProps?.textField,
           },
         }}
       />
-    ),
-  );
-
-  CustomInput.displayName = 'CustomInput';
-
-  return (
-    <FormControl fullWidth={fullWidth} error={error}>
-      {label && (
-        <FormLabel
-          sx={{
-            mb: 1,
-            color: error ? 'error.main' : 'text.primary',
-            fontSize: '0.875rem',
-            fontWeight: 500,
-          }}
-        >
-          {label}
-          {required && <span style={{ color: theme.palette.error.main }}> *</span>}
-        </FormLabel>
-      )}
-      <ReactDatePicker
-        selected={value}
-        onChange={onChange || (() => {})}
-        customInput={<CustomInput />}
-        placeholderText={placeholderText}
-        dateFormat={dateFormat}
-        minDate={minDate}
-        maxDate={maxDate}
-        disabled={disabled}
-        readOnly={readOnly}
-        showTimeSelect={showTimeSelect}
-        timeFormat={timeFormat}
-        timeIntervals={timeIntervals}
-        className={className}
-        popperClassName="date-picker-popper"
-        wrapperClassName={fullWidth ? 'date-picker-wrapper-full' : 'date-picker-wrapper'}
-      />
-      {helperText && (
-        <FormHelperText sx={{ color: error ? 'error.main' : 'text.secondary' }}>
-          {helperText}
-        </FormHelperText>
-      )}
-      <DatePickerStyles />
-    </FormControl>
+    </LocalizationProvider>
   );
 };
 
-export type { AppDatePickerProps } from './types';
+export type { AppDatePickerProps };
+export default AppDatePicker;

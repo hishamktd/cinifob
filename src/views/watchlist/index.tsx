@@ -3,8 +3,9 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Typography, Chip, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
+import { Dayjs } from 'dayjs';
 
-import { AppButton, AppEmptyState, AppRating } from '@core/components';
+import { AppButton, AppEmptyState, AppRating, AppDatePicker } from '@core/components';
 import { ContentCard } from '@/components/content-card';
 import { MovieSortBy } from '@core/enums';
 import { UserMovie } from '@/types';
@@ -18,11 +19,13 @@ interface WatchlistPageViewProps {
     open: boolean;
     movie: UserMovie | null;
     rating: number | null;
+    watchedDate: Dayjs;
   };
   onSortChange: (sort: MovieSortBy) => void;
   onRemoveFromWatchlist: (tmdbId: number) => void;
   onMarkAsWatched: (movie: UserMovie) => void;
   onRatingChange: (rating: number | null) => void;
+  onDateChange: (date: Dayjs | null) => void;
   onSaveWatched: () => void;
   onCloseDialog: () => void;
 }
@@ -36,6 +39,7 @@ const WatchlistPageView: React.FC<WatchlistPageViewProps> = ({
   onRemoveFromWatchlist,
   onMarkAsWatched,
   onRatingChange,
+  onDateChange,
   onSaveWatched,
   onCloseDialog,
 }) => {
@@ -126,9 +130,20 @@ const WatchlistPageView: React.FC<WatchlistPageViewProps> = ({
       </div>
 
       <Dialog open={ratingDialog.open} onClose={onCloseDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Rate &quot;{ratingDialog.movie?.movie?.title}&quot;</DialogTitle>
+        <DialogTitle>Mark as Watched</DialogTitle>
         <DialogContent>
           <Typography variant="body2" gutterBottom sx={{ mb: 2 }}>
+            When did you watch &quot;{ratingDialog.movie?.movie?.title}&quot;?
+          </Typography>
+          <AppDatePicker
+            label="Watch Date"
+            value={ratingDialog.watchedDate}
+            onChange={onDateChange}
+            maxDate={ratingDialog.watchedDate}
+            fullWidth
+            sx={{ mb: 3 }}
+          />
+          <Typography variant="body2" gutterBottom sx={{ mb: 1 }}>
             How would you rate this movie?
           </Typography>
           <AppRating value={ratingDialog.rating} onChange={onRatingChange} size="large" />

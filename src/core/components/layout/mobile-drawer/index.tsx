@@ -197,7 +197,7 @@ export const MobileDrawer = React.memo(({ open, onClose }: MobileDrawerProps) =>
       {
         title: 'Watchlist',
         icon: 'solar:bookmark-bold',
-        href: ROUTES.WATCHLIST,
+        href: '/watchlist/unified',
         color: 'success',
         description: 'Your saved content',
         badge: userStats.watchlistCount,

@@ -63,7 +63,12 @@ class MovieService {
     return response.json();
   }
 
-  async markAsWatched(movie: Partial<Movie>, rating?: number, comment?: string) {
+  async markAsWatched(
+    movie: Partial<Movie>,
+    rating?: number,
+    comment?: string,
+    watchedDate?: Date,
+  ) {
     // If we don't have runtime, fetch full movie details
     let movieData = movie;
     if (!movie.runtime && movie.tmdbId) {
@@ -92,6 +97,7 @@ class MovieService {
         genres: movieData.genres,
         rating,
         comment,
+        watchedAt: watchedDate || new Date(),
       }),
     });
 

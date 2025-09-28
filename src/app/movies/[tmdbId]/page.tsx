@@ -26,8 +26,10 @@ import {
   Stack,
   Link,
 } from '@mui/material';
+import dayjs, { Dayjs } from 'dayjs';
 
 import { AppIcon } from '@core/components/app-icon';
+import { AppDatePicker } from '@core/components/app-date-picker';
 import { MainLayout } from '@core/components/layout/main-layout';
 import { Toast } from '@core/components/toast';
 import { RelatedContent } from '@/components/related-content';
@@ -99,6 +101,7 @@ export default function MovieDetailPage() {
   const [userMovie, setUserMovie] = useState<UserMovie | null>(null);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
+  const [watchedDate, setWatchedDate] = useState<Dayjs>(dayjs());
   const [tabValue, setTabValue] = useState(0);
   const [toast, setToast] = useState<{
     open: boolean;
@@ -212,7 +215,12 @@ export default function MovieDetailPage() {
         voteAverage: movie.voteAverage,
         voteCount: movie.voteCount,
       };
-      await movieService.markAsWatched(movieData, rating || undefined);
+      await movieService.markAsWatched(
+        movieData,
+        rating || undefined,
+        undefined,
+        watchedDate.toDate(),
+      );
       showToast('Marked as watched', 'success');
       setRatingDialogOpen(false);
       await checkUserMovieStatus();
@@ -769,17 +777,32 @@ export default function MovieDetailPage() {
         </Container>
       )}
 
-      <Dialog open={ratingDialogOpen} onClose={() => setRatingDialogOpen(false)}>
-        <DialogTitle>Rate this movie</DialogTitle>
+      <Dialog
+        open={ratingDialogOpen}
+        onClose={() => setRatingDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Mark as Watched</DialogTitle>
         <DialogContent>
-          <Box sx={{ py: 2, textAlign: 'center' }}>
-            <Typography gutterBottom>How would you rate {movie.title}?</Typography>
-            <Rating
-              value={rating}
-              onChange={(_, newValue) => setRating(newValue)}
-              size="large"
-              sx={{ mt: 2 }}
+          <Box sx={{ py: 2 }}>
+            <Typography gutterBottom sx={{ mb: 2 }}>
+              When did you watch {movie.title}?
+            </Typography>
+            <AppDatePicker
+              label="Watch Date"
+              value={watchedDate}
+              onChange={(newValue) => newValue && setWatchedDate(newValue)}
+              maxDate={dayjs()}
+              fullWidth
+              sx={{ mb: 3 }}
             />
+            <Typography gutterBottom sx={{ mb: 1 }}>
+              How would you rate it?
+            </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+              <Rating value={rating} onChange={(_, newValue) => setRating(newValue)} size="large" />
+            </Box>
           </Box>
         </DialogContent>
         <DialogActions>

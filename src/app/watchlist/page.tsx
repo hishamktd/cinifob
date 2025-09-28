@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import dayjs, { Dayjs } from 'dayjs';
 
 import { Container } from '@mui/material';
 
@@ -24,7 +25,8 @@ export default function WatchlistPage() {
     open: boolean;
     movie: UserMovie | null;
     rating: number | null;
-  }>({ open: false, movie: null, rating: null });
+    watchedDate: Dayjs;
+  }>({ open: false, movie: null, rating: null, watchedDate: dayjs() });
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -60,7 +62,7 @@ export default function WatchlistPage() {
   );
 
   const handleMarkAsWatched = useCallback((movie: UserMovie) => {
-    setRatingDialog({ open: true, movie, rating: null });
+    setRatingDialog({ open: true, movie, rating: null, watchedDate: dayjs() });
   }, []);
 
   const handleSaveWatched = useCallback(async () => {
@@ -70,14 +72,16 @@ export default function WatchlistPage() {
       await movieService.markAsWatched(
         ratingDialog.movie.movie || {},
         ratingDialog.rating || undefined,
+        undefined,
+        ratingDialog.watchedDate.toDate(),
       );
       setMovies(movies.filter((m) => m.movie?.tmdbId !== ratingDialog.movie?.movie?.tmdbId));
       showToast('Marked as watched', 'success');
-      setRatingDialog({ open: false, movie: null, rating: null });
+      setRatingDialog({ open: false, movie: null, rating: null, watchedDate: dayjs() });
     } catch {
       showToast('Failed to mark as watched', 'error');
     }
-  }, [ratingDialog.movie, ratingDialog.rating, movies, showToast]);
+  }, [ratingDialog.movie, ratingDialog.rating, ratingDialog.watchedDate, movies, showToast]);
 
   const sortMovies = useCallback(
     (movies: UserMovie[]) => {
@@ -120,8 +124,14 @@ export default function WatchlistPage() {
     setRatingDialog((prev) => ({ ...prev, rating }));
   };
 
+  const handleDateChange = (date: Dayjs | null) => {
+    if (date) {
+      setRatingDialog((prev) => ({ ...prev, watchedDate: date }));
+    }
+  };
+
   const handleCloseDialog = () => {
-    setRatingDialog({ open: false, movie: null, rating: null });
+    setRatingDialog({ open: false, movie: null, rating: null, watchedDate: dayjs() });
   };
 
   return (
@@ -135,6 +145,7 @@ export default function WatchlistPage() {
         onRemoveFromWatchlist={handleRemoveFromWatchlist}
         onMarkAsWatched={handleMarkAsWatched}
         onRatingChange={handleRatingChange}
+        onDateChange={handleDateChange}
         onSaveWatched={handleSaveWatched}
         onCloseDialog={handleCloseDialog}
       />

@@ -166,7 +166,7 @@ export const AppHeader = () => {
     { label: 'Browse', route: ROUTES.BROWSE, icon: 'solar:magnifer-linear' },
     { label: 'Movies', route: ROUTES.MOVIES, icon: 'solar:play-circle-bold' },
     { label: 'TV Shows', route: ROUTES.TV, icon: 'solar:tv-bold' },
-    { label: 'Watchlist', route: ROUTES.WATCHLIST, icon: 'solar:bookmark-bold' },
+    { label: 'Watchlist', route: '/watchlist/unified', icon: 'solar:bookmark-bold' },
     { label: 'Watched', route: ROUTES.WATCHED, icon: 'solar:check-circle-bold' },
     { label: 'Dashboard', route: ROUTES.DASHBOARD, icon: 'solar:chart-square-bold' },
   ];
