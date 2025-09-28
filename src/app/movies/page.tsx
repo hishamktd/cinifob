@@ -3,17 +3,14 @@
 import React, { useEffect, useState } from 'react';
 import { useSession } from 'next-auth/react';
 
-import { Box, Container, Grid, Typography } from '@mui/material';
-
-import { AppPagination, AppSearchBar, AppEmptyState, MainLayout, AppTabs } from '@core/components';
-import { ContentCard, ContentCardSkeleton } from '@/components/content-card';
+import { MainLayout } from '@core/components';
+import MoviesPageView from '@/views/movies';
 import { MovieSearchType } from '@core/enums';
 import { useToast } from '@/hooks/useToast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useMovieStatus } from '@/hooks/useMovieStatus';
 import { movieService } from '@/services/movie.service';
 import { Movie } from '@/types';
-import { AppTabItem } from '@core/components/app-tabs';
 
 export default function MoviesPage() {
   const { data: session } = useSession();
@@ -81,192 +78,86 @@ export default function MoviesPage() {
     }
   };
 
-  const renderContent = () => {
-    return (
-      <>
-        {loading ? (
-          <Grid container spacing={3}>
-            {Array.from({ length: 12 }).map((_, index) => (
-              <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={index}>
-                <ContentCardSkeleton />
-              </Grid>
-            ))}
-          </Grid>
-        ) : movies.length === 0 ? (
-          <AppEmptyState
-            icon="mdi:movie-search-outline"
-            title={searchQuery ? `No movies found for "${searchQuery}"` : 'No movies found'}
-            description={
-              searchQuery
-                ? 'Try adjusting your search terms or browse our popular movies.'
-                : 'Discover amazing movies by searching or browsing our collection.'
-            }
-            actionLabel="Browse Popular"
-            actionIcon="mdi:fire"
-            onAction={() => {
-              setSearchType(MovieSearchType.POPULAR);
-              setSearchQuery('');
-              fetchMovies('', 1, MovieSearchType.POPULAR);
-            }}
-          />
-        ) : (
-          <>
-            <Grid container spacing={3}>
-              {movies.map((movie) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={movie.tmdbId}>
-                  <ContentCard
-                    item={{
-                      id: movie.id || 0,
-                      tmdbId: movie.tmdbId || 0,
-                      mediaType: 'movie',
-                      title: movie.title || 'Unknown Title',
-                      overview: movie.overview,
-                      posterPath: movie.posterPath,
-                      backdropPath: movie.backdropPath,
-                      date: movie.releaseDate?.toString(),
-                      voteAverage: movie.voteAverage,
-                      voteCount: movie.voteCount,
-                      popularity: movie.popularity,
-                      genreIds: Array.isArray(movie.genres)
-                        ? typeof movie.genres[0] === 'object'
-                          ? (movie.genres as unknown as { id: number }[]).map((g) => g.id)
-                          : (movie.genres as (string | number)[]).map((g) => Number(g))
-                        : undefined,
-                    }}
-                    isInWatchlist={movie.tmdbId ? isInWatchlist(movie.tmdbId) : false}
-                    isWatched={movie.tmdbId ? isWatched(movie.tmdbId) : false}
-                    onAddToWatchlist={async () => {
-                      if (!session) {
-                        showToast('Please login to add to watchlist', 'warning');
-                        return;
-                      }
-                      if (!movie.tmdbId) return;
+  const handleAddToWatchlist = async (movie: Partial<Movie>) => {
+    if (!session) {
+      showToast('Please login to add to watchlist', 'warning');
+      return;
+    }
+    if (!movie.tmdbId) return;
 
-                      const inWatchlist = isInWatchlist(movie.tmdbId);
-                      try {
-                        if (inWatchlist) {
-                          await movieService.removeFromWatchlist(movie.tmdbId);
-                          removeFromWatchlist(movie.tmdbId);
-                          showToast('Removed from watchlist', 'success');
-                        } else {
-                          await movieService.addToWatchlist(movie);
-                          addToWatchlist(movie.tmdbId);
-                          showToast('Added to watchlist', 'success');
-                        }
-                      } catch {
-                        showToast(
-                          inWatchlist
-                            ? 'Failed to remove from watchlist'
-                            : 'Failed to add to watchlist',
-                          'error',
-                        );
-                      }
-                    }}
-                    onMarkAsWatched={async () => {
-                      if (!session) {
-                        showToast('Please login to mark as watched', 'warning');
-                        return;
-                      }
-                      if (!movie.tmdbId) return;
-
-                      const watched = isWatched(movie.tmdbId);
-                      try {
-                        if (watched) {
-                          // For now, we don't have an unwatch API, so just show message
-                          showToast('Already marked as watched', 'info');
-                        } else {
-                          await movieService.markAsWatched(movie);
-                          markAsWatched(movie.tmdbId);
-                          showToast('Marked as watched', 'success');
-                        }
-                      } catch {
-                        showToast('Failed to mark as watched', 'error');
-                      }
-                    }}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-
-            {totalPages > 1 && (
-              <AppPagination
-                currentPage={page}
-                totalPages={totalPages}
-                onPageChange={(newPage) => {
-                  setPage(newPage);
-                  fetchMovies(searchQuery, newPage);
-                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                }}
-                showInfo
-                position="center"
-              />
-            )}
-          </>
-        )}
-      </>
-    );
+    const inWatchlist = isInWatchlist(movie.tmdbId);
+    try {
+      if (inWatchlist) {
+        await movieService.removeFromWatchlist(movie.tmdbId);
+        removeFromWatchlist(movie.tmdbId);
+        showToast('Removed from watchlist', 'success');
+      } else {
+        await movieService.addToWatchlist(movie);
+        addToWatchlist(movie.tmdbId);
+        showToast('Added to watchlist', 'success');
+      }
+    } catch {
+      showToast(
+        inWatchlist ? 'Failed to remove from watchlist' : 'Failed to add to watchlist',
+        'error',
+      );
+    }
   };
 
-  const getTabItems = (): AppTabItem[] => [
-    {
-      id: MovieSearchType.POPULAR,
-      label: 'Popular',
-      icon: 'mdi:fire',
-      content: renderContent(),
-    },
-    {
-      id: MovieSearchType.NOW_PLAYING,
-      label: 'Now Playing',
-      icon: 'mdi:play-circle',
-      content: renderContent(),
-    },
-    {
-      id: MovieSearchType.UPCOMING,
-      label: 'Upcoming',
-      icon: 'mdi:calendar-clock',
-      content: renderContent(),
-    },
-    {
-      id: MovieSearchType.TOP_RATED,
-      label: 'Top Rated',
-      icon: 'mdi:star',
-      content: renderContent(),
-    },
-  ];
+  const handleMarkAsWatched = async (movie: Partial<Movie>) => {
+    if (!session) {
+      showToast('Please login to mark as watched', 'warning');
+      return;
+    }
+    if (!movie.tmdbId) return;
+
+    const watched = isWatched(movie.tmdbId);
+    try {
+      if (watched) {
+        showToast('Already marked as watched', 'info');
+      } else {
+        await movieService.markAsWatched(movie);
+        markAsWatched(movie.tmdbId);
+        showToast('Marked as watched', 'success');
+      }
+    } catch {
+      showToast('Failed to mark as watched', 'error');
+    }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    fetchMovies(searchQuery, newPage);
+  };
+
+  const handleBrowsePopular = () => {
+    setSearchType(MovieSearchType.POPULAR);
+    setSearchQuery('');
+    fetchMovies('', 1, MovieSearchType.POPULAR);
+  };
 
   return (
     <MainLayout>
-      <Container>
-        <Box sx={{ py: 4 }}>
-          <Typography variant="h3" component="h1" gutterBottom>
-            Browse Movies
-          </Typography>
-
-          <AppSearchBar
-            value={searchQuery}
-            onChange={handleSearchChange}
-            onSearch={(query) => {
-              setSearchType(MovieSearchType.SEARCH);
-              fetchMovies(query, 1, MovieSearchType.SEARCH);
-            }}
-            placeholder="Search for movies..."
-            loading={loading}
-            sx={{ mb: 3, width: '100%' }}
-          />
-
-          {searchQuery ? (
-            <Box sx={{ mb: 4 }}>{renderContent()}</Box>
-          ) : (
-            <AppTabs
-              tabs={getTabItems()}
-              defaultTab={searchType}
-              onChange={handleTabChange}
-              variant="fullWidth"
-              sx={{ mb: 4 }}
-            />
-          )}
-        </Box>
-      </Container>
+      <MoviesPageView
+        movies={movies}
+        loading={loading}
+        searchQuery={searchQuery}
+        searchType={searchType}
+        page={page}
+        totalPages={totalPages}
+        isInWatchlist={isInWatchlist}
+        isWatched={isWatched}
+        onSearchChange={handleSearchChange}
+        onSearch={(query) => {
+          setSearchType(MovieSearchType.SEARCH);
+          fetchMovies(query, 1, MovieSearchType.SEARCH);
+        }}
+        onTabChange={handleTabChange}
+        onPageChange={handlePageChange}
+        onAddToWatchlist={handleAddToWatchlist}
+        onMarkAsWatched={handleMarkAsWatched}
+        onBrowsePopular={handleBrowsePopular}
+      />
     </MainLayout>
   );
 }

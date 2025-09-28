@@ -4,20 +4,10 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  Chip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-} from '@mui/material';
+import { Container } from '@mui/material';
 
-import { AppButton, AppLoader, AppEmptyState, AppRating, MainLayout } from '@core/components';
-import { ContentCard } from '@/components/content-card';
+import { AppLoader, MainLayout } from '@core/components';
+import WatchlistPageView from '@/views/watchlist';
 import { useToast } from '@/hooks/useToast';
 import { movieService } from '@/services/movie.service';
 import { MovieSortBy } from '@core/enums';
@@ -126,144 +116,28 @@ export default function WatchlistPage() {
     );
   }
 
+  const handleRatingChange = (rating: number | null) => {
+    setRatingDialog((prev) => ({ ...prev, rating }));
+  };
+
+  const handleCloseDialog = () => {
+    setRatingDialog({ open: false, movie: null, rating: null });
+  };
+
   return (
     <MainLayout>
-      <Container>
-        <Box sx={{ py: { xs: 2, sm: 4 }, px: { xs: 2, sm: 0 } }}>
-          <Box sx={{ mb: 4 }}>
-            <Box sx={{ mb: 2 }}>
-              <Typography
-                variant="h4"
-                component="h1"
-                gutterBottom
-                sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}
-              >
-                My Watchlist
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                {movies.length} {movies.length === 1 ? 'movie' : 'movies'} to watch
-              </Typography>
-            </Box>
-            <Box
-              sx={{
-                display: 'flex',
-                gap: { xs: 0.5, sm: 1 },
-                overflowX: 'auto',
-                pb: 1,
-                '&::-webkit-scrollbar': {
-                  height: 4,
-                },
-                '&::-webkit-scrollbar-track': {
-                  backgroundColor: 'action.hover',
-                  borderRadius: 2,
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'action.disabled',
-                  borderRadius: 2,
-                },
-              }}
-            >
-              <Chip
-                label="Recently Added"
-                onClick={() => setSortBy(MovieSortBy.DATE_ADDED)}
-                color={sortBy === MovieSortBy.DATE_ADDED ? 'primary' : 'default'}
-                sx={{ flexShrink: 0 }}
-              />
-              <Chip
-                label="Title"
-                onClick={() => setSortBy(MovieSortBy.TITLE)}
-                color={sortBy === MovieSortBy.TITLE ? 'primary' : 'default'}
-                sx={{ flexShrink: 0 }}
-              />
-              <Chip
-                label="Release Date"
-                onClick={() => setSortBy(MovieSortBy.RELEASE_DATE)}
-                color={sortBy === MovieSortBy.RELEASE_DATE ? 'primary' : 'default'}
-                sx={{ flexShrink: 0 }}
-              />
-              <Chip
-                label="Rating"
-                onClick={() => setSortBy(MovieSortBy.RATING)}
-                color={sortBy === MovieSortBy.RATING ? 'primary' : 'default'}
-                sx={{ flexShrink: 0 }}
-              />
-            </Box>
-          </Box>
-
-          {movies.length === 0 ? (
-            <AppEmptyState
-              icon="mdi:bookmark-outline"
-              title="Your watchlist is empty"
-              description="Start building your movie collection by adding movies you want to watch."
-              actionLabel="Browse Movies"
-              actionIcon="mdi:movie-search"
-              onAction={() => router.push('/movies')}
-            />
-          ) : (
-            <Grid container spacing={3}>
-              {sortedMovies.map((userMovie) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={userMovie.movie?.id}>
-                  <ContentCard
-                    item={{
-                      id: userMovie.movie?.id || 0,
-                      tmdbId: userMovie.movie?.tmdbId || 0,
-                      mediaType: 'movie',
-                      title: userMovie.movie?.title || 'Unknown Title',
-                      overview: userMovie.movie?.overview,
-                      posterPath: userMovie.movie?.posterPath,
-                      backdropPath: userMovie.movie?.backdropPath,
-                      date: userMovie.movie?.releaseDate?.toString(),
-                      voteAverage: userMovie.movie?.voteAverage,
-                      voteCount: userMovie.movie?.voteCount,
-                      popularity: userMovie.movie?.popularity,
-                      genreIds:
-                        userMovie.movie?.genres?.map((g: { id?: number } | number | string) =>
-                          typeof g === 'object' ? g.id || 0 : Number(g),
-                        ) || [],
-                    }}
-                    isInWatchlist={true}
-                    isWatched={false}
-                    onAddToWatchlist={() =>
-                      handleRemoveFromWatchlist(userMovie?.movie?.tmdbId || 0)
-                    }
-                    onMarkAsWatched={() => handleMarkAsWatched(userMovie)}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </Box>
-      </Container>
-
-      <Dialog
-        open={ratingDialog.open}
-        onClose={() => setRatingDialog({ open: false, movie: null, rating: null })}
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle>Rate this movie</DialogTitle>
-        <DialogContent>
-          <Box sx={{ py: 2, textAlign: 'center' }}>
-            <Typography gutterBottom>
-              How would you rate {ratingDialog.movie?.movie?.title}?
-            </Typography>
-            <AppRating
-              value={ratingDialog.rating}
-              onChange={(_, newValue) => setRatingDialog({ ...ratingDialog, rating: newValue })}
-              size="large"
-              sx={{ mt: 2 }}
-            />
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <AppButton onClick={() => setRatingDialog({ open: false, movie: null, rating: null })}>
-            Cancel
-          </AppButton>
-          <AppButton onClick={handleSaveWatched} variant="contained">
-            Save
-          </AppButton>
-        </DialogActions>
-      </Dialog>
+      <WatchlistPageView
+        movies={movies}
+        sortBy={sortBy}
+        sortedMovies={sortedMovies}
+        ratingDialog={ratingDialog}
+        onSortChange={setSortBy}
+        onRemoveFromWatchlist={handleRemoveFromWatchlist}
+        onMarkAsWatched={handleMarkAsWatched}
+        onRatingChange={handleRatingChange}
+        onSaveWatched={handleSaveWatched}
+        onCloseDialog={handleCloseDialog}
+      />
     </MainLayout>
   );
 }
