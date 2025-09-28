@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useId } from 'react';
 import ReactSelect from 'react-select';
 
 import { FormControl, FormHelperText, FormLabel, useTheme } from '@mui/material';
@@ -19,6 +19,8 @@ export const AppSelect = ({
   const theme = useTheme();
   const customStyles = getSelectStyles(theme, error);
   const customTheme = getSelectTheme(theme);
+  // Use React's useId hook to generate a stable ID for SSR
+  const instanceId = useId();
 
   return (
     <FormControl fullWidth={fullWidth} error={error}>
@@ -35,7 +37,7 @@ export const AppSelect = ({
           {required && <span style={{ color: theme.palette.error.main }}> *</span>}
         </FormLabel>
       )}
-      <ReactSelect styles={customStyles} theme={customTheme} {...props} />
+      <ReactSelect instanceId={instanceId} styles={customStyles} theme={customTheme} {...props} />
       {helperText && (
         <FormHelperText sx={{ color: error ? 'error.main' : 'text.secondary' }}>
           {helperText}
