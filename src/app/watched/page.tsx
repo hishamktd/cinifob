@@ -3,24 +3,12 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import dayjs, { Dayjs } from 'dayjs';
+import { Dayjs } from 'dayjs';
 
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  Chip,
-  Card,
-  CardContent,
-  IconButton,
-} from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { Box, Container, Grid, Typography, Chip, Card, CardContent } from '@mui/material';
 
-import { AppIcon, AppLoader, AppEmptyState, MainLayout, AppButton } from '@core/components';
-import { ContentCard } from '@/components/content-card';
+import { AppIcon, AppLoader, AppEmptyState, MainLayout } from '@core/components';
+import { WatchedMovieCard } from '@/components/watched-movie-card';
 import { useToast } from '@/hooks/useToast';
 import { movieService } from '@/services/movie.service';
 import { MovieSortBy } from '@core/enums';
@@ -377,157 +365,18 @@ export default function WatchedPage() {
               onAction={() => router.push('/movies')}
             />
           ) : (
-            <Grid container spacing={3}>
+            <Grid container spacing={2}>
               {sortedMovies.map((userMovie) => (
-                <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={userMovie.movie?.id}>
-                  <ContentCard
-                    item={{
-                      id: userMovie.movie?.id || 0,
-                      tmdbId: userMovie.movie?.tmdbId || 0,
-                      mediaType: 'movie',
-                      title: userMovie.movie?.title || 'Unknown Title',
-                      overview: userMovie.movie?.overview,
-                      posterPath: userMovie.movie?.posterPath,
-                      backdropPath: userMovie.movie?.backdropPath,
-                      date: userMovie.movie?.releaseDate?.toString(),
-                      voteAverage: userMovie.movie?.voteAverage,
-                      voteCount: userMovie.movie?.voteCount,
-                      popularity: userMovie.movie?.popularity,
-                      genreIds:
-                        userMovie.movie?.genres?.map((g: { id?: number } | number | string) =>
-                          typeof g === 'object' ? g.id || 0 : Number(g),
-                        ) || [],
-                    }}
-                    isInWatchlist={false}
-                    isWatched={true}
+                <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }} key={userMovie.movie?.id}>
+                  <WatchedMovieCard
+                    userMovie={userMovie}
+                    isEditingDate={editingDateId === userMovie.id}
+                    onEditDateClick={() => setEditingDateId(userMovie.id)}
+                    onCancelEditDate={() => setEditingDateId(null)}
+                    onUpdateDate={handleUpdateWatchedDate}
+                    onAddToWatchlist={handleAddToWatchlist}
+                    onRemoveFromWatched={handleRemoveFromWatched}
                   />
-
-                  {/* Watched Date Section */}
-                  <Box
-                    sx={{
-                      mt: 1.5,
-                      p: 1.5,
-                      bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50'),
-                      borderRadius: 1,
-                    }}
-                  >
-                    {editingDateId === userMovie.id ? (
-                      <LocalizationProvider dateAdapter={AdapterDayjs}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <DatePicker
-                            label="Watched Date"
-                            value={dayjs(userMovie.watchedAt)}
-                            onChange={(newDate) => handleUpdateWatchedDate(userMovie.id, newDate)}
-                            maxDate={dayjs()}
-                            slotProps={{
-                              textField: {
-                                size: 'small',
-                                fullWidth: true,
-                              },
-                            }}
-                          />
-                          <IconButton
-                            size="small"
-                            onClick={() => setEditingDateId(null)}
-                            sx={{ flexShrink: 0 }}
-                          >
-                            <AppIcon icon="mdi:close" size={20} />
-                          </IconButton>
-                        </Box>
-                      </LocalizationProvider>
-                    ) : (
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <Box>
-                          <Typography
-                            variant="caption"
-                            color="text.secondary"
-                            sx={{ fontSize: '0.75rem' }}
-                          >
-                            Watched on
-                          </Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                            {dayjs(userMovie.watchedAt).format('MMM D, YYYY')}
-                          </Typography>
-                        </Box>
-                        <IconButton
-                          size="small"
-                          onClick={() => setEditingDateId(userMovie.id)}
-                          sx={{
-                            ml: 1,
-                            color: 'text.secondary',
-                            '&:hover': {
-                              bgcolor: 'action.hover',
-                            },
-                          }}
-                        >
-                          <AppIcon icon="mdi:pencil" size={16} />
-                        </IconButton>
-                      </Box>
-                    )}
-                  </Box>
-
-                  {/* User Rating if exists */}
-                  {userMovie.rating && (
-                    <Box
-                      sx={{
-                        mt: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 0.5,
-                      }}
-                    >
-                      <AppIcon icon="mdi:star" size={18} color="warning.main" />
-                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                        Your Rating: {userMovie.rating}/10
-                      </Typography>
-                    </Box>
-                  )}
-
-                  <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-                    <AppButton
-                      size="small"
-                      variant="outlined"
-                      onClick={() => handleAddToWatchlist(userMovie.movie)}
-                      fullWidth
-                      sx={{
-                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                        color: 'primary.main',
-                        borderColor: 'primary.main',
-                        '&:hover': {
-                          bgcolor: 'primary.main',
-                          color: 'primary.contrastText',
-                        },
-                        '& .MuiButton-startIcon': {
-                          display: { xs: 'none', sm: 'inherit' },
-                        },
-                      }}
-                    >
-                      Watch Again
-                    </AppButton>
-                    <AppButton
-                      size="small"
-                      variant="text"
-                      onClick={() => handleRemoveFromWatched(userMovie.movie?.tmdbId || 0)}
-                      sx={{
-                        fontSize: { xs: '0.75rem', sm: '0.875rem' },
-                        color: 'text.secondary',
-                        '&:hover': {
-                          bgcolor: 'action.hover',
-                        },
-                        '& .MuiButton-startIcon': {
-                          display: { xs: 'none', sm: 'inherit' },
-                        },
-                      }}
-                    >
-                      Remove
-                    </AppButton>
-                  </Box>
                 </Grid>
               ))}
             </Grid>
