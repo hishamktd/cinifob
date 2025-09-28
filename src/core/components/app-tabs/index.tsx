@@ -55,15 +55,12 @@ export const AppTabs = React.memo(
       [onChange, tabs],
     );
 
-    const a11yProps = useCallback(
-      (index: number): { id: string; 'aria-controls': string } => {
-        return {
-          id: `app-tab-${index}`,
-          'aria-controls': `app-tabpanel-${index}`,
-        };
-      },
-      [],
-    );
+    const a11yProps = useCallback((index: number): { id: string; 'aria-controls': string } => {
+      return {
+        id: `app-tab-${index}`,
+        'aria-controls': `app-tabpanel-${index}`,
+      };
+    }, []);
 
     const tabItems = useMemo(() => {
       return tabs.map((tab, index) => (

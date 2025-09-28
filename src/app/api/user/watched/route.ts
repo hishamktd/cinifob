@@ -67,6 +67,7 @@ export async function POST(request: Request) {
       genres,
       rating,
       comment,
+      watchedAt,
     } = body;
 
     if (!tmdbId || !title) {
@@ -200,7 +201,7 @@ export async function POST(request: Request) {
         },
         data: {
           status: MovieStatus.WATCHED,
-          watchedAt: new Date(),
+          watchedAt: watchedAt ? new Date(watchedAt) : new Date(),
           rating: rating || existing.rating,
           comment: comment || existing.comment,
         },
@@ -230,7 +231,7 @@ export async function POST(request: Request) {
         userId,
         movieId: movie.id,
         status: MovieStatus.WATCHED,
-        watchedAt: new Date(),
+        watchedAt: watchedAt ? new Date(watchedAt) : new Date(),
         rating,
         comment,
       },

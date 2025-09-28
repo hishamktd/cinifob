@@ -9,17 +9,15 @@ import { useForm } from 'react-hook-form';
 import {
   Alert,
   Box,
-  Button,
   Card,
   CardContent,
-  CircularProgress,
   Container,
   Divider,
   TextField,
   Typography,
 } from '@mui/material';
 
-import { AppIcon } from '@core/components/app-icon';
+import { AppIcon, AppButton } from '@core/components';
 import { APP_CONFIG, ROUTES } from '@core/constants';
 
 interface RegisterForm {
@@ -163,16 +161,16 @@ export default function RegisterPage() {
                 })}
               />
 
-              <Button
+              <AppButton
                 type="submit"
                 fullWidth
                 variant="contained"
                 size="large"
                 sx={{ mt: 3, mb: 2 }}
-                disabled={loading}
+                loading={loading}
               >
-                {loading ? <CircularProgress size={24} /> : 'Sign Up'}
-              </Button>
+                Sign Up
+              </AppButton>
             </form>
 
             <Divider sx={{ my: 2 }}>OR</Divider>

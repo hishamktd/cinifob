@@ -49,7 +49,7 @@ export const AppRating = React.memo(
     if (variant === 'compact') {
       return (
         <Tooltip title={getRatingText()}>
-          <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>{renderRating()}</Box>
+          <Box sx={{ display: 'inline-flex', alignItems: 'center' }}>{renderRating}</Box>
         </Tooltip>
       );
     }
@@ -63,7 +63,7 @@ export const AppRating = React.memo(
             </Typography>
           )}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {renderRating()}
+            {renderRating}
             {showValue && value && (
               <Typography variant="body2" color="text.secondary">
                 {value.toFixed(1)}
@@ -87,7 +87,7 @@ export const AppRating = React.memo(
             {label}:
           </Typography>
         )}
-        {renderRating()}
+        {renderRating}
         {showValue && value && (
           <Typography variant="body2" color="text.secondary">
             {value.toFixed(1)}
@@ -138,7 +138,7 @@ export const UserRating = React.memo(
     onRatingChange?: (rating: number | null) => void;
   } & Omit<AppRatingProps, 'value' | 'onChange'>) => {
     const handleChange = useCallback(
-      (_, newValue) => {
+      (_: React.SyntheticEvent, newValue: number | null) => {
         onRatingChange?.(newValue);
       },
       [onRatingChange],

@@ -322,9 +322,9 @@ export default function ProfilePage() {
               variant="contained"
               startIcon={<AppIcon icon="mdi:bookmark" />}
               onClick={() => router.push('/watchlist')}
-              fullWidth={{ xs: true, sm: false }}
               sx={{
                 fontSize: { xs: '0.875rem', sm: '1rem' },
+                width: { xs: '100%', sm: 'auto' },
                 '& .MuiButton-startIcon': {
                   display: { xs: 'none', sm: 'inherit' },
                 },
@@ -337,9 +337,9 @@ export default function ProfilePage() {
               color="success"
               startIcon={<AppIcon icon="mdi:check-circle" />}
               onClick={() => router.push('/watched')}
-              fullWidth={{ xs: true, sm: false }}
               sx={{
                 fontSize: { xs: '0.875rem', sm: '1rem' },
+                width: { xs: '100%', sm: 'auto' },
                 '& .MuiButton-startIcon': {
                   display: { xs: 'none', sm: 'inherit' },
                 },
@@ -351,9 +351,9 @@ export default function ProfilePage() {
               variant="outlined"
               startIcon={<AppIcon icon="mdi:movie-search" />}
               onClick={() => router.push('/movies')}
-              fullWidth={{ xs: true, sm: false }}
               sx={{
                 fontSize: { xs: '0.875rem', sm: '1rem' },
+                width: { xs: '100%', sm: 'auto' },
                 '& .MuiButton-startIcon': {
                   display: { xs: 'none', sm: 'inherit' },
                 },

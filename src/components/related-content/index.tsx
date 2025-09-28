@@ -95,7 +95,10 @@ export const RelatedContent = ({
           removeFromWatchlist(item.tmdbId);
           showToast('Removed from watchlist', 'success');
         } else {
-          await movieService.addToWatchlist(item);
+          await movieService.addToWatchlist({
+            ...item,
+            posterPath: item.posterPath || undefined,
+          });
           addToWatchlist(item.tmdbId);
           showToast('Added to watchlist', 'success');
         }
@@ -104,7 +107,10 @@ export const RelatedContent = ({
         if (watched) {
           showToast('Already marked as watched', 'info');
         } else {
-          await movieService.markAsWatched(item);
+          await movieService.markAsWatched({
+            ...item,
+            posterPath: item.posterPath || undefined,
+          });
           markAsWatched(item.tmdbId);
           showToast('Marked as watched', 'success');
         }

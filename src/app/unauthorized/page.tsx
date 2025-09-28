@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Box, Button, Container, Typography } from '@mui/material';
-import { AppIcon } from '@core/components/app-icon';
+import { Box, Container, Typography } from '@mui/material';
+import { AppIcon, AppButton } from '@core/components';
 import { MainLayout } from '@core/components/layout/main-layout';
 import { ROUTES } from '@core/constants';
 
@@ -38,33 +38,33 @@ export default function UnauthorizedPage() {
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
+            <AppButton
               onClick={() => router.push(ROUTES.LOGIN)}
               variant="contained"
               size="large"
-              startIcon={<AppIcon icon="solar:login-bold" />}
+              startIcon="solar:login-bold"
             >
               Sign In
-            </Button>
+            </AppButton>
 
-            <Button
+            <AppButton
               onClick={() => router.push(ROUTES.REGISTER)}
               variant="outlined"
               size="large"
-              startIcon={<AppIcon icon="solar:user-plus-bold" />}
+              startIcon="solar:user-plus-bold"
             >
               Sign Up
-            </Button>
+            </AppButton>
           </Box>
 
-          <Button
+          <AppButton
             onClick={() => router.back()}
             variant="text"
             sx={{ mt: 2 }}
-            startIcon={<AppIcon icon="solar:arrow-left-bold" />}
+            startIcon="solar:arrow-left-bold"
           >
             Go Back
-          </Button>
+          </AppButton>
         </Box>
       </Container>
     </MainLayout>

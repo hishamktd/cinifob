@@ -3,16 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  FormControl,
-  Select,
-  MenuItem,
-  Chip,
-} from '@mui/material';
+import { Box, Container, Grid, Typography, Chip } from '@mui/material';
 
 import { ContentCard, ContentCardSkeleton } from '@/components/content-card';
 import {
@@ -21,8 +12,10 @@ import {
   AppEmptyState,
   MainLayout,
   AppTabs,
+  AppSelect,
   type AppTabItem,
 } from '@core/components';
+import type { SelectOption } from '@core/components/app-select/types';
 import { useToast } from '@/hooks/useToast';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useMovieStatus } from '@/hooks/useMovieStatus';
@@ -102,7 +95,7 @@ export default function BrowsePage() {
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [mediaType, setMediaType] = useState<'all' | 'movie' | 'tv'>('all');
   const [sortBy] = useState<string>('popular');
-  const [selectedGenre, setSelectedGenre] = useState<string>('');
+  const [selectedGenre, setSelectedGenre] = useState<SelectOption | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalResults, setTotalResults] = useState(0);
@@ -121,7 +114,7 @@ export default function BrowsePage() {
       }
 
       if (selectedGenre) {
-        params.append('genre', selectedGenre);
+        params.append('genre', selectedGenre.value.toString());
       }
 
       const response = await fetch(`/api/browse?${params}`);
@@ -148,13 +141,13 @@ export default function BrowsePage() {
     const newType = tabId as 'all' | 'movie' | 'tv';
     if (newType !== mediaType) {
       setMediaType(newType);
-      setSelectedGenre(''); // Reset genre when changing media type
+      setSelectedGenre(null); // Reset genre when changing media type
       setPage(1);
     }
   };
 
-  const handleGenreChange = (event: { target: { value: string } }) => {
-    setSelectedGenre(event.target.value);
+  const handleGenreChange = (option: SelectOption | null) => {
+    setSelectedGenre(option);
     setPage(1);
   };
 
@@ -238,8 +231,13 @@ export default function BrowsePage() {
   return (
     <MainLayout>
       <Container>
-        <Box sx={{ py: 4 }}>
-          <Typography variant="h3" component="h1" gutterBottom>
+        <Box sx={{ py: { xs: 2, sm: 4 }, px: { xs: 2, sm: 0 } }}>
+          <Typography
+            variant="h3"
+            component="h1"
+            gutterBottom
+            sx={{ fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem' } }}
+          >
             Browse
           </Typography>
 
@@ -251,44 +249,48 @@ export default function BrowsePage() {
             }}
             placeholder={`Search for ${mediaType === 'all' ? 'movies and TV shows' : mediaType === 'movie' ? 'movies' : 'TV shows'}...`}
             loading={loading}
-            sx={{ mb: 3 }}
+            sx={{ mb: 3, width: '100%' }}
           />
 
           {/* Genre Filter */}
           <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-              Genre
-            </Typography>
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <Select
+            <Box sx={{ minWidth: { xs: '100%', sm: 200 }, maxWidth: { xs: '100%', sm: 300 } }}>
+              <AppSelect
+                label="Genre"
+                placeholder="All Genres"
+                isClearable
                 value={selectedGenre}
-                onChange={handleGenreChange}
-                displayEmpty
-                sx={{ bgcolor: 'background.paper' }}
-              >
-                <MenuItem value="">
-                  <em>All Genres</em>
-                </MenuItem>
-                {getGenreList().map((genre) => (
-                  <MenuItem key={genre.id} value={genre.id.toString()}>
-                    {genre.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                onChange={(newValue) => handleGenreChange(newValue as SelectOption | null)}
+                options={[
+                  ...getGenreList().map((genre) => ({
+                    value: genre.id.toString(),
+                    label: genre.name,
+                  })),
+                ]}
+                fullWidth
+              />
+            </Box>
           </Box>
 
           {/* Results Info */}
           {!loading && totalResults > 0 && (
-            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              sx={{
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: { xs: 0.5, sm: 1 },
+                flexWrap: 'wrap',
+              }}
+            >
               <Typography variant="body2" color="text.secondary">
                 Found {totalResults} results
               </Typography>
               {selectedGenre && (
                 <Chip
-                  label={getGenreList().find((g) => g.id.toString() === selectedGenre)?.name}
+                  label={selectedGenre.label}
                   size="small"
-                  onDelete={() => setSelectedGenre('')}
+                  onDelete={() => setSelectedGenre(null)}
                 />
               )}
             </Box>

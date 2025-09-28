@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 
 import { ROUTES } from '@core/constants';
-import { Box, Button, Card, CardContent, Grid, Paper, Typography, Skeleton } from '@mui/material';
+import { Box, Card, CardContent, Grid, Paper, Typography } from '@mui/material';
 
-import { AppIcon, AppMovieCard, MainLayout } from '@core/components';
+import { AppIcon, AppMovieCard, MainLayout, AppButton, MovieCardSkeleton } from '@core/components';
 import { movieService } from '@/services/movie.service';
 import { useMovieStatus } from '@/hooks/useMovieStatus';
 import { useToast } from '@/hooks/useToast';
@@ -43,10 +43,25 @@ export default function Home() {
   return (
     <MainLayout>
       <Box sx={{ py: 4 }}>
-        <Typography variant="h2" component="h1" gutterBottom align="center">
+        <Typography
+          variant="h2"
+          component="h1"
+          gutterBottom
+          align="center"
+          sx={{ fontSize: { xs: '2rem', sm: '2.5rem', md: '3rem' } }}
+        >
           Welcome to CiniFob
         </Typography>
-        <Typography variant="h5" color="text.secondary" align="center" sx={{ mb: 6 }}>
+        <Typography
+          variant="h5"
+          color="text.secondary"
+          align="center"
+          sx={{
+            mb: 6,
+            fontSize: { xs: '1.125rem', sm: '1.25rem', md: '1.5rem' },
+            px: { xs: 2, sm: 0 },
+          }}
+        >
           Track your movies, manage your watchlist, and discover new films
         </Typography>
 
@@ -110,38 +125,51 @@ export default function Home() {
               ? 'Start exploring movies and build your personal collection'
               : 'Join CiniFob today and start tracking your movie journey'}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              gap: { xs: 1.5, sm: 2 },
+              justifyContent: 'center',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: 'center',
+              px: { xs: 2, sm: 0 },
+            }}
+          >
             {session ? (
               <>
-                <Button
+                <AppButton
                   variant="contained"
                   size="large"
-                  startIcon={<AppIcon icon="solar:video-library-bold" />}
+                  startIcon="solar:video-library-bold"
                   onClick={() => router.push('/browse')}
                 >
                   Browse Content
-                </Button>
-                <Button
+                </AppButton>
+                <AppButton
                   variant="outlined"
                   size="large"
-                  startIcon={<AppIcon icon="solar:bookmark-linear" />}
+                  startIcon="solar:bookmark-linear"
                   onClick={() => router.push(ROUTES.WATCHLIST)}
                 >
                   My Watchlist
-                </Button>
+                </AppButton>
               </>
             ) : (
               <>
-                <Button
+                <AppButton
                   variant="contained"
                   size="large"
                   onClick={() => router.push(ROUTES.REGISTER)}
                 >
                   Sign Up
-                </Button>
-                <Button variant="outlined" size="large" onClick={() => router.push(ROUTES.LOGIN)}>
+                </AppButton>
+                <AppButton
+                  variant="outlined"
+                  size="large"
+                  onClick={() => router.push(ROUTES.LOGIN)}
+                >
                   Sign In
-                </Button>
+                </AppButton>
               </>
             )}
           </Box>
@@ -149,10 +177,22 @@ export default function Home() {
 
         {/* Popular Movies Section */}
         <Box sx={{ mt: 6 }}>
-          <Typography variant="h4" gutterBottom>
+          <Typography
+            variant="h4"
+            gutterBottom
+            sx={{ fontSize: { xs: '1.75rem', sm: '2rem', md: '2.125rem' } }}
+          >
             Popular Movies
           </Typography>
-          <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            sx={{
+              mb: 3,
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              px: { xs: 2, sm: 0 },
+            }}
+          >
             Discover what&apos;s trending in cinema right now
           </Typography>
 
@@ -160,13 +200,7 @@ export default function Home() {
             {loading
               ? Array.from(new Array(6)).map((_, index) => (
                   <Grid key={index} size={{ xs: 12, sm: 6, md: 4, lg: 2 }}>
-                    <Card>
-                      <Skeleton variant="rectangular" height={300} />
-                      <CardContent>
-                        <Skeleton />
-                        <Skeleton width="60%" />
-                      </CardContent>
-                    </Card>
+                    <MovieCardSkeleton />
                   </Grid>
                 ))
               : popularMovies.map((movie) => (
@@ -228,14 +262,14 @@ export default function Home() {
 
           {!loading && (
             <Box sx={{ textAlign: 'center', mt: 4 }}>
-              <Button
+              <AppButton
                 variant="outlined"
                 size="large"
                 onClick={() => router.push('/browse')}
-                endIcon={<AppIcon icon="solar:arrow-right-linear" />}
+                endIcon="solar:arrow-right-linear"
               >
                 Browse All Content
-              </Button>
+              </AppButton>
             </Box>
           )}
         </Box>

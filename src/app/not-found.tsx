@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { Box, Button, Container, Typography } from '@mui/material';
-import { AppIcon } from '@core/components/app-icon';
+import { Box, Container, Typography } from '@mui/material';
+import { AppIcon, AppButton } from '@core/components';
 import { ROUTES } from '@core/constants';
 
 export default function NotFound() {
@@ -32,25 +32,25 @@ export default function NotFound() {
         </Typography>
 
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
+          <AppButton
             component={Link}
             href={ROUTES.HOME}
             variant="contained"
             size="large"
-            startIcon={<AppIcon icon="solar:home-bold" />}
+            startIcon="solar:home-bold"
           >
             Go Home
-          </Button>
+          </AppButton>
 
-          <Button
+          <AppButton
             component={Link}
             href={ROUTES.MOVIES}
             variant="outlined"
             size="large"
-            startIcon={<AppIcon icon="solar:video-library-bold" />}
+            startIcon="solar:video-library-bold"
           >
             Browse Movies
-          </Button>
+          </AppButton>
         </Box>
       </Box>
     </Container>

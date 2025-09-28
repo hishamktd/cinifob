@@ -11,6 +11,20 @@ parallel: true
 pre-push:
   parallel: false
   commands:
+    typecheck:
+      run: npx tsc --noEmit
+      fail_text: '❌ TypeScript type checking failed. Please fix type errors before pushing.'
+
+    unit-tests:
+      run: npm test -- --run || echo "⚠️  Unit tests failed (optional for now)"
+      fail_text: '⚠️  Unit tests failed (optional for now).'
+
+    # E2E tests are commented out for now as they require the app to be running
+    # Uncomment when ready to enforce E2E tests in CI
+    # e2e-tests:
+    #   run: npx playwright test --reporter=list
+    #   fail_text: '❌ E2E tests failed. Please fix failing tests before pushing.'
+
     build:
       run: npm run build
       fail_text: '❌ Build failed. Please fix the errors before pushing.'

@@ -245,7 +245,15 @@ export default function TVShowDetailPage() {
       )}
 
       <Container>
-        <Box sx={{ py: 4, mt: tvShow.backdropPath ? -20 : 0, position: 'relative', zIndex: 2 }}>
+        <Box
+          sx={{
+            py: { xs: 2, sm: 4 },
+            px: { xs: 1, sm: 0 },
+            mt: tvShow.backdropPath ? { xs: -10, md: -20 } : 0,
+            position: 'relative',
+            zIndex: 2,
+          }}
+        >
           <Grid container spacing={4}>
             {/* Poster and Actions */}
             <Grid size={{ xs: 12, md: 4 }}>
@@ -317,7 +325,12 @@ export default function TVShowDetailPage() {
 
             {/* Details */}
             <Grid size={{ xs: 12, md: 8 }}>
-              <Typography variant="h3" component="h1" gutterBottom>
+              <Typography
+                variant="h3"
+                component="h1"
+                gutterBottom
+                sx={{ fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem' } }}
+              >
                 {tvShow.name}
               </Typography>
 

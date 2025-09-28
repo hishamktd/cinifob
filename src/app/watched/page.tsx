@@ -3,10 +3,23 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import dayjs, { Dayjs } from 'dayjs';
 
-import { Box, Container, Grid, Typography, Chip, Card, CardContent, Button } from '@mui/material';
+import {
+  Box,
+  Container,
+  Grid,
+  Typography,
+  Chip,
+  Card,
+  CardContent,
+  IconButton,
+} from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
-import { AppIcon, AppLoader, AppEmptyState, MainLayout } from '@core/components';
+import { AppIcon, AppLoader, AppEmptyState, MainLayout, AppButton } from '@core/components';
 import { ContentCard } from '@/components/content-card';
 import { useToast } from '@/hooks/useToast';
 import { movieService } from '@/services/movie.service';
@@ -19,7 +32,8 @@ export default function WatchedPage() {
   const { showToast } = useToast();
   const [movies, setMovies] = useState<UserMovie[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sortBy, setSortBy] = useState<MovieSortBy>(MovieSortBy.DATE_ADDED);
+  const [sortBy, setSortBy] = useState<MovieSortBy>(MovieSortBy.RECENTLY_WATCHED);
+  const [editingDateId, setEditingDateId] = useState<number | null>(null);
   const [stats, setStats] = useState({
     totalWatched: 0,
     totalRuntime: 0,
@@ -88,10 +102,49 @@ export default function WatchedPage() {
     [movies, calculateStats, showToast],
   );
 
+  const handleUpdateWatchedDate = useCallback(
+    async (movieId: number, newDate: Dayjs | null) => {
+      if (!newDate) return;
+
+      try {
+        const response = await fetch(`/api/user/watched/${movieId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ watchedAt: newDate.toISOString() }),
+        });
+
+        if (response.ok) {
+          setMovies((prev) =>
+            prev.map((m) => (m.id === movieId ? { ...m, watchedAt: newDate.toDate() } : m)),
+          );
+          showToast('Watch date updated', 'success');
+          // Re-sort if sorted by date
+          if (sortBy === MovieSortBy.RECENTLY_WATCHED) {
+            setMovies((prev) =>
+              [...prev].sort((a, b) => {
+                const dateA = a.watchedAt ? new Date(a.watchedAt).getTime() : 0;
+                const dateB = b.watchedAt ? new Date(b.watchedAt).getTime() : 0;
+                return dateB - dateA;
+              }),
+            );
+          }
+        } else {
+          showToast('Failed to update watch date', 'error');
+        }
+      } catch {
+        showToast('Failed to update watch date', 'error');
+      }
+      setEditingDateId(null);
+    },
+    [showToast, sortBy],
+  );
+
   const handleAddToWatchlist = useCallback(
     async (movie: UserMovie['movie']) => {
       try {
-        await movieService.addToWatchlist(movie);
+        if (movie) {
+          await movieService.addToWatchlist(movie);
+        }
         showToast('Added to watchlist', 'success');
       } catch {
         showToast('Failed to add to watchlist', 'error');
@@ -104,6 +157,12 @@ export default function WatchedPage() {
     (movies: UserMovie[]) => {
       const sorted = [...movies];
       switch (sortBy) {
+        case MovieSortBy.RECENTLY_WATCHED:
+          return sorted.sort((a, b) => {
+            const dateA = a.watchedAt ? new Date(a.watchedAt).getTime() : 0;
+            const dateB = b.watchedAt ? new Date(b.watchedAt).getTime() : 0;
+            return dateB - dateA;
+          });
         case MovieSortBy.DATE_ADDED:
           return sorted.sort(
             (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
@@ -151,13 +210,13 @@ export default function WatchedPage() {
   return (
     <MainLayout>
       <Container>
-        <Box sx={{ py: 4 }}>
+        <Box sx={{ py: { xs: 2, sm: 4 }, px: { xs: 2, sm: 0 } }}>
           <Box sx={{ mb: 4 }}>
             <Typography
               variant="h4"
               component="h1"
               gutterBottom
-              sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}
+              sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}
             >
               Watched Movies
             </Typography>
@@ -261,7 +320,7 @@ export default function WatchedPage() {
             <Box
               sx={{
                 display: 'flex',
-                gap: 1,
+                gap: { xs: 0.5, sm: 1 },
                 overflowX: 'auto',
                 pb: 1,
                 '&::-webkit-scrollbar': {
@@ -279,8 +338,8 @@ export default function WatchedPage() {
             >
               <Chip
                 label="Recently Watched"
-                onClick={() => setSortBy(MovieSortBy.DATE_ADDED)}
-                color={sortBy === MovieSortBy.DATE_ADDED ? 'primary' : 'default'}
+                onClick={() => setSortBy(MovieSortBy.RECENTLY_WATCHED)}
+                color={sortBy === MovieSortBy.RECENTLY_WATCHED ? 'primary' : 'default'}
                 size="small"
                 sx={{ flexShrink: 0 }}
               />
@@ -330,17 +389,108 @@ export default function WatchedPage() {
                       overview: userMovie.movie?.overview,
                       posterPath: userMovie.movie?.posterPath,
                       backdropPath: userMovie.movie?.backdropPath,
-                      date: userMovie.movie?.releaseDate,
+                      date: userMovie.movie?.releaseDate?.toString(),
                       voteAverage: userMovie.movie?.voteAverage,
                       voteCount: userMovie.movie?.voteCount,
                       popularity: userMovie.movie?.popularity,
-                      genreIds: userMovie.movie?.genreIds,
+                      genreIds:
+                        userMovie.movie?.genres?.map((g: { id?: number } | number | string) =>
+                          typeof g === 'object' ? g.id || 0 : Number(g),
+                        ) || [],
                     }}
                     isInWatchlist={false}
                     isWatched={true}
                   />
+
+                  {/* Watched Date Section */}
+                  <Box
+                    sx={{
+                      mt: 1.5,
+                      p: 1.5,
+                      bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.900' : 'grey.50'),
+                      borderRadius: 1,
+                    }}
+                  >
+                    {editingDateId === userMovie.id ? (
+                      <LocalizationProvider dateAdapter={AdapterDayjs}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <DatePicker
+                            label="Watched Date"
+                            value={dayjs(userMovie.watchedAt)}
+                            onChange={(newDate) => handleUpdateWatchedDate(userMovie.id, newDate)}
+                            maxDate={dayjs()}
+                            slotProps={{
+                              textField: {
+                                size: 'small',
+                                fullWidth: true,
+                              },
+                            }}
+                          />
+                          <IconButton
+                            size="small"
+                            onClick={() => setEditingDateId(null)}
+                            sx={{ flexShrink: 0 }}
+                          >
+                            <AppIcon icon="mdi:close" size={20} />
+                          </IconButton>
+                        </Box>
+                      </LocalizationProvider>
+                    ) : (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                        }}
+                      >
+                        <Box>
+                          <Typography
+                            variant="caption"
+                            color="text.secondary"
+                            sx={{ fontSize: '0.75rem' }}
+                          >
+                            Watched on
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {dayjs(userMovie.watchedAt).format('MMM D, YYYY')}
+                          </Typography>
+                        </Box>
+                        <IconButton
+                          size="small"
+                          onClick={() => setEditingDateId(userMovie.id)}
+                          sx={{
+                            ml: 1,
+                            color: 'text.secondary',
+                            '&:hover': {
+                              bgcolor: 'action.hover',
+                            },
+                          }}
+                        >
+                          <AppIcon icon="mdi:pencil" size={16} />
+                        </IconButton>
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* User Rating if exists */}
+                  {userMovie.rating && (
+                    <Box
+                      sx={{
+                        mt: 1,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                      }}
+                    >
+                      <AppIcon icon="mdi:star" size={18} color="warning.main" />
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        Your Rating: {userMovie.rating}/10
+                      </Typography>
+                    </Box>
+                  )}
+
                   <Box sx={{ mt: 1, display: 'flex', gap: 1 }}>
-                    <Button
+                    <AppButton
                       size="small"
                       variant="outlined"
                       onClick={() => handleAddToWatchlist(userMovie.movie)}
@@ -359,8 +509,8 @@ export default function WatchedPage() {
                       }}
                     >
                       Watch Again
-                    </Button>
-                    <Button
+                    </AppButton>
+                    <AppButton
                       size="small"
                       variant="text"
                       onClick={() => handleRemoveFromWatched(userMovie.movie?.tmdbId || 0)}
@@ -376,7 +526,7 @@ export default function WatchedPage() {
                       }}
                     >
                       Remove
-                    </Button>
+                    </AppButton>
                   </Box>
                 </Grid>
               ))}

@@ -129,8 +129,8 @@ export default function MoviesPage() {
                       popularity: movie.popularity,
                       genreIds: Array.isArray(movie.genres)
                         ? typeof movie.genres[0] === 'object'
-                          ? movie.genres.map((g: { id: number }) => g.id)
-                          : movie.genres.map((g: string | number) => Number(g))
+                          ? (movie.genres as unknown as { id: number }[]).map((g) => g.id)
+                          : (movie.genres as (string | number)[]).map((g) => Number(g))
                         : undefined,
                     }}
                     isInWatchlist={movie.tmdbId ? isInWatchlist(movie.tmdbId) : false}
@@ -251,7 +251,7 @@ export default function MoviesPage() {
             }}
             placeholder="Search for movies..."
             loading={loading}
-            sx={{ mb: 3 }}
+            sx={{ mb: 3, width: '100%' }}
           />
 
           {searchQuery ? (

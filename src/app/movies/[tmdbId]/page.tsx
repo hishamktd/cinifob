@@ -305,7 +305,7 @@ export default function MovieDetailPage() {
       )}
 
       <Container>
-        <Box sx={{ py: 4 }}>
+        <Box sx={{ py: { xs: 2, sm: 4 }, px: { xs: 1, sm: 0 } }}>
           <Grid container spacing={4}>
             <Grid size={{ xs: 12, md: 4 }}>
               {posterUrl ? (
@@ -367,11 +367,24 @@ export default function MovieDetailPage() {
             </Grid>
 
             <Grid size={{ xs: 12, md: 8 }}>
-              <Typography variant="h3" component="h1" gutterBottom>
+              <Typography
+                variant="h3"
+                component="h1"
+                gutterBottom
+                sx={{ fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem' } }}
+              >
                 {movie.title}
               </Typography>
 
-              <Box sx={{ display: 'flex', gap: 2, mb: 2 }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: { xs: 1, sm: 2 },
+                  mb: 2,
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                }}
+              >
                 <Typography variant="h6" color="text.secondary">
                   {releaseYear}
                 </Typography>
@@ -409,7 +422,11 @@ export default function MovieDetailPage() {
 
               <Divider sx={{ my: 3 }} />
 
-              <Typography variant="h5" gutterBottom>
+              <Typography
+                variant="h5"
+                gutterBottom
+                sx={{ fontSize: { xs: '1.25rem', sm: '1.5rem' } }}
+              >
                 Overview
               </Typography>
               <Typography variant="body1" paragraph>

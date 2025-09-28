@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Box, Button, Container, Typography } from '@mui/material';
-import { AppIcon } from '@core/components/app-icon';
+import { Box, Container, Typography } from '@mui/material';
+import { AppIcon, AppButton } from '@core/components';
 
 export default function Error({
   error,
@@ -65,23 +65,23 @@ export default function Error({
         )}
 
         <Box sx={{ display: 'flex', gap: 2 }}>
-          <Button
+          <AppButton
             onClick={() => reset()}
             variant="contained"
             size="large"
-            startIcon={<AppIcon icon="solar:refresh-bold" />}
+            startIcon="solar:refresh-bold"
           >
             Try Again
-          </Button>
+          </AppButton>
 
-          <Button
+          <AppButton
             onClick={() => router.push('/')}
             variant="outlined"
             size="large"
-            startIcon={<AppIcon icon="solar:home-bold" />}
+            startIcon="solar:home-bold"
           >
             Go Home
-          </Button>
+          </AppButton>
         </Box>
       </Box>
     </Container>

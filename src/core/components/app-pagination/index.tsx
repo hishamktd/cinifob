@@ -1,13 +1,7 @@
 'use client';
 
 import React from 'react';
-import {
-  Box,
-  Pagination,
-  Typography,
-  useMediaQuery,
-  useTheme,
-} from '@mui/material';
+import { Box, Pagination, Typography, useMediaQuery, useTheme } from '@mui/material';
 import { AppPaginationProps } from './types';
 
 export const AppPagination = ({

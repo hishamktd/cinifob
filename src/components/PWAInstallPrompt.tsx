@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, Snackbar, Alert } from '@mui/material';
+import { Snackbar, Alert } from '@mui/material';
+import { AppButton } from '@core/components';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -50,9 +51,9 @@ export default function PWAInstallPrompt() {
         onClose={handleClose}
         severity="info"
         action={
-          <Button color="inherit" size="small" onClick={handleInstall}>
+          <AppButton color="inherit" size="small" onClick={handleInstall}>
             Install
-          </Button>
+          </AppButton>
         }
       >
         Install CiniFob for a better experience!

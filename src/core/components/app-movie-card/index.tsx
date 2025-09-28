@@ -194,7 +194,7 @@ export const AppMovieCard = React.memo(
               <Box sx={{ mt: 1 }}>
                 <AppRating
                   value={userRating}
-                  onChange={onRatingChange}
+                  onChange={(_, value) => onRatingChange?.(value)}
                   size={size === 'large' ? 'medium' : 'small'}
                   readOnly={!onRatingChange}
                 />

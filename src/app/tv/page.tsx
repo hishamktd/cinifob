@@ -3,16 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 
-import {
-  Box,
-  Container,
-  Grid,
-  Typography,
-  FormControl,
-  Select,
-  MenuItem,
-  Chip,
-} from '@mui/material';
+import { Box, Container, Grid, Typography, Chip } from '@mui/material';
 
 import { ContentCard } from '@/components/content-card';
 import {
@@ -21,8 +12,10 @@ import {
   AppEmptyState,
   MainLayout,
   AppTabs,
+  AppSelect,
   type AppTabItem,
 } from '@core/components';
+import type { SelectOption } from '@core/components/app-select/types';
 import { useToast } from '@/hooks/useToast';
 import { useDebounce } from '@/hooks/useDebounce';
 
@@ -74,7 +67,7 @@ export default function TVPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearchQuery = useDebounce(searchQuery, 500);
   const [sortBy, setSortBy] = useState<string>('popular');
-  const [selectedGenre, setSelectedGenre] = useState<string>('');
+  const [selectedGenre, setSelectedGenre] = useState<SelectOption | null>(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(0);
   const [totalResults, setTotalResults] = useState(0);
@@ -93,7 +86,7 @@ export default function TVPage() {
       }
 
       if (selectedGenre) {
-        params.append('genres', selectedGenre);
+        params.append('genres', selectedGenre.value.toString());
       }
 
       const response = await fetch(`/api/browse?${params}`);
@@ -150,8 +143,8 @@ export default function TVPage() {
     }
   };
 
-  const handleGenreChange = (event: { target: { value: string } }) => {
-    setSelectedGenre(event.target.value);
+  const handleGenreChange = (option: SelectOption | null) => {
+    setSelectedGenre(option);
     setPage(1);
   };
 
@@ -185,8 +178,13 @@ export default function TVPage() {
   return (
     <MainLayout>
       <Container>
-        <Box sx={{ py: 4 }}>
-          <Typography variant="h3" component="h1" gutterBottom>
+        <Box sx={{ py: { xs: 2, sm: 4 }, px: { xs: 2, sm: 0 } }}>
+          <Typography
+            variant="h3"
+            component="h1"
+            gutterBottom
+            sx={{ fontSize: { xs: '1.75rem', sm: '2.5rem', md: '3rem' } }}
+          >
             TV Shows
           </Typography>
 
@@ -198,44 +196,48 @@ export default function TVPage() {
             }}
             placeholder="Search for TV shows..."
             loading={loading}
-            sx={{ mb: 3 }}
+            sx={{ mb: 3, width: '100%' }}
           />
 
           {/* Genre Filter */}
           <Box sx={{ mb: 3 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
-              Genre
-            </Typography>
-            <FormControl size="small" sx={{ minWidth: 200 }}>
-              <Select
+            <Box sx={{ minWidth: { xs: '100%', sm: 200 }, maxWidth: { xs: '100%', sm: 300 } }}>
+              <AppSelect
+                label="Genre"
+                placeholder="All Genres"
+                isClearable
                 value={selectedGenre}
-                onChange={handleGenreChange}
-                displayEmpty
-                sx={{ bgcolor: 'background.paper' }}
-              >
-                <MenuItem value="">
-                  <em>All Genres</em>
-                </MenuItem>
-                {TV_GENRES.map((genre) => (
-                  <MenuItem key={genre.id} value={genre.id.toString()}>
-                    {genre.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                onChange={(newValue) => handleGenreChange(newValue as SelectOption | null)}
+                options={[
+                  ...TV_GENRES.map((genre) => ({
+                    value: genre.id.toString(),
+                    label: genre.name,
+                  })),
+                ]}
+                fullWidth
+              />
+            </Box>
           </Box>
 
           {/* Results Info */}
           {!loading && totalResults > 0 && (
-            <Box sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              sx={{
+                mb: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: { xs: 0.5, sm: 1 },
+                flexWrap: 'wrap',
+              }}
+            >
               <Typography variant="body2" color="text.secondary">
                 Found {totalResults} TV shows
               </Typography>
               {selectedGenre && (
                 <Chip
-                  label={TV_GENRES.find((g) => g.id.toString() === selectedGenre)?.name}
+                  label={selectedGenre.label}
                   size="small"
-                  onDelete={() => setSelectedGenre('')}
+                  onDelete={() => setSelectedGenre(null)}
                 />
               )}
             </Box>

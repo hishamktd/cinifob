@@ -129,14 +129,14 @@ export default function WatchlistPage() {
   return (
     <MainLayout>
       <Container>
-        <Box sx={{ py: 4 }}>
+        <Box sx={{ py: { xs: 2, sm: 4 }, px: { xs: 2, sm: 0 } }}>
           <Box sx={{ mb: 4 }}>
             <Box sx={{ mb: 2 }}>
               <Typography
                 variant="h4"
                 component="h1"
                 gutterBottom
-                sx={{ fontSize: { xs: '1.75rem', sm: '2.125rem' } }}
+                sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}
               >
                 My Watchlist
               </Typography>
@@ -147,7 +147,7 @@ export default function WatchlistPage() {
             <Box
               sx={{
                 display: 'flex',
-                gap: 1,
+                gap: { xs: 0.5, sm: 1 },
                 overflowX: 'auto',
                 pb: 1,
                 '&::-webkit-scrollbar': {
@@ -212,11 +212,14 @@ export default function WatchlistPage() {
                       overview: userMovie.movie?.overview,
                       posterPath: userMovie.movie?.posterPath,
                       backdropPath: userMovie.movie?.backdropPath,
-                      date: userMovie.movie?.releaseDate,
+                      date: userMovie.movie?.releaseDate?.toString(),
                       voteAverage: userMovie.movie?.voteAverage,
                       voteCount: userMovie.movie?.voteCount,
                       popularity: userMovie.movie?.popularity,
-                      genreIds: userMovie.movie?.genreIds,
+                      genreIds:
+                        userMovie.movie?.genres?.map((g: { id?: number } | number | string) =>
+                          typeof g === 'object' ? g.id || 0 : Number(g),
+                        ) || [],
                     }}
                     isInWatchlist={true}
                     isWatched={false}

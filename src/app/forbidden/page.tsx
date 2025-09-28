@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Box, Button, Container, Typography } from '@mui/material';
-import { AppIcon } from '@core/components/app-icon';
+import { Box, Container, Typography } from '@mui/material';
+import { AppIcon, AppButton } from '@core/components';
 import { MainLayout } from '@core/components/layout/main-layout';
 
 export default function ForbiddenPage() {
@@ -37,23 +37,23 @@ export default function ForbiddenPage() {
           </Typography>
 
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <Button
+            <AppButton
               onClick={() => router.push('/')}
               variant="contained"
               size="large"
-              startIcon={<AppIcon icon="solar:home-bold" />}
+              startIcon="solar:home-bold"
             >
               Go Home
-            </Button>
+            </AppButton>
 
-            <Button
+            <AppButton
               onClick={() => router.back()}
               variant="outlined"
               size="large"
-              startIcon={<AppIcon icon="solar:arrow-left-bold" />}
+              startIcon="solar:arrow-left-bold"
             >
               Go Back
-            </Button>
+            </AppButton>
           </Box>
         </Box>
       </Container>
