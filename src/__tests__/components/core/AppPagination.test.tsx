@@ -33,7 +33,7 @@ describe('AppPagination', () => {
       />
     );
     const currentPage = screen.getByLabelText('page 5');
-    expect(currentPage).toHaveAttribute('aria-current', 'true');
+    expect(currentPage).toHaveAttribute('aria-current', 'page');
   });
 
   it('calls onPageChange when page is clicked', () => {

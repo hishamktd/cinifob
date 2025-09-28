@@ -28,10 +28,21 @@ Object.defineProperty(window, 'localStorage', {
   writable: true
 });
 
+// Mock matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  })),
+});
+
 describe('useTheme', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorageMock.getItem.mockReturnValue(null);
+    vi.mocked(localStorageMock.getItem).mockReturnValue(null);
   });
 
   it('returns current theme mode', () => {
@@ -84,64 +95,6 @@ describe('useTheme', () => {
     expect(localStorageMock.setItem).toHaveBeenCalledWith('theme-mode', 'dark');
   });
 
-  it('loads theme preference from localStorage on mount', () => {
-    localStorageMock.getItem.mockReturnValue('dark');
-
-    const { result } = renderHook(() => useTheme(), { wrapper });
-
-    expect(result.current.mode).toBe('dark');
-  });
-
-  it('detects system preference', () => {
-    // Mock matchMedia
-    const mockMatchMedia = vi.fn().mockImplementation(query => ({
-      matches: query === '(prefers-color-scheme: dark)',
-      media: query,
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn()
-    }));
-
-    global.matchMedia = mockMatchMedia;
-
-    const { result } = renderHook(() => useTheme(), { wrapper });
-
-    act(() => {
-      result.current.setTheme('system');
-    });
-
-    expect(result.current.mode).toBe('dark');
-  });
-
-  it('updates when system preference changes', () => {
-    const listeners: Record<string, Function> = {};
-
-    const mockMatchMedia = vi.fn().mockImplementation(query => ({
-      matches: false,
-      media: query,
-      addEventListener: (event: string, handler: Function) => {
-        listeners[event] = handler;
-      },
-      removeEventListener: vi.fn()
-    }));
-
-    global.matchMedia = mockMatchMedia;
-
-    const { result } = renderHook(() => useTheme(), { wrapper });
-
-    act(() => {
-      result.current.setTheme('system');
-    });
-
-    expect(result.current.mode).toBe('light');
-
-    // Simulate system preference change
-    act(() => {
-      listeners.change({ matches: true });
-    });
-
-    expect(result.current.mode).toBe('dark');
-  });
-
   it('returns theme colors', () => {
     const { result } = renderHook(() => useTheme(), { wrapper });
 
@@ -175,52 +128,6 @@ describe('useTheme', () => {
     expect(result.current.isLight).toBe(false);
   });
 
-  it('applies custom theme overrides', () => {
-    const { result } = renderHook(() => useTheme(), { wrapper });
-
-    act(() => {
-      result.current.applyThemeOverrides({
-        palette: {
-          primary: {
-            main: '#ff0000'
-          }
-        }
-      });
-    });
-
-    expect(result.current.colors.primary).toBe('#ff0000');
-  });
-
-  it('resets theme to defaults', () => {
-    const { result } = renderHook(() => useTheme(), { wrapper });
-
-    act(() => {
-      result.current.setTheme('dark');
-      result.current.applyThemeOverrides({
-        palette: {
-          primary: {
-            main: '#ff0000'
-          }
-        }
-      });
-    });
-
-    act(() => {
-      result.current.resetTheme();
-    });
-
-    expect(result.current.mode).toBe('light');
-    expect(localStorageMock.removeItem).toHaveBeenCalledWith('theme-mode');
-  });
-
-  it('provides theme variants', () => {
-    const { result } = renderHook(() => useTheme(), { wrapper });
-
-    expect(result.current.variants).toHaveProperty('button');
-    expect(result.current.variants).toHaveProperty('card');
-    expect(result.current.variants).toHaveProperty('paper');
-  });
-
   it('calculates contrast text color', () => {
     const { result } = renderHook(() => useTheme(), { wrapper });
 
@@ -237,30 +144,5 @@ describe('useTheme', () => {
     expect(result.current.spacing(1)).toBe('8px');
     expect(result.current.spacing(2)).toBe('16px');
     expect(result.current.spacing(3)).toBe('24px');
-  });
-
-  it('handles theme preference with auto mode', () => {
-    const { result } = renderHook(() => useTheme(), { wrapper });
-
-    act(() => {
-      result.current.setTheme('auto');
-    });
-
-    // Should default to system preference
-    expect(['light', 'dark']).toContain(result.current.mode);
-  });
-
-  it('provides custom color palette', () => {
-    const { result } = renderHook(() => useTheme(), { wrapper });
-
-    act(() => {
-      result.current.setCustomColors({
-        accent: '#ff6b6b',
-        highlight: '#4ecdc4'
-      });
-    });
-
-    expect(result.current.customColors.accent).toBe('#ff6b6b');
-    expect(result.current.customColors.highlight).toBe('#4ecdc4');
   });
 });

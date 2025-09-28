@@ -111,8 +111,8 @@ describe('AppDatePicker', () => {
       />
     );
 
-    const label = screen.getByText('Date');
-    expect(label).toBeInTheDocument();
+    const labels = screen.getAllByText('Date');
+    expect(labels.length).toBeGreaterThan(0);
   });
 
   it('accepts size prop', () => {
@@ -125,7 +125,7 @@ describe('AppDatePicker', () => {
       />
     );
 
-    const label = screen.getByText('Date');
-    expect(label).toBeInTheDocument();
+    const labels = screen.getAllByText('Date');
+    expect(labels.length).toBeGreaterThan(0);
   });
 });

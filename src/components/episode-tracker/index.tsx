@@ -115,23 +115,23 @@ export const EpisodeTracker = ({
   };
 
   const loadSeasonEpisodes = async (seasonNumber: number) => {
-    setLoadingSeasons([...loadingSeasons, seasonNumber]);
+    setLoadingSeasons((prev) => [...prev, seasonNumber]);
 
     try {
       const response = await fetch(`/api/tv/${tvShowId}/season/${seasonNumber}`);
       const data = await response.json();
 
       if (data.episodes) {
-        setSeasonEpisodes({
-          ...seasonEpisodes,
+        setSeasonEpisodes((prev) => ({
+          ...prev,
           [seasonNumber]: data.episodes,
-        });
+        }));
       }
     } catch (error) {
       console.error('Error loading season episodes:', error);
       showToast('Failed to load episodes', 'error');
     } finally {
-      setLoadingSeasons(loadingSeasons.filter((s) => s !== seasonNumber));
+      setLoadingSeasons((prev) => prev.filter((s) => s !== seasonNumber));
     }
   };
 

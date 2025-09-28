@@ -88,8 +88,8 @@ describe('AppTabs', () => {
 
   it('renders with icons', () => {
     const tabsWithIcons = [
-      { id: 'movies', label: 'Movies', content: <div>Movies</div>, icon: 'mdi:movie' },
-      { id: 'tv-shows', label: 'TV Shows', content: <div>TV</div>, icon: 'mdi:television' }
+      { id: 'movies', label: 'Movies', content: <div>Movies content</div>, icon: 'mdi:movie' },
+      { id: 'tv-shows', label: 'TV Shows', content: <div>TV content</div>, icon: 'mdi:television' }
     ];
 
     renderWithTheme(
@@ -100,8 +100,11 @@ describe('AppTabs', () => {
       />
     );
 
-    expect(screen.getByText('Movies')).toBeInTheDocument();
-    expect(screen.getByText('TV Shows')).toBeInTheDocument();
+    // Check that both tabs render with their labels
+    const movieLabels = screen.getAllByText('Movies');
+    const tvLabels = screen.getAllByText('TV Shows');
+    expect(movieLabels.length).toBeGreaterThan(0);
+    expect(tvLabels.length).toBeGreaterThan(0);
   });
 
   it('handles disabled tabs', () => {

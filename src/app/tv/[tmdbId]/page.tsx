@@ -537,7 +537,13 @@ export default function TVShowDetailPage() {
                   <EpisodeTracker
                     tvShowId={tvShow.tmdbId}
                     tvShowName={tvShow.name}
-                    seasons={tvShow.seasons || []}
+                    seasons={tvShow.seasons?.map(s => ({
+                      ...s,
+                      season_number: s.seasonNumber || s.season_number,
+                      episode_count: s.episodeCount || s.episode_count,
+                      air_date: s.airDate || s.air_date,
+                      poster_path: s.posterPath || s.poster_path,
+                    })) || []}
                     onEpisodeStatusChange={(season, episode, status) => {
                       console.log(`Episode ${season}x${episode} marked as ${status}`);
                     }}
