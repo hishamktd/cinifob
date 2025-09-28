@@ -13,7 +13,7 @@ export async function GET() {
 
     const watching = await prisma.userTVShow.findMany({
       where: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         status: 'WATCHING',
       },
       include: {
@@ -32,7 +32,7 @@ export async function GET() {
         // Get watched episodes count
         const watchedEpisodesCount = await prisma.userEpisode.count({
           where: {
-            userId: session.user.id,
+            userId: parseInt(session.user.id),
             episode: {
               season: {
                 tvShowId: item.tvShowId,
@@ -112,7 +112,7 @@ export async function POST(request: NextRequest) {
     // Check if user already has this TV show
     const existingEntry = await prisma.userTVShow.findFirst({
       where: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         tvShowId: tvShow.id,
       },
     });
@@ -123,9 +123,8 @@ export async function POST(request: NextRequest) {
         where: { id: existingEntry.id },
         data: {
           status: 'WATCHING',
-          startDate: existingEntry.startDate || new Date(),
-          currentSeason: currentSeason || existingEntry.currentSeason,
-          currentEpisode: currentEpisode || existingEntry.currentEpisode,
+          startedAt: existingEntry.startedAt || new Date(),
+          // Remove currentSeason and currentEpisode as they don't exist in UserTVShow model
           updatedAt: new Date(),
         },
         include: { tvShow: true },
@@ -136,12 +135,11 @@ export async function POST(request: NextRequest) {
     // Create new watching entry
     const userTVShow = await prisma.userTVShow.create({
       data: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         tvShowId: tvShow.id,
         status: 'WATCHING',
-        startDate: new Date(),
-        currentSeason: currentSeason || 1,
-        currentEpisode: currentEpisode || 1,
+        startedAt: new Date(),
+        // Remove currentSeason and currentEpisode as they don't exist in UserTVShow model
       },
       include: { tvShow: true },
     });

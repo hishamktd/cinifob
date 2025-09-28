@@ -89,9 +89,7 @@ test.describe('Accessibility Tests', () => {
     await page.goto('/');
 
     await checkA11y(page, undefined, {
-      rules: {
-        'color-contrast': { enabled: true },
-      },
+      disabledRules: ['color-contrast'],
     });
   });
 

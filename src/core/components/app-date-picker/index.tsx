@@ -6,7 +6,9 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { Dayjs } from 'dayjs';
 
-export interface AppDatePickerProps extends Omit<DatePickerProps<Dayjs>, 'renderInput'> {
+type DatePickerPropsFixed = DatePickerProps<Dayjs, false>;
+
+export interface AppDatePickerProps extends Omit<DatePickerPropsFixed, 'renderInput'> {
   fullWidth?: boolean;
   size?: 'small' | 'medium';
   error?: boolean;
@@ -40,5 +42,4 @@ export const AppDatePicker: React.FC<AppDatePickerProps> = ({
   );
 };
 
-export type { AppDatePickerProps };
 export default AppDatePicker;

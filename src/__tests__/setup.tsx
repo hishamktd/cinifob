@@ -54,22 +54,26 @@ global.IntersectionObserver = vi.fn().mockImplementation(() => ({
 global.fetch = vi.fn();
 
 // Mock localStorage
-const localStorageMock = {
-  getItem: vi.fn(),
+const localStorageMock: Storage = {
+  getItem: vi.fn().mockReturnValue(null),
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
+  key: vi.fn().mockReturnValue(null),
+  length: 0,
 };
-global.localStorage = localStorageMock as Storage;
+global.localStorage = localStorageMock;
 
 // Mock sessionStorage
-const sessionStorageMock = {
-  getItem: vi.fn(),
+const sessionStorageMock: Storage = {
+  getItem: vi.fn().mockReturnValue(null),
   setItem: vi.fn(),
   removeItem: vi.fn(),
   clear: vi.fn(),
+  key: vi.fn().mockReturnValue(null),
+  length: 0,
 };
-global.sessionStorage = sessionStorageMock as Storage;
+global.sessionStorage = sessionStorageMock;
 
 // Suppress console errors during tests
 const originalError = console.error;

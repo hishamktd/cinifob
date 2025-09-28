@@ -123,9 +123,7 @@ export const WatchedMovieCard: React.FC<WatchedMovieCardProps> = ({
 
         {/* Content */}
         <CardContent sx={{ p: 1.5, pb: 1 }}>
-          <MovieTitle variant="body2" component="h3">
-            {movie.title}
-          </MovieTitle>
+          <MovieTitle variant="body2">{movie.title}</MovieTitle>
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
             {getYear(movie.releaseDate)}
           </Typography>

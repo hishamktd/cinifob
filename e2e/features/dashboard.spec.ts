@@ -3,7 +3,7 @@ import { TestHelpers, setupTestUser, cleanupTestData } from '../utils/test-helpe
 
 test.describe('Dashboard Features', () => {
   let helpers: TestHelpers;
-  let testUser: any;
+  let testUser: { email: string; password: string };
 
   test.beforeEach(async ({ page }) => {
     helpers = new TestHelpers(page);

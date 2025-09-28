@@ -13,14 +13,14 @@ export async function GET() {
 
     const completed = await prisma.userTVShow.findMany({
       where: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         status: 'COMPLETED',
       },
       include: {
         tvShow: true,
       },
       orderBy: {
-        completedDate: 'desc',
+        completedAt: 'desc',
       },
     });
 
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     // Check if user has this TV show
     const existingEntry = await prisma.userTVShow.findFirst({
       where: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         tvShowId: tvShow.id,
       },
     });
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
         where: { id: existingEntry.id },
         data: {
           status: 'COMPLETED',
-          completedDate: new Date(),
+          completedAt: new Date(),
           rating: rating || existingEntry.rating,
           comment: comment || existingEntry.comment,
           updatedAt: new Date(),
@@ -78,10 +78,10 @@ export async function POST(request: NextRequest) {
     // Create new completed entry
     const userTVShow = await prisma.userTVShow.create({
       data: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         tvShowId: tvShow.id,
         status: 'COMPLETED',
-        completedDate: new Date(),
+        completedAt: new Date(),
         rating,
         comment,
       },

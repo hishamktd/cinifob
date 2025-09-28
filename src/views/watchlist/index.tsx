@@ -112,7 +112,7 @@ const WatchlistPageView: React.FC<WatchlistPageViewProps> = ({
                   voteAverage: userMovie.movie?.voteAverage,
                   voteCount: userMovie.movie?.voteCount,
                   popularity: userMovie.movie?.popularity,
-                  runtime: userMovie.movie?.runtime,
+                  // Remove runtime property as it doesn't exist in ContentItem interface
                   genres: userMovie.movie?.genres,
                 }}
                 isInWatchlist={true}
@@ -146,7 +146,11 @@ const WatchlistPageView: React.FC<WatchlistPageViewProps> = ({
           <Typography variant="body2" gutterBottom sx={{ mb: 1 }}>
             How would you rate this movie?
           </Typography>
-          <AppRating value={ratingDialog.rating} onChange={onRatingChange} size="large" />
+          <AppRating
+            value={ratingDialog.rating}
+            onChange={(_event, value) => onRatingChange(value)}
+            size="large"
+          />
         </DialogContent>
         <DialogActions>
           <AppButton onClick={onCloseDialog} variant="text">

@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { tmdbService } from '@/lib/tmdb';
 import { prisma } from '@core/lib/prisma';
+import { TMDbMovie } from '@/types';
 
 // Helper to store movie in database
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function storeMovie(tmdbMovie: any) {
+async function storeMovie(tmdbMovie: TMDbMovie) {
   try {
     const movie = await prisma.movie.upsert({
       where: { tmdbId: tmdbMovie.id },
@@ -83,8 +83,7 @@ export async function GET(request: Request) {
     const results = {
       seeded: 0,
       failed: 0,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      movies: [] as any[],
+      movies: [] as Array<{ id: number; tmdbId: number; title: string }>,
     };
 
     // Fetch movies from TMDb

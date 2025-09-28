@@ -106,10 +106,10 @@ export interface ContentItem {
   mediaType: 'movie' | 'tv';
   title: string; // For movies
   name?: string; // For TV shows
-  overview?: string | null;
-  posterPath?: string | null;
-  backdropPath?: string | null;
-  date?: string | null; // releaseDate for movies, firstAirDate for TV
+  overview?: string | undefined;
+  posterPath?: string | null | undefined;
+  backdropPath?: string | null | undefined;
+  date?: string | undefined; // releaseDate for movies, firstAirDate for TV
   voteAverage?: number | null;
   voteCount?: number | null;
   popularity?: number | null;
@@ -117,6 +117,7 @@ export interface ContentItem {
   episodeRunTime?: number[] | null; // For TV shows
   genres?: string[] | { id: number; name: string }[] | null;
   genreIds?: number[];
+  _createdAt?: string | Date; // For sorting by date added
   numberOfSeasons?: number | null; // For TV shows
   numberOfEpisodes?: number | null; // For TV shows
   status?: string | null; // For TV shows

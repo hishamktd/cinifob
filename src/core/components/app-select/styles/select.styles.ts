@@ -1,4 +1,4 @@
-import { StylesConfig } from 'react-select';
+import { StylesConfig, ThemeConfig } from 'react-select';
 
 import { Theme } from '@mui/material';
 
@@ -97,8 +97,7 @@ export const getSelectStyles = (
   }),
 });
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const getSelectTheme = (theme: Theme) => (selectTheme: any) => ({
+export const getSelectTheme = (theme: Theme) => (selectTheme: ThemeConfig) => ({
   ...selectTheme,
   borderRadius: theme.shape.borderRadius,
   colors: {

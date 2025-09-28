@@ -3,7 +3,7 @@ import { setupTestUser } from '../utils/test-helpers';
 
 test.describe('API Endpoints', () => {
   let authToken: string;
-  let testUser: any;
+  let testUser: { email: string; password: string };
 
   test.beforeAll(async ({ request, browser }) => {
     // Setup test user and get auth token
@@ -80,7 +80,9 @@ test.describe('API Endpoints', () => {
       const data = await response.json();
       expect(data).toHaveProperty('results');
       expect(
-        data.results.some((movie: any) => movie.title.toLowerCase().includes('inception')),
+        data.results.some((movie: { title: string }) =>
+          movie.title.toLowerCase().includes('inception'),
+        ),
       ).toBeTruthy();
     });
 

@@ -12,12 +12,13 @@ test.describe('Performance Tests', () => {
 
     // Check Core Web Vitals
     const metrics = await page.evaluate(() => {
-      return new Promise((resolve) => {
-        let fcp, lcp;
+      return new Promise<{ fcp: number | null; lcp: number | null }>((resolve) => {
+        let fcp: number | null = null;
+        let lcp: number | null = null;
 
         new PerformanceObserver((list) => {
           const entries = list.getEntries();
-          entries.forEach((entry: any) => {
+          entries.forEach((entry: PerformanceEntry) => {
             if (entry.name === 'first-contentful-paint') {
               fcp = entry.startTime;
             }
@@ -37,12 +38,12 @@ test.describe('Performance Tests', () => {
     });
 
     // First Contentful Paint should be under 1.8s
-    if (metrics.fcp) {
+    if (metrics && typeof metrics === 'object' && 'fcp' in metrics && metrics.fcp) {
       expect(metrics.fcp).toBeLessThan(1800);
     }
 
     // Largest Contentful Paint should be under 2.5s
-    if (metrics.lcp) {
+    if (metrics && typeof metrics === 'object' && 'lcp' in metrics && metrics.lcp) {
       expect(metrics.lcp).toBeLessThan(2500);
     }
   });
@@ -120,7 +121,7 @@ test.describe('Performance Tests', () => {
     const jsCoverage = await page.coverage.stopJSCoverage();
 
     const totalBytes = jsCoverage.reduce((total, entry) => {
-      return total + entry.text.length;
+      return total + (entry.source?.length || 0);
     }, 0);
 
     // Total JS should be under 1MB for initial load
@@ -128,8 +129,13 @@ test.describe('Performance Tests', () => {
 
     // Calculate used vs unused code
     const usedBytes = jsCoverage.reduce((total, entry) => {
-      const usedLength = entry.ranges.reduce((sum, range) => {
-        return sum + (range.end - range.start);
+      const usedLength = entry.functions.reduce((sum: number, func) => {
+        return (
+          sum +
+          func.ranges.reduce((rangeSum: number, range) => {
+            return rangeSum + (range.endOffset - range.startOffset);
+          }, 0)
+        );
       }, 0);
       return total + usedLength;
     }, 0);
@@ -150,7 +156,10 @@ test.describe('Performance Tests', () => {
 
     // Get initial memory
     const initialMemory = await page.evaluate(() => {
-      return (performance as any).memory.usedJSHeapSize;
+      const perf = performance as Performance & {
+        memory?: { usedJSHeapSize: number };
+      };
+      return perf.memory?.usedJSHeapSize || 0;
     });
 
     // Navigate through multiple pages
@@ -162,7 +171,10 @@ test.describe('Performance Tests', () => {
 
     // Get final memory
     const finalMemory = await page.evaluate(() => {
-      return (performance as any).memory.usedJSHeapSize;
+      const perf = performance as Performance & {
+        memory?: { usedJSHeapSize: number };
+      };
+      return perf.memory?.usedJSHeapSize || 0;
     });
 
     // Memory growth should be reasonable (less than 50MB)

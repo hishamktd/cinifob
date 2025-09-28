@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@core/lib/prisma';
+import { Prisma } from '@/generated/prisma';
 
 // GET - Get user's episode statuses for a TV show or season
 export async function GET(request: NextRequest) {
@@ -36,9 +37,8 @@ export async function GET(request: NextRequest) {
     }
 
     // Build query for user episodes
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const whereClause: any = {
-      userId: session.user.id,
+    const whereClause: Prisma.UserEpisodeWhereInput = {
+      userId: parseInt(session.user.id),
       episode: {
         season: {
           tvShowId: tvShow.id,
@@ -48,7 +48,9 @@ export async function GET(request: NextRequest) {
 
     // If season number is specified, filter by season
     if (seasonNumber) {
-      whereClause.episode.season.seasonNumber = parseInt(seasonNumber);
+      if (whereClause.episode?.season) {
+        whereClause.episode.season.seasonNumber = parseInt(seasonNumber);
+      }
     }
 
     // Get user's episode statuses
@@ -66,9 +68,10 @@ export async function GET(request: NextRequest) {
     // Create a map of episode tmdbId to status
     const statusMap = userEpisodes.reduce(
       (acc, item) => {
-        acc[item.episode.tmdbId] = {
+        // Episode model doesn't have tmdbId, use episode id instead
+        acc[item.episode.id] = {
           status: item.status,
-          watchedDate: item.watchedDate,
+          watchedAt: item.watchedAt,
           rating: item.rating,
         };
         return acc;
@@ -77,7 +80,7 @@ export async function GET(request: NextRequest) {
         number,
         {
           status: string;
-          watchedDate: Date | null;
+          watchedAt: Date | null;
           rating: number | null;
         }
       >,
@@ -107,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     // Find the episode
     const episode = await prisma.episode.findFirst({
-      where: { tmdbId: episodeTmdbId },
+      where: { id: parseInt(episodeTmdbId) },
       include: {
         season: {
           include: {
@@ -124,7 +127,7 @@ export async function POST(request: NextRequest) {
     // Check if user already has a status for this episode
     const existingStatus = await prisma.userEpisode.findFirst({
       where: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         episodeId: episode.id,
       },
     });
@@ -136,7 +139,7 @@ export async function POST(request: NextRequest) {
         where: { id: existingStatus.id },
         data: {
           status,
-          watchedDate: status === 'WATCHED' ? new Date() : null,
+          watchedAt: status === 'WATCHED' ? new Date() : null,
           rating,
           updatedAt: new Date(),
         },
@@ -145,10 +148,10 @@ export async function POST(request: NextRequest) {
       // Create new status
       userEpisode = await prisma.userEpisode.create({
         data: {
-          userId: session.user.id,
+          userId: parseInt(session.user.id),
           episodeId: episode.id,
           status,
-          watchedDate: status === 'WATCHED' ? new Date() : null,
+          watchedAt: status === 'WATCHED' ? new Date() : null,
           rating,
         },
       });
@@ -157,18 +160,16 @@ export async function POST(request: NextRequest) {
     // Update the user's TV show status if needed
     const userTVShow = await prisma.userTVShow.findFirst({
       where: {
-        userId: session.user.id,
-        tvShowId: episode.season.tvShowId,
+        userId: parseInt(session.user.id),
+        tvShowId: episode.tvShowId,
       },
     });
 
     if (userTVShow && status === 'WATCHED') {
-      // Update current episode/season tracking
+      // Update TV show status - remove currentSeason and currentEpisode as they don't exist in UserTVShow model
       await prisma.userTVShow.update({
         where: { id: userTVShow.id },
         data: {
-          currentSeason: episode.season.seasonNumber,
-          currentEpisode: episode.episodeNumber,
           status: userTVShow.status === 'WATCHLIST' ? 'WATCHING' : userTVShow.status,
           updatedAt: new Date(),
         },
@@ -177,12 +178,10 @@ export async function POST(request: NextRequest) {
       // Create new TV show entry as watching
       await prisma.userTVShow.create({
         data: {
-          userId: session.user.id,
-          tvShowId: episode.season.tvShowId,
+          userId: parseInt(session.user.id),
+          tvShowId: episode.tvShowId,
           status: 'WATCHING',
-          currentSeason: episode.season.seasonNumber,
-          currentEpisode: episode.episodeNumber,
-          startDate: new Date(),
+          startedAt: new Date(),
         },
       });
     }
@@ -211,7 +210,7 @@ export async function DELETE(request: NextRequest) {
 
     // Find the episode
     const episode = await prisma.episode.findFirst({
-      where: { tmdbId: parseInt(episodeTmdbId) },
+      where: { id: parseInt(episodeTmdbId) },
     });
 
     if (!episode) {
@@ -221,7 +220,7 @@ export async function DELETE(request: NextRequest) {
     // Delete the user episode status
     const deleted = await prisma.userEpisode.deleteMany({
       where: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         episodeId: episode.id,
       },
     });

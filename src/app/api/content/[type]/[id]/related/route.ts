@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
+import { TMDBMovieListItem, TMDBTVShowListItem, TMDBResponse } from '@/types/tmdb';
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_API_BASE_URL = process.env.TMDB_API_URL || 'https://api.themoviedb.org/3';
@@ -57,7 +57,23 @@ export async function GET(
       return NextResponse.json({ error: 'Invalid content ID' }, { status: 400 });
     }
 
-    let allResults: any[] = [];
+    interface ContentItem {
+      id: number;
+      tmdbId: number;
+      mediaType: 'movie' | 'tv';
+      title: string;
+      overview?: string;
+      posterPath?: string | null;
+      backdropPath?: string | null;
+      date?: string;
+      voteAverage?: number;
+      voteCount?: number;
+      popularity?: number;
+      genreIds?: number[];
+      relationType?: 'similar' | 'recommendation';
+    }
+
+    let allResults: ContentItem[] = [];
     let totalPages = 1;
     let totalResults = 0;
 
@@ -65,15 +81,28 @@ export async function GET(
     if (relationType === 'similar' || relationType === 'both') {
       const similarUrl = `${TMDB_API_BASE_URL}/${type}/${contentId}/similar?api_key=${TMDB_API_KEY}&page=${page}`;
       const similarResponse = await fetchWithRetry(similarUrl);
-      const similarData = await similarResponse.json();
+      const similarData: TMDBResponse<TMDBMovieListItem | TMDBTVShowListItem> =
+        await similarResponse.json();
 
       if (similarData.results) {
-        const similarWithType = similarData.results.map((item: any) => ({
-          ...item,
-          media_type: type,
-          title: type === 'tv' ? item.name : item.title,
-          date: type === 'tv' ? item.first_air_date : item.release_date,
-          relation_type: 'similar',
+        const similarWithType: ContentItem[] = similarData.results.map((item) => ({
+          id: item.id,
+          tmdbId: item.id,
+          mediaType: type as 'movie' | 'tv',
+          title:
+            type === 'tv' ? (item as TMDBTVShowListItem).name : (item as TMDBMovieListItem).title,
+          overview: item.overview,
+          posterPath: item.poster_path,
+          backdropPath: item.backdrop_path,
+          date:
+            type === 'tv'
+              ? (item as TMDBTVShowListItem).first_air_date
+              : (item as TMDBMovieListItem).release_date,
+          voteAverage: item.vote_average,
+          voteCount: item.vote_count,
+          popularity: item.popularity,
+          genreIds: item.genre_ids,
+          relationType: 'similar' as const,
         }));
         allResults = [...allResults, ...similarWithType];
         totalPages = Math.max(totalPages, similarData.total_pages);
@@ -85,15 +114,28 @@ export async function GET(
     if (relationType === 'recommendations' || relationType === 'both') {
       const recommendationsUrl = `${TMDB_API_BASE_URL}/${type}/${contentId}/recommendations?api_key=${TMDB_API_KEY}&page=${page}`;
       const recommendationsResponse = await fetchWithRetry(recommendationsUrl);
-      const recommendationsData = await recommendationsResponse.json();
+      const recommendationsData: TMDBResponse<TMDBMovieListItem | TMDBTVShowListItem> =
+        await recommendationsResponse.json();
 
       if (recommendationsData.results) {
-        const recommendationsWithType = recommendationsData.results.map((item: any) => ({
-          ...item,
-          media_type: type,
-          title: type === 'tv' ? item.name : item.title,
-          date: type === 'tv' ? item.first_air_date : item.release_date,
-          relation_type: 'recommendation',
+        const recommendationsWithType: ContentItem[] = recommendationsData.results.map((item) => ({
+          id: item.id,
+          tmdbId: item.id,
+          mediaType: type as 'movie' | 'tv',
+          title:
+            type === 'tv' ? (item as TMDBTVShowListItem).name : (item as TMDBMovieListItem).title,
+          overview: item.overview,
+          posterPath: item.poster_path,
+          backdropPath: item.backdrop_path,
+          date:
+            type === 'tv'
+              ? (item as TMDBTVShowListItem).first_air_date
+              : (item as TMDBMovieListItem).release_date,
+          voteAverage: item.vote_average,
+          voteCount: item.vote_count,
+          popularity: item.popularity,
+          genreIds: item.genre_ids,
+          relationType: 'recommendation' as const,
         }));
         allResults = [...allResults, ...recommendationsWithType];
         totalPages = Math.max(totalPages, recommendationsData.total_pages);
@@ -115,22 +157,8 @@ export async function GET(
     // Sort by popularity
     allResults.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
 
-    // Transform results to consistent format
-    const transformedResults = allResults.map((item: any) => ({
-      id: item.id,
-      tmdbId: item.id,
-      mediaType: item.media_type,
-      title: item.title,
-      overview: item.overview,
-      posterPath: item.poster_path,
-      backdropPath: item.backdrop_path,
-      date: item.date,
-      voteAverage: item.vote_average,
-      voteCount: item.vote_count,
-      popularity: item.popularity,
-      genreIds: item.genre_ids || [],
-      relationType: item.relation_type,
-    }));
+    // Results are already in the correct format
+    const transformedResults = allResults;
 
     return NextResponse.json({
       results: transformedResults,

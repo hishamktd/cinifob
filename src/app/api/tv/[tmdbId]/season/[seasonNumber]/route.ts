@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server';
+import { TMDBSeason, TMDBEpisode } from '@/types/tmdb';
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_API_BASE_URL = process.env.TMDB_API_URL || 'https://api.themoviedb.org/3';
@@ -54,7 +54,7 @@ export async function GET(
     // Fetch season details with episodes
     const url = `${TMDB_API_BASE_URL}/tv/${tmdbId}/season/${seasonNumber}?api_key=${TMDB_API_KEY}`;
     const response = await fetchWithRetry(url);
-    const data = await response.json();
+    const data: TMDBSeason = await response.json();
 
     if (!data || data.success === false) {
       return NextResponse.json({ error: 'Season not found' }, { status: 404 });
@@ -69,7 +69,7 @@ export async function GET(
       seasonNumber: data.season_number,
       airDate: data.air_date,
       episodes:
-        data.episodes?.map((episode: any) => ({
+        data.episodes?.map((episode: TMDBEpisode) => ({
           id: episode.id,
           name: episode.name,
           overview: episode.overview,

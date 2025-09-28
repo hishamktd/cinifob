@@ -13,7 +13,7 @@ export async function GET() {
 
     const watchlist = await prisma.userTVShow.findMany({
       where: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         status: 'WATCHLIST',
       },
       include: {
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     // Check if user already has this TV show in any status
     const existingEntry = await prisma.userTVShow.findFirst({
       where: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         tvShowId: tvShow.id,
       },
     });
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     // Create new watchlist entry
     const userTVShow = await prisma.userTVShow.create({
       data: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         tvShowId: tvShow.id,
         status: 'WATCHLIST',
       },
@@ -145,7 +145,7 @@ export async function DELETE(request: NextRequest) {
     // Delete the user-TV show relationship
     const deleted = await prisma.userTVShow.deleteMany({
       where: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         tvShowId: tvShow.id,
         status: 'WATCHLIST',
       },

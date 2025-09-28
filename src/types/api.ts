@@ -1,6 +1,4 @@
-import { Any } from '.';
-
-export interface ApiResponse<T = Any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   data?: T;
   error?: string;

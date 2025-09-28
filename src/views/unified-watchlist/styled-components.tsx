@@ -92,7 +92,7 @@ export const ContentTypeToggle = styled(Box)(({ theme }) => ({
   ['& .MuiToggleButtonGroup-root']: {
     backgroundColor: theme.palette.background.paper,
     border: `1px solid ${theme.palette.divider}`,
-    borderRadius: theme.shape.borderRadius * 2,
+    borderRadius: (theme.shape.borderRadius as number) * 2,
   },
 
   ['& .MuiToggleButton-root']: {

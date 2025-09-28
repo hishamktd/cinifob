@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       // Return all user TV show statuses
       const allStatuses = await prisma.userTVShow.findMany({
         where: {
-          userId: session.user.id,
+          userId: parseInt(session.user.id),
         },
         include: {
           tvShow: true,
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     // Get user statuses for these TV shows
     const userTVShows = await prisma.userTVShow.findMany({
       where: {
-        userId: session.user.id,
+        userId: parseInt(session.user.id),
         tvShowId: {
           in: tvShows.map((show) => show.id),
         },
@@ -75,10 +75,9 @@ export async function GET(request: NextRequest) {
         acc[item.tvShow.tmdbId] = {
           status: item.status,
           rating: item.rating,
-          currentSeason: item.currentSeason,
-          currentEpisode: item.currentEpisode,
-          startDate: item.startDate,
-          completedDate: item.completedDate,
+          // Remove non-existent properties from UserTVShow model
+          startedAt: item.startedAt,
+          completedAt: item.completedAt,
         };
         return acc;
       },
@@ -87,10 +86,8 @@ export async function GET(request: NextRequest) {
         {
           status: string;
           rating: number | null;
-          currentSeason: number | null;
-          currentEpisode: number | null;
-          startDate: Date | null;
-          completedDate: Date | null;
+          startedAt: Date | null;
+          completedAt: Date | null;
         }
       >,
     );

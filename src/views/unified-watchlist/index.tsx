@@ -100,15 +100,15 @@ const UnifiedWatchlistPageView: React.FC<UnifiedWatchlistPageViewProps> = ({
               size="small"
             >
               <ToggleButton value="all">
-                <AppIcon icon="mdi:view-grid" sx={{ mr: 1 }} />
+                <AppIcon icon="mdi:view-grid" style={{ marginRight: 8 }} />
                 All
               </ToggleButton>
               <ToggleButton value="movies">
-                <AppIcon icon="mdi:movie" sx={{ mr: 1 }} />
+                <AppIcon icon="mdi:movie" style={{ marginRight: 8 }} />
                 Movies ({movies.length})
               </ToggleButton>
               <ToggleButton value="tv">
-                <AppIcon icon="mdi:television-classic" sx={{ mr: 1 }} />
+                <AppIcon icon="mdi:television-classic" style={{ marginRight: 8 }} />
                 TV Shows ({tvShows.length})
               </ToggleButton>
             </ToggleButtonGroup>
@@ -171,7 +171,11 @@ const UnifiedWatchlistPageView: React.FC<UnifiedWatchlistPageViewProps> = ({
             {sortedContent.map((item) => (
               <ContentCard
                 key={`${item.mediaType}-${item.tmdbId}`}
-                item={item}
+                item={{
+                  ...item,
+                  overview: item.overview || undefined,
+                  date: item.date || undefined,
+                }}
                 isInWatchlist={true}
                 isWatched={false}
                 onAddToWatchlist={() => onRemoveFromWatchlist(item.tmdbId, item.mediaType)}
@@ -209,7 +213,11 @@ const UnifiedWatchlistPageView: React.FC<UnifiedWatchlistPageViewProps> = ({
               <Typography variant="body2" gutterBottom sx={{ mb: 1 }}>
                 How would you rate it?
               </Typography>
-              <AppRating value={ratingDialog.rating} onChange={onRatingChange} size="large" />
+              <AppRating
+                value={ratingDialog.rating}
+                onChange={(_event, value) => onRatingChange(value)}
+                size="large"
+              />
             </>
           ) : (
             <Typography variant="body2" gutterBottom sx={{ mb: 2 }}>

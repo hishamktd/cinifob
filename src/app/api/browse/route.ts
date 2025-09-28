@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
+import { TMDBMovieListItem, TMDBTVShowListItem, TMDBResponse } from '@/types/tmdb';
 
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 const TMDB_API_BASE_URL = process.env.TMDB_API_URL || 'https://api.themoviedb.org/3';
@@ -75,12 +75,22 @@ export async function GET(request: NextRequest) {
         const movieResponse = await fetchWithRetry(movieUrl);
         const movieData = await movieResponse.json();
 
-        const movies = movieData.results.map((item: any) => ({
-          ...item,
-          media_type: 'movie',
-          title: item.title,
-          date: item.release_date,
-        }));
+        const movies: ContentResult[] = (movieData as TMDBResponse<TMDBMovieListItem>).results.map(
+          (item) => ({
+            id: item.id,
+            tmdbId: item.id,
+            mediaType: 'movie' as const,
+            title: item.title,
+            overview: item.overview,
+            posterPath: item.poster_path,
+            backdropPath: item.backdrop_path,
+            date: item.release_date,
+            voteAverage: item.vote_average,
+            voteCount: item.vote_count,
+            popularity: item.popularity,
+            genreIds: item.genre_ids,
+          }),
+        );
 
         if (mediaType === 'movie') {
           results = movies;
@@ -98,12 +108,22 @@ export async function GET(request: NextRequest) {
         const tvResponse = await fetchWithRetry(tvUrl);
         const tvData = await tvResponse.json();
 
-        const tvShows = tvData.results.map((item: any) => ({
-          ...item,
-          media_type: 'tv',
-          title: item.name,
-          date: item.first_air_date,
-        }));
+        const tvShows: ContentResult[] = (tvData as TMDBResponse<TMDBTVShowListItem>).results.map(
+          (item) => ({
+            id: item.id,
+            tmdbId: item.id,
+            mediaType: 'tv' as const,
+            title: item.name,
+            overview: item.overview,
+            posterPath: item.poster_path,
+            backdropPath: item.backdrop_path,
+            date: item.first_air_date,
+            voteAverage: item.vote_average,
+            voteCount: item.vote_count,
+            popularity: item.popularity,
+            genreIds: item.genre_ids,
+          }),
+        );
 
         if (mediaType === 'tv') {
           results = tvShows;
@@ -188,19 +208,39 @@ export async function GET(request: NextRequest) {
 
         const [movieData, tvData] = await Promise.all([movieResponse.json(), tvResponse.json()]);
 
-        const movies = movieData.results.map((item: any) => ({
-          ...item,
-          media_type: 'movie',
-          title: item.title,
-          date: item.release_date,
-        }));
+        const movies: ContentResult[] = (movieData as TMDBResponse<TMDBMovieListItem>).results.map(
+          (item) => ({
+            id: item.id,
+            tmdbId: item.id,
+            mediaType: 'movie' as const,
+            title: item.title,
+            overview: item.overview,
+            posterPath: item.poster_path,
+            backdropPath: item.backdrop_path,
+            date: item.release_date,
+            voteAverage: item.vote_average,
+            voteCount: item.vote_count,
+            popularity: item.popularity,
+            genreIds: item.genre_ids,
+          }),
+        );
 
-        const tvShows = tvData.results.map((item: any) => ({
-          ...item,
-          media_type: 'tv',
-          title: item.name,
-          date: item.first_air_date,
-        }));
+        const tvShows: ContentResult[] = (tvData as TMDBResponse<TMDBTVShowListItem>).results.map(
+          (item) => ({
+            id: item.id,
+            tmdbId: item.id,
+            mediaType: 'tv' as const,
+            title: item.name,
+            overview: item.overview,
+            posterPath: item.poster_path,
+            backdropPath: item.backdrop_path,
+            date: item.first_air_date,
+            voteAverage: item.vote_average,
+            voteCount: item.vote_count,
+            popularity: item.popularity,
+            genreIds: item.genre_ids,
+          }),
+        );
 
         results = [...movies, ...tvShows];
         results.sort((a, b) => (b.popularity || 0) - (a.popularity || 0));
@@ -212,12 +252,27 @@ export async function GET(request: NextRequest) {
       if (url) {
         const response = await fetchWithRetry(url);
         const data = await response.json();
+        const typedData = data as TMDBResponse<TMDBMovieListItem | TMDBTVShowListItem>;
 
-        results = data.results.map((item: any) => ({
-          ...item,
-          media_type: mediaType,
-          title: mediaType === 'tv' ? item.name : item.title,
-          date: mediaType === 'tv' ? item.first_air_date : item.release_date,
+        results = typedData.results.map((item) => ({
+          id: item.id,
+          tmdbId: item.id,
+          mediaType: mediaType as 'movie' | 'tv',
+          title:
+            mediaType === 'tv'
+              ? (item as TMDBTVShowListItem).name
+              : (item as TMDBMovieListItem).title,
+          overview: item.overview,
+          posterPath: item.poster_path,
+          backdropPath: item.backdrop_path,
+          date:
+            mediaType === 'tv'
+              ? (item as TMDBTVShowListItem).first_air_date
+              : (item as TMDBMovieListItem).release_date,
+          voteAverage: item.vote_average,
+          voteCount: item.vote_count,
+          popularity: item.popularity,
+          genreIds: item.genre_ids,
         }));
 
         totalPages = data.total_pages;
@@ -228,24 +283,11 @@ export async function GET(request: NextRequest) {
     // Filter by genre if specified
     if (genre && results.length > 0) {
       const genreId = parseInt(genre);
-      results = results.filter((item: any) => item.genre_ids && item.genre_ids.includes(genreId));
+      results = results.filter((item) => item.genreIds && item.genreIds.includes(genreId));
     }
 
-    // Transform results to consistent format
-    const transformedResults = results.map((item: any) => ({
-      id: item.id,
-      tmdbId: item.id,
-      mediaType: item.media_type,
-      title: item.title,
-      overview: item.overview,
-      posterPath: item.poster_path,
-      backdropPath: item.backdrop_path,
-      date: item.date,
-      voteAverage: item.vote_average,
-      voteCount: item.vote_count,
-      popularity: item.popularity,
-      genreIds: item.genre_ids || [],
-    }));
+    // Results are already in the correct format
+    const transformedResults = results;
 
     return NextResponse.json({
       results: transformedResults,
