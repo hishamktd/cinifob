@@ -64,10 +64,32 @@ describe('AppRating', () => {
     expect(rating).toBeInTheDocument();
   });
 
-  it('shows labels when showLabel is true', () => {
+  it('shows value when showValue is true', () => {
     renderWithTheme(
-      <AppRating value={4} showLabel />
+      <AppRating value={4} showValue />
     );
-    expect(screen.getByText('4 / 5')).toBeInTheDocument();
+    expect(screen.getByText('4.0')).toBeInTheDocument();
+  });
+
+  it('renders with label', () => {
+    renderWithTheme(
+      <AppRating value={4} label="Rating" />
+    );
+    expect(screen.getByText('Rating:')).toBeInTheDocument();
+  });
+
+  it('renders detailed variant', () => {
+    renderWithTheme(
+      <AppRating value={4} variant="detailed" showValue />
+    );
+    expect(screen.getByText('4.0')).toBeInTheDocument();
+  });
+
+  it('renders compact variant', () => {
+    renderWithTheme(
+      <AppRating value={4} variant="compact" />
+    );
+    const rating = screen.getByRole('img', { name: '4 Stars' });
+    expect(rating).toBeInTheDocument();
   });
 });

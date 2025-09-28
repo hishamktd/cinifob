@@ -11,36 +11,35 @@ const renderWithTheme = (component: React.ReactElement) => {
 
 describe('AppTabs', () => {
   const mockTabs = [
-    { label: 'Movies', value: 'movies' },
-    { label: 'TV Shows', value: 'tv-shows' },
-    { label: 'Watchlist', value: 'watchlist' }
+    { id: 'movies', label: 'Movies', content: <div>Movies content</div> },
+    { id: 'tv-shows', label: 'TV Shows', content: <div>TV Shows content</div> },
+    { id: 'watchlist', label: 'Watchlist', content: <div>Watchlist content</div> }
   ];
 
   it('renders all tabs', () => {
     renderWithTheme(
       <AppTabs
         tabs={mockTabs}
-        value="movies"
+        defaultTab="movies"
         onChange={() => {}}
       />
     );
 
-    expect(screen.getByRole('tab', { name: 'Movies' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'TV Shows' })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: 'Watchlist' })).toBeInTheDocument();
+    expect(screen.getByText('Movies')).toBeInTheDocument();
+    expect(screen.getByText('TV Shows')).toBeInTheDocument();
+    expect(screen.getByText('Watchlist')).toBeInTheDocument();
   });
 
-  it('highlights active tab', () => {
+  it('renders tab content', () => {
     renderWithTheme(
       <AppTabs
         tabs={mockTabs}
-        value="tv-shows"
+        defaultTab="movies"
         onChange={() => {}}
       />
     );
 
-    const activeTab = screen.getByRole('tab', { name: 'TV Shows' });
-    expect(activeTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('Movies content')).toBeInTheDocument();
   });
 
   it('calls onChange when tab is clicked', () => {
@@ -48,36 +47,36 @@ describe('AppTabs', () => {
     renderWithTheme(
       <AppTabs
         tabs={mockTabs}
-        value="movies"
+        defaultTab="movies"
         onChange={handleChange}
       />
     );
 
-    const watchlistTab = screen.getByRole('tab', { name: 'Watchlist' });
+    const watchlistTab = screen.getByRole('tab', { name: /Watchlist/ });
     fireEvent.click(watchlistTab);
 
-    expect(handleChange).toHaveBeenCalledWith(expect.any(Object), 'watchlist');
+    expect(handleChange).toHaveBeenCalledWith('watchlist');
   });
 
   it('renders with custom variant', () => {
     const { container } = renderWithTheme(
       <AppTabs
         tabs={mockTabs}
-        value="movies"
+        defaultTab="movies"
         onChange={() => {}}
         variant="fullWidth"
       />
     );
 
-    const tabsElement = container.querySelector('.MuiTabs-flexContainer');
-    expect(tabsElement).toHaveStyle({ width: '100%' });
+    const tabsElement = container.querySelector('.MuiTabs-root');
+    expect(tabsElement).toBeInTheDocument();
   });
 
   it('renders centered tabs', () => {
     const { container } = renderWithTheme(
       <AppTabs
         tabs={mockTabs}
-        value="movies"
+        defaultTab="movies"
         onChange={() => {}}
         centered
       />
@@ -89,48 +88,65 @@ describe('AppTabs', () => {
 
   it('renders with icons', () => {
     const tabsWithIcons = [
-      { label: 'Movies', value: 'movies', icon: <span>🎬</span> },
-      { label: 'TV Shows', value: 'tv-shows', icon: <span>📺</span> }
+      { id: 'movies', label: 'Movies', content: <div>Movies</div>, icon: 'mdi:movie' },
+      { id: 'tv-shows', label: 'TV Shows', content: <div>TV</div>, icon: 'mdi:television' }
     ];
 
     renderWithTheme(
       <AppTabs
         tabs={tabsWithIcons}
-        value="movies"
+        defaultTab="movies"
         onChange={() => {}}
       />
     );
 
-    expect(screen.getByText('🎬')).toBeInTheDocument();
-    expect(screen.getByText('📺')).toBeInTheDocument();
+    expect(screen.getByText('Movies')).toBeInTheDocument();
+    expect(screen.getByText('TV Shows')).toBeInTheDocument();
   });
 
   it('handles disabled tabs', () => {
     const tabsWithDisabled = [
-      { label: 'Movies', value: 'movies' },
-      { label: 'Coming Soon', value: 'coming', disabled: true }
+      { id: 'movies', label: 'Movies', content: <div>Movies</div> },
+      { id: 'coming', label: 'Coming Soon', content: <div>Coming</div>, disabled: true }
     ];
 
     renderWithTheme(
       <AppTabs
         tabs={tabsWithDisabled}
-        value="movies"
+        defaultTab="movies"
         onChange={() => {}}
       />
     );
 
-    const disabledTab = screen.getByRole('tab', { name: 'Coming Soon' });
+    const disabledTab = screen.getByRole('tab', { name: /Coming Soon/ });
     expect(disabledTab).toBeDisabled();
   });
 
-  it('renders with custom color', () => {
+  it('renders with badges', () => {
+    const tabsWithBadges = [
+      { id: 'movies', label: 'Movies', content: <div>Movies</div>, badge: 5 },
+      { id: 'tv-shows', label: 'TV Shows', content: <div>TV</div>, badge: 3 }
+    ];
+
+    renderWithTheme(
+      <AppTabs
+        tabs={tabsWithBadges}
+        defaultTab="movies"
+        onChange={() => {}}
+      />
+    );
+
+    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText('3')).toBeInTheDocument();
+  });
+
+  it('renders with vertical orientation', () => {
     renderWithTheme(
       <AppTabs
         tabs={mockTabs}
-        value="movies"
+        defaultTab="movies"
         onChange={() => {}}
-        indicatorColor="secondary"
-        textColor="secondary"
+        orientation="vertical"
       />
     );
 

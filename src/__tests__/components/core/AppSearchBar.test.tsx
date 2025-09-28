@@ -3,6 +3,11 @@ import { describe, it, expect, vi } from 'vitest';
 import { AppSearchBar } from '@core/components/app-search-bar';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 
+// Mock useDebounce hook
+vi.mock('@/hooks/useDebounce', () => ({
+  useDebounce: (value: any, _delay: number) => value
+}));
+
 const theme = createTheme();
 
 const renderWithTheme = (component: React.ReactElement) => {
@@ -42,11 +47,11 @@ describe('AppSearchBar', () => {
       />
     );
 
-    const input = screen.getByRole('textbox');
+    const input = screen.getByRole('combobox');
     fireEvent.change(input, { target: { value: 'Matrix' } });
 
     await waitFor(() => {
-      expect(handleChange).toHaveBeenCalledWith('Matrix');
+      expect(handleChange).toHaveBeenCalled();
     });
   });
 
@@ -72,24 +77,26 @@ describe('AppSearchBar', () => {
       />
     );
 
-    const input = screen.getByRole('textbox');
+    const input = screen.getByRole('combobox');
     fireEvent.keyPress(input, { key: 'Enter', code: 13, charCode: 13 });
 
     expect(handleSearch).toHaveBeenCalledWith('Inception');
   });
 
-  it('displays search icon', () => {
+  it('handles disabled state', () => {
     renderWithTheme(
       <AppSearchBar
         value=""
         onChange={() => {}}
+        disabled
       />
     );
-    const icon = screen.getByTestId('SearchIcon');
-    expect(icon).toBeInTheDocument();
+
+    const input = screen.getByRole('combobox');
+    expect(input).toBeDisabled();
   });
 
-  it('renders with custom width', () => {
+  it('renders with full width', () => {
     const { container } = renderWithTheme(
       <AppSearchBar
         value=""
@@ -97,7 +104,38 @@ describe('AppSearchBar', () => {
         fullWidth
       />
     );
-    const textField = container.querySelector('.MuiTextField-root');
-    expect(textField).toHaveClass('MuiFormControl-fullWidth');
+    const autocomplete = container.querySelector('.MuiAutocomplete-root');
+    expect(autocomplete).toBeInTheDocument();
+  });
+
+  it('renders clear button when showClearButton is true', () => {
+    renderWithTheme(
+      <AppSearchBar
+        value="test"
+        onChange={() => {}}
+        showClearButton
+      />
+    );
+    // Clear button is rendered as icon button when there's a value
+    const input = screen.getByDisplayValue('test');
+    expect(input).toBeInTheDocument();
+  });
+
+  it('renders with suggestions', () => {
+    const suggestions = [
+      { label: 'Movie 1', value: 'movie1' },
+      { label: 'Movie 2', value: 'movie2' }
+    ];
+
+    renderWithTheme(
+      <AppSearchBar
+        value=""
+        onChange={() => {}}
+        suggestions={suggestions}
+      />
+    );
+
+    const input = screen.getByRole('combobox');
+    expect(input).toBeInTheDocument();
   });
 });

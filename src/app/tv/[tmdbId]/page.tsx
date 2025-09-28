@@ -163,24 +163,40 @@ export default function TVShowDetailPage() {
 
     setActionLoading(true);
     try {
-      const response = await fetch('/api/user/tv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tmdbId: tvShow?.id,
-          status: 'WATCHLIST',
-        }),
-      });
+      // If already in watchlist, remove it
+      if (userStatus === 'WATCHLIST') {
+        const response = await fetch(`/api/user/tv?tmdbId=${tvShow?.tmdbId || params.tmdbId}`, {
+          method: 'DELETE',
+        });
 
-      if (response.ok) {
-        setToast({ open: true, message: 'Added to watchlist!', severity: 'success' });
-        setUserStatus('WATCHLIST');
+        if (response.ok) {
+          setToast({ open: true, message: 'Removed from watchlist', severity: 'success' });
+          setUserStatus(null);
+        } else {
+          const error = await response.json();
+          setToast({ open: true, message: error.error || 'Failed to remove from watchlist', severity: 'error' });
+        }
       } else {
-        const error = await response.json();
-        setToast({ open: true, message: error.error || 'Failed to add to watchlist', severity: 'error' });
+        // Add to watchlist
+        const response = await fetch('/api/user/tv', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tmdbId: tvShow?.tmdbId || params.tmdbId,
+            status: 'WATCHLIST',
+          }),
+        });
+
+        if (response.ok) {
+          setToast({ open: true, message: 'Added to watchlist!', severity: 'success' });
+          setUserStatus('WATCHLIST');
+        } else {
+          const error = await response.json();
+          setToast({ open: true, message: error.error || 'Failed to add to watchlist', severity: 'error' });
+        }
       }
     } catch (error) {
-      setToast({ open: true, message: 'Failed to add to watchlist', severity: 'error' });
+      setToast({ open: true, message: 'Failed to update watchlist', severity: 'error' });
     } finally {
       setActionLoading(false);
     }
@@ -194,24 +210,40 @@ export default function TVShowDetailPage() {
 
     setActionLoading(true);
     try {
-      const response = await fetch('/api/user/tv', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          tmdbId: tvShow?.id,
-          status: 'COMPLETED',
-        }),
-      });
+      // If already marked as watched, remove it
+      if (userStatus === 'COMPLETED') {
+        const response = await fetch(`/api/user/tv?tmdbId=${tvShow?.tmdbId || params.tmdbId}`, {
+          method: 'DELETE',
+        });
 
-      if (response.ok) {
-        setToast({ open: true, message: 'Marked as watched!', severity: 'success' });
-        setUserStatus('COMPLETED');
+        if (response.ok) {
+          setToast({ open: true, message: 'Removed watched status', severity: 'success' });
+          setUserStatus(null);
+        } else {
+          const error = await response.json();
+          setToast({ open: true, message: error.error || 'Failed to remove watched status', severity: 'error' });
+        }
       } else {
-        const error = await response.json();
-        setToast({ open: true, message: error.error || 'Failed to mark as watched', severity: 'error' });
+        // Mark as watched
+        const response = await fetch('/api/user/tv', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tmdbId: tvShow?.tmdbId || params.tmdbId,
+            status: 'COMPLETED',
+          }),
+        });
+
+        if (response.ok) {
+          setToast({ open: true, message: 'Marked as watched!', severity: 'success' });
+          setUserStatus('COMPLETED');
+        } else {
+          const error = await response.json();
+          setToast({ open: true, message: error.error || 'Failed to mark as watched', severity: 'error' });
+        }
       }
     } catch (error) {
-      setToast({ open: true, message: 'Failed to mark as watched', severity: 'error' });
+      setToast({ open: true, message: 'Failed to update watched status', severity: 'error' });
     } finally {
       setActionLoading(false);
     }
@@ -360,20 +392,20 @@ export default function TVShowDetailPage() {
                   fullWidth
                   startIcon={<AppIcon icon={userStatus === 'WATCHLIST' ? "mdi:bookmark-check" : "mdi:bookmark-plus"} />}
                   onClick={handleAddToWatchlist}
-                  disabled={actionLoading || userStatus === 'WATCHLIST'}
+                  disabled={actionLoading}
                   color={userStatus === 'WATCHLIST' ? "success" : "primary"}
                 >
-                  {userStatus === 'WATCHLIST' ? 'In Watchlist' : 'Add to Watchlist'}
+                  {userStatus === 'WATCHLIST' ? 'Remove from Watchlist' : 'Add to Watchlist'}
                 </Button>
                 <Button
                   variant="outlined"
                   fullWidth
                   startIcon={<AppIcon icon={userStatus === 'COMPLETED' ? "mdi:check-circle" : "mdi:check"} />}
                   onClick={handleMarkAsWatched}
-                  disabled={actionLoading || userStatus === 'COMPLETED'}
+                  disabled={actionLoading}
                   color={userStatus === 'COMPLETED' ? "success" : "inherit"}
                 >
-                  {userStatus === 'COMPLETED' ? 'Watched' : 'Mark as Watched'}
+                  {userStatus === 'COMPLETED' ? 'Remove Watched' : 'Mark as Watched'}
                 </Button>
                 {tvShow.homepage && (
                   <Button

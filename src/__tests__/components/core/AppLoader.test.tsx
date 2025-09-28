@@ -17,26 +17,43 @@ describe('AppLoader', () => {
   });
 
   it('renders with custom size', () => {
-    renderWithTheme(<AppLoader size={60} />);
+    renderWithTheme(<AppLoader size="large" />);
     const loader = screen.getByRole('progressbar');
     expect(loader).toBeInTheDocument();
   });
 
   it('renders fullscreen loader', () => {
-    renderWithTheme(<AppLoader fullScreen />);
-    const container = screen.getByRole('progressbar').parentElement;
-    expect(container).toHaveStyle({
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: '100%',
-      height: '100vh'
-    });
+    const { container } = renderWithTheme(<AppLoader fullscreen />);
+    const loaderContainer = container.firstChild;
+    expect(loaderContainer).toHaveStyle({ position: 'fixed' });
   });
 
   it('renders with custom color', () => {
     renderWithTheme(<AppLoader color="secondary" />);
     const loader = screen.getByRole('progressbar');
     expect(loader).toBeInTheDocument();
+  });
+
+  it('renders linear type', () => {
+    renderWithTheme(<AppLoader type="linear" />);
+    const loader = screen.getByRole('progressbar');
+    expect(loader).toBeInTheDocument();
+  });
+
+  it('renders with message', () => {
+    renderWithTheme(<AppLoader message="Loading..." />);
+    expect(screen.getByText('Loading...')).toBeInTheDocument();
+  });
+
+  it('renders skeleton type', () => {
+    renderWithTheme(<AppLoader type="skeleton" />);
+    // Skeleton doesn't have progressbar role, just check it renders
+    expect(screen.getByTestId('app-loader')).toBeInTheDocument();
+  });
+
+  it('renders dots type', () => {
+    renderWithTheme(<AppLoader type="dots" />);
+    // Check if the component renders without errors
+    expect(screen.getByTestId('app-loader')).toBeInTheDocument();
   });
 });

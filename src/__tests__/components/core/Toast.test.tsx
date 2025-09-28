@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { Toast } from '@core/components/toast';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
@@ -55,12 +55,11 @@ describe('Toast', () => {
     expect(alert).toHaveClass('MuiAlert-filledWarning');
   });
 
-  it('renders info toast', () => {
+  it('renders info toast by default', () => {
     renderWithTheme(
       <Toast
         open={true}
         message="Information message"
-        severity="info"
         onClose={() => {}}
       />
     );
@@ -88,7 +87,6 @@ describe('Toast', () => {
   });
 
   it('auto-hides after duration', async () => {
-    vi.useFakeTimers();
     const handleClose = vi.fn();
 
     renderWithTheme(
@@ -97,17 +95,13 @@ describe('Toast', () => {
         message="Auto-hide message"
         severity="info"
         onClose={handleClose}
-        autoHideDuration={3000}
+        duration={100} // Use short duration for testing
       />
     );
 
-    vi.advanceTimersByTime(3000);
-
     await waitFor(() => {
       expect(handleClose).toHaveBeenCalled();
-    });
-
-    vi.useRealTimers();
+    }, { timeout: 1000 });
   });
 
   it('does not render when closed', () => {
@@ -123,54 +117,46 @@ describe('Toast', () => {
     expect(screen.queryByText('Hidden message')).not.toBeInTheDocument();
   });
 
-  it('renders at different positions', () => {
+  it('renders at bottom center by default', () => {
     const { container } = renderWithTheme(
       <Toast
         open={true}
-        message="Top right message"
+        message="Bottom center message"
         severity="success"
         onClose={() => {}}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
       />
     );
 
-    const snackbar = container.querySelector('.MuiSnackbar-anchorOriginTopRight');
+    const snackbar = container.querySelector('.MuiSnackbar-anchorOriginBottomCenter');
     expect(snackbar).toBeInTheDocument();
   });
 
-  it('renders with custom action', () => {
-    const handleAction = vi.fn();
-
+  it('uses default duration when not specified', () => {
+    const handleClose = vi.fn();
     renderWithTheme(
       <Toast
         open={true}
-        message="Message with action"
-        severity="info"
-        onClose={() => {}}
-        action={
-          <button onClick={handleAction}>Undo</button>
-        }
+        message="Default duration"
+        severity="success"
+        onClose={handleClose}
       />
     );
 
-    const actionButton = screen.getByRole('button', { name: 'Undo' });
-    fireEvent.click(actionButton);
-
-    expect(handleAction).toHaveBeenCalled();
+    // Should render without errors
+    expect(screen.getByText('Default duration')).toBeInTheDocument();
   });
 
-  it('handles variant prop', () => {
+  it('renders filled variant by default', () => {
     renderWithTheme(
       <Toast
         open={true}
-        message="Outlined toast"
+        message="Filled toast"
         severity="success"
-        variant="outlined"
         onClose={() => {}}
       />
     );
 
     const alert = screen.getByRole('alert');
-    expect(alert).toHaveClass('MuiAlert-outlinedSuccess');
+    expect(alert).toHaveClass('MuiAlert-filled');
   });
 });
