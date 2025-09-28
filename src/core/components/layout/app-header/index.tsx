@@ -27,7 +27,7 @@ import {
 } from '@mui/material';
 
 import { AppIcon, AppButton, AppSearchBar } from '@core/components';
-import { useThemeMode } from '@contexts/ThemeContext';
+import { useThemeContext } from '@/contexts/ThemeContext';
 import { MobileDrawer } from '@core/components/layout/mobile-drawer';
 import { ROUTES } from '@core/constants';
 
@@ -120,7 +120,7 @@ export const AppHeader = () => {
   const theme = useTheme();
   const pathname = usePathname();
   const router = useRouter();
-  const { mode, toggleColorMode } = useThemeMode();
+  const { mode, toggleTheme: toggleColorMode } = useThemeContext();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isTablet = useMediaQuery(theme.breakpoints.down('lg'));
   const { data: session, status } = useSession();

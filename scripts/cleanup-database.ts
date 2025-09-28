@@ -30,19 +30,33 @@ async function getCleanupStats() {
     sessionCount,
     movieCount,
     userMovieCount,
+    tvShowCount,
+    userTVShowCount,
+    seasonCount,
+    episodeCount,
+    userEpisodeCount,
     genreCount,
     personCount,
     castCount,
     crewCount,
+    networkCount,
+    creatorCount,
   ] = await Promise.all([
     prisma.user.count(),
     prisma.session.count(),
     prisma.movie.count(),
     prisma.userMovie.count(),
+    prisma.tVShow.count(),
+    prisma.userTVShow.count(),
+    prisma.season.count(),
+    prisma.episode.count(),
+    prisma.userEpisode.count(),
     prisma.genre.count(),
     prisma.person.count(),
     prisma.cast.count(),
     prisma.crew.count(),
+    prisma.network.count(),
+    prisma.creator.count(),
   ]);
 
   return {
@@ -50,19 +64,33 @@ async function getCleanupStats() {
     sessions: sessionCount,
     movies: movieCount,
     userMovies: userMovieCount,
+    tvShows: tvShowCount,
+    userTVShows: userTVShowCount,
+    seasons: seasonCount,
+    episodes: episodeCount,
+    userEpisodes: userEpisodeCount,
     genres: genreCount,
     persons: personCount,
     cast: castCount,
     crew: crewCount,
+    networks: networkCount,
+    creators: creatorCount,
     total:
       userCount +
       sessionCount +
       movieCount +
       userMovieCount +
+      tvShowCount +
+      userTVShowCount +
+      seasonCount +
+      episodeCount +
+      userEpisodeCount +
       genreCount +
       personCount +
       castCount +
-      crewCount,
+      crewCount +
+      networkCount +
+      creatorCount,
   };
 }
 
@@ -83,13 +111,23 @@ async function cleanupDatabase(options: CleanupOptions = {}) {
   console.log('\n📊 Current Database Statistics:');
   console.log(`   • Users: ${stats.users}`);
   console.log(`   • Sessions: ${stats.sessions}`);
+  console.log('\n   📽️  Movies:');
   console.log(`   • Movies: ${stats.movies}`);
   console.log(`   • User Movies (Watchlist/Watched): ${stats.userMovies}`);
-  console.log(`   • Genres: ${stats.genres}`);
-  console.log(`   • Persons: ${stats.persons}`);
   console.log(`   • Cast: ${stats.cast}`);
   console.log(`   • Crew: ${stats.crew}`);
-  console.log(`   • Total Records: ${stats.total}`);
+  console.log('\n   📺 TV Shows:');
+  console.log(`   • TV Shows: ${stats.tvShows}`);
+  console.log(`   • User TV Shows: ${stats.userTVShows}`);
+  console.log(`   • Seasons: ${stats.seasons}`);
+  console.log(`   • Episodes: ${stats.episodes}`);
+  console.log(`   • User Episodes: ${stats.userEpisodes}`);
+  console.log(`   • Networks: ${stats.networks}`);
+  console.log(`   • Creators: ${stats.creators}`);
+  console.log('\n   🎭 Shared:');
+  console.log(`   • Genres: ${stats.genres}`);
+  console.log(`   • Persons: ${stats.persons}`);
+  console.log(`\n   • Total Records: ${stats.total}`);
 
   console.log('\n⚙️  Cleanup Options:');
   console.log(`   • Preserve Users: ${preserveUsers ? '✅' : '❌'}`);
@@ -120,6 +158,7 @@ async function cleanupDatabase(options: CleanupOptions = {}) {
       console.log('🔍 Analyzing what would be deleted...\n');
 
       const deletions = {
+        // Movie related
         userMovies: await prisma.userMovie.count(),
         movieGenres: await prisma.movieGenre.count(),
         cast: await prisma.cast.count(),
@@ -129,6 +168,17 @@ async function cleanupDatabase(options: CleanupOptions = {}) {
         productionCountries: await prisma.productionCountry.count(),
         spokenLanguages: await prisma.spokenLanguage.count(),
         movies: await prisma.movie.count(),
+        // TV Show related
+        userTVShows: await prisma.userTVShow.count(),
+        userEpisodes: await prisma.userEpisode.count(),
+        tvShowGenres: await prisma.tVShowGenre.count(),
+        creators: await prisma.creator.count(),
+        networks: await prisma.network.count(),
+        tvShowProductionCompanies: await prisma.tVShowProductionCompany.count(),
+        episodes: await prisma.episode.count(),
+        seasons: await prisma.season.count(),
+        tvShows: await prisma.tVShow.count(),
+        // Shared
         genres: preserveGenres ? 0 : await prisma.genre.count(),
         persons: await prisma.person.count(),
         users: preserveUsers ? 0 : await prisma.user.count(),
@@ -149,6 +199,9 @@ async function cleanupDatabase(options: CleanupOptions = {}) {
       await prisma.$transaction(
         async (tx) => {
           const results = [];
+
+          // === MOVIE CLEANUP ===
+          console.log('\n🎬 Cleaning movie data...');
 
           // 1. Delete UserMovie records (watched/watchlist items)
           const userMoviesDeleted = await tx.userMovie.deleteMany({});
@@ -186,29 +239,72 @@ async function cleanupDatabase(options: CleanupOptions = {}) {
           const moviesDeleted = await tx.movie.deleteMany({});
           results.push(`✅ Deleted ${moviesDeleted.count} movies`);
 
-          // 10. Optionally delete Genres
+          // === TV SHOW CLEANUP ===
+          console.log('\n📺 Cleaning TV show data...');
+
+          // 10. Delete UserEpisode records
+          const userEpisodesDeleted = await tx.userEpisode.deleteMany({});
+          results.push(`✅ Deleted ${userEpisodesDeleted.count} user episode records`);
+
+          // 11. Delete UserTVShow records
+          const userTVShowsDeleted = await tx.userTVShow.deleteMany({});
+          results.push(`✅ Deleted ${userTVShowsDeleted.count} user TV show records`);
+
+          // 12. Delete TVShowGenre relations
+          const tvShowGenresDeleted = await tx.tVShowGenre.deleteMany({});
+          results.push(`✅ Deleted ${tvShowGenresDeleted.count} TV show-genre relations`);
+
+          // 13. Delete Creator records
+          const creatorsDeleted = await tx.creator.deleteMany({});
+          results.push(`✅ Deleted ${creatorsDeleted.count} creator records`);
+
+          // 14. Delete Network records
+          const networksDeleted = await tx.network.deleteMany({});
+          results.push(`✅ Deleted ${networksDeleted.count} network records`);
+
+          // 15. Delete TVShowProductionCompany records
+          const tvShowCompaniesDeleted = await tx.tVShowProductionCompany.deleteMany({});
+          results.push(`✅ Deleted ${tvShowCompaniesDeleted.count} TV show production company records`);
+
+          // 16. Delete Episode records
+          const episodesDeleted = await tx.episode.deleteMany({});
+          results.push(`✅ Deleted ${episodesDeleted.count} episode records`);
+
+          // 17. Delete Season records
+          const seasonsDeleted = await tx.season.deleteMany({});
+          results.push(`✅ Deleted ${seasonsDeleted.count} season records`);
+
+          // 18. Delete TV Shows
+          const tvShowsDeleted = await tx.tVShow.deleteMany({});
+          results.push(`✅ Deleted ${tvShowsDeleted.count} TV shows`);
+
+          // === SHARED DATA CLEANUP ===
+          console.log('\n🎭 Cleaning shared data...');
+
+          // 19. Optionally delete Genres
           if (!preserveGenres) {
             const genresDeleted = await tx.genre.deleteMany({});
             results.push(`✅ Deleted ${genresDeleted.count} genres`);
           }
 
-          // 11. Delete Persons
+          // 20. Delete Persons
           const personsDeleted = await tx.person.deleteMany({});
           results.push(`✅ Deleted ${personsDeleted.count} persons`);
 
-          // 12. Optionally delete Sessions
+          // 21. Optionally delete Sessions
           if (!preserveSessions) {
             const sessionsDeleted = await tx.session.deleteMany({});
             results.push(`✅ Deleted ${sessionsDeleted.count} sessions`);
           }
 
-          // 13. Optionally delete Users
+          // 22. Optionally delete Users
           if (!preserveUsers) {
             const usersDeleted = await tx.user.deleteMany({});
             results.push(`✅ Deleted ${usersDeleted.count} users`);
           }
 
           // Print all results
+          console.log('\n📋 Cleanup Results:');
           results.forEach((result) => console.log(result));
         },
         {
@@ -273,6 +369,9 @@ function parseArgs(): CleanupOptions {
       case '--help':
         console.log('Database Cleanup Script');
         console.log('Usage: npm run db:cleanup [options]');
+        console.log('\nDescription:');
+        console.log('  Cleans up all movie and TV show data from the database');
+        console.log('  including user watchlists, watched items, and cached metadata.');
         console.log('\nOptions:');
         console.log('  --delete-users      Delete all users (default: preserve)');
         console.log('  --delete-sessions   Delete all sessions (default: preserve)');
@@ -280,6 +379,10 @@ function parseArgs(): CleanupOptions {
         console.log('  --dry-run          Show what would be deleted without deleting');
         console.log('  --force            Skip confirmation prompt');
         console.log('  --help             Show this help message');
+        console.log('\nExamples:');
+        console.log('  npm run db:cleanup --dry-run    # See what would be deleted');
+        console.log('  npm run db:cleanup --force       # Delete without confirmation');
+        console.log('  npm run db:cleanup --delete-users --delete-sessions  # Full reset');
         process.exit(0);
     }
   });
