@@ -5,10 +5,10 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Dayjs } from 'dayjs';
 
-import { Box, Container, Grid, Typography, Chip, Card, CardContent } from '@mui/material';
+import { Container } from '@mui/material';
 
-import { AppIcon, AppLoader, AppEmptyState, MainLayout } from '@core/components';
-import { WatchedMovieCard } from '@/components/watched-movie-card';
+import { AppLoader, MainLayout } from '@core/components';
+import WatchedPageView from '@/views/watched';
 import { useToast } from '@/hooks/useToast';
 import { movieService } from '@/services/movie.service';
 import { MovieSortBy } from '@core/enums';
@@ -197,192 +197,20 @@ export default function WatchedPage() {
 
   return (
     <MainLayout>
-      <Container>
-        <Box sx={{ py: { xs: 2, sm: 4 }, px: { xs: 2, sm: 0 } }}>
-          <Box sx={{ mb: 4 }}>
-            <Typography
-              variant="h4"
-              component="h1"
-              gutterBottom
-              sx={{ fontSize: { xs: '1.5rem', sm: '1.75rem', md: '2.125rem' } }}
-            >
-              Watched Movies
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Track your movie watching journey
-            </Typography>
-          </Box>
-
-          {movies.length > 0 && (
-            <Grid container spacing={{ xs: 2, sm: 3 }} sx={{ mb: 4 }}>
-              <Grid size={{ xs: 6, sm: 6, md: 3 }}>
-                <Card>
-                  <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                    <AppIcon icon="mdi:movie-check" size={24} color="primary.main" />
-                    <Typography
-                      variant="h4"
-                      sx={{ mt: 1, fontSize: { xs: '1.5rem', sm: '2.125rem' } }}
-                    >
-                      {stats.totalWatched}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
-                    >
-                      Movies Watched
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid size={{ xs: 6, sm: 6, md: 3 }}>
-                <Card>
-                  <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                    <AppIcon icon="mdi:clock-outline" size={24} color="primary.main" />
-                    <Typography
-                      variant="h4"
-                      sx={{ mt: 1, fontSize: { xs: '1.5rem', sm: '2.125rem' } }}
-                    >
-                      {formatRuntime(stats.totalRuntime)}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
-                    >
-                      Total Runtime
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid size={{ xs: 6, sm: 6, md: 3 }}>
-                <Card>
-                  <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                    <AppIcon icon="mdi:star" size={24} color="primary.main" />
-                    <Typography
-                      variant="h4"
-                      sx={{ mt: 1, fontSize: { xs: '1.5rem', sm: '2.125rem' } }}
-                    >
-                      {stats.averageRating.toFixed(1)}
-                    </Typography>
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
-                    >
-                      Average Rating
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-              {stats.highestRated && (
-                <Grid size={{ xs: 6, sm: 6, md: 3 }}>
-                  <Card>
-                    <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
-                      <AppIcon icon="mdi:trophy" size={24} color="primary.main" />
-                      <Typography
-                        variant="body1"
-                        sx={{ mt: 1, fontSize: { xs: '0.875rem', sm: '1rem' } }}
-                        noWrap
-                      >
-                        {stats.highestRated.movie?.title || 'Unknown'}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}
-                      >
-                        Highest Rated ({stats.highestRated.rating}★)
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              )}
-            </Grid>
-          )}
-
-          <Box sx={{ mb: 3 }}>
-            <Typography variant="h6" sx={{ mb: 2, fontSize: { xs: '1.125rem', sm: '1.25rem' } }}>
-              All Watched Movies
-            </Typography>
-            <Box
-              sx={{
-                display: 'flex',
-                gap: { xs: 0.5, sm: 1 },
-                overflowX: 'auto',
-                pb: 1,
-                '&::-webkit-scrollbar': {
-                  height: 4,
-                },
-                '&::-webkit-scrollbar-track': {
-                  backgroundColor: 'action.hover',
-                  borderRadius: 2,
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'action.disabled',
-                  borderRadius: 2,
-                },
-              }}
-            >
-              <Chip
-                label="Recently Watched"
-                onClick={() => setSortBy(MovieSortBy.RECENTLY_WATCHED)}
-                color={sortBy === MovieSortBy.RECENTLY_WATCHED ? 'primary' : 'default'}
-                size="small"
-                sx={{ flexShrink: 0 }}
-              />
-              <Chip
-                label="Title"
-                onClick={() => setSortBy(MovieSortBy.TITLE)}
-                color={sortBy === MovieSortBy.TITLE ? 'primary' : 'default'}
-                size="small"
-                sx={{ flexShrink: 0 }}
-              />
-              <Chip
-                label="Release Date"
-                onClick={() => setSortBy(MovieSortBy.RELEASE_DATE)}
-                color={sortBy === MovieSortBy.RELEASE_DATE ? 'primary' : 'default'}
-                size="small"
-                sx={{ flexShrink: 0 }}
-              />
-              <Chip
-                label="My Rating"
-                onClick={() => setSortBy(MovieSortBy.RATING)}
-                color={sortBy === MovieSortBy.RATING ? 'primary' : 'default'}
-                size="small"
-                sx={{ flexShrink: 0 }}
-              />
-            </Box>
-          </Box>
-
-          {movies.length === 0 ? (
-            <AppEmptyState
-              icon="mdi:movie-check-outline"
-              title="No watched movies yet"
-              description="Keep track of movies you've watched and rate them."
-              actionLabel="Browse Movies"
-              actionIcon="mdi:movie-search"
-              onAction={() => router.push('/movies')}
-            />
-          ) : (
-            <Grid container spacing={2}>
-              {sortedMovies.map((userMovie) => (
-                <Grid size={{ xs: 6, sm: 4, md: 3, lg: 2 }} key={userMovie.movie?.id}>
-                  <WatchedMovieCard
-                    userMovie={userMovie}
-                    isEditingDate={editingDateId === userMovie.id}
-                    onEditDateClick={() => setEditingDateId(userMovie.id)}
-                    onCancelEditDate={() => setEditingDateId(null)}
-                    onUpdateDate={handleUpdateWatchedDate}
-                    onAddToWatchlist={handleAddToWatchlist}
-                    onRemoveFromWatched={handleRemoveFromWatched}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-          )}
-        </Box>
-      </Container>
+      <WatchedPageView
+        movies={movies}
+        stats={stats}
+        sortBy={sortBy}
+        editingDateId={editingDateId}
+        sortedMovies={sortedMovies}
+        onSortChange={setSortBy}
+        onEditDateClick={setEditingDateId}
+        onCancelEditDate={() => setEditingDateId(null)}
+        onUpdateWatchedDate={handleUpdateWatchedDate}
+        onAddToWatchlist={handleAddToWatchlist}
+        onRemoveFromWatched={handleRemoveFromWatched}
+        formatRuntime={formatRuntime}
+      />
     </MainLayout>
   );
 }

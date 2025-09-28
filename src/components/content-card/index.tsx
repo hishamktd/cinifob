@@ -68,18 +68,47 @@ export const ContentCard = ({
         display: 'flex',
         flexDirection: 'column',
         cursor: 'pointer',
-        transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-        border: 2,
-        borderColor: item.mediaType === 'tv' ? 'error.main' : 'success.main',
+        transition: 'all 0.3s ease',
+        position: 'relative',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          inset: 0,
+          borderRadius: 'inherit',
+          border: `2px solid ${item.mediaType === 'tv' ? '#f44336' : '#4caf50'}`,
+          borderTop: `2px solid ${item.mediaType === 'tv' ? '#f44336' : '#4caf50'}`,
+          borderRight: `2px solid ${item.mediaType === 'tv' ? '#f44336' : '#4caf50'}`,
+          borderBottom: `2px solid ${item.mediaType === 'tv' ? '#f44336' : '#4caf50'}`,
+          borderLeft: `2px solid ${item.mediaType === 'tv' ? '#f44336' : '#4caf50'}`,
+          clipPath: 'polygon(0 0, 0 0, 0 100%, 0 100%)',
+          pointerEvents: 'none',
+          zIndex: 10,
+        },
         '&:hover': {
-          transform: 'translateY(-8px)',
-          boxShadow: (theme) => theme.shadows[10],
-          borderColor: item.mediaType === 'tv' ? 'error.dark' : 'success.dark',
+          '&::before': {
+            animation: 'borderReveal 1.5s linear forwards',
+          },
           '& .action-buttons': {
             opacity: 1,
           },
         },
-        position: 'relative',
+        '@keyframes borderReveal': {
+          '0%': {
+            clipPath: 'polygon(0 0, 0 0, 0 0, 0 0)',
+          },
+          '25%': {
+            clipPath: 'polygon(0 0, 100% 0, 100% 0, 0 0)',
+          },
+          '50%': {
+            clipPath: 'polygon(0 0, 100% 0, 100% 100%, 100% 100%, 0 0)',
+          },
+          '75%': {
+            clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%, 0 0)',
+          },
+          '100%': {
+            clipPath: 'polygon(0 0, 100% 0, 100% 100%, 0 100%)',
+          },
+        },
       }}
       onClick={handleCardClick}
       onMouseEnter={() => handleHover(item.tmdbId, item.mediaType)}

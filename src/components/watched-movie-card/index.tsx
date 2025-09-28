@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import dayjs, { Dayjs } from 'dayjs';
 
-import { Box, Card, CardContent, Typography, Chip, IconButton } from '@mui/material';
+import { Box, CardContent, Typography, Chip, IconButton } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -13,6 +13,20 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { AppIcon, AppButton } from '@core/components';
 import { TMDB_CONFIG } from '@core/constants';
 import { UserMovie } from '@/types';
+import {
+  WatchedMovieCardWrapper,
+  StyledMovieCard,
+  PosterWrapper,
+  PosterPlaceholder,
+  RatingBadge,
+  WatchedIndicator,
+  MovieTitle,
+  WatchedDateSection,
+  DateDisplay,
+  EditDateButton,
+  UserRatingSection,
+  ActionButtonsWrapper,
+} from './styled-components';
 
 interface WatchedMovieCardProps {
   userMovie: UserMovie;
@@ -48,24 +62,9 @@ export const WatchedMovieCard: React.FC<WatchedMovieCardProps> = ({
   };
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Card
-        sx={{
-          cursor: 'pointer',
-          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          border: 2,
-          borderColor: 'success.main',
-          '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: (theme) => theme.shadows[8],
-            borderColor: 'success.dark',
-          },
-          position: 'relative',
-        }}
-        onClick={handleCardClick}
-      >
-        {/* Poster with 2:3 aspect ratio */}
-        <Box sx={{ position: 'relative', paddingTop: '150%', overflow: 'hidden' }}>
+    <WatchedMovieCardWrapper>
+      <StyledMovieCard onClick={handleCardClick}>
+        <PosterWrapper>
           {movie.posterPath ? (
             <Image
               src={`${TMDB_CONFIG.IMAGE_BASE_URL}/w342${movie.posterPath}`}
@@ -75,21 +74,9 @@ export const WatchedMovieCard: React.FC<WatchedMovieCardProps> = ({
               style={{ objectFit: 'cover' }}
             />
           ) : (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                bgcolor: 'action.disabledBackground',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+            <PosterPlaceholder>
               <AppIcon icon="mdi:movie-open-outline" size={48} color="text.disabled" />
-            </Box>
+            </PosterPlaceholder>
           )}
 
           {/* Movie Badge */}
@@ -114,20 +101,7 @@ export const WatchedMovieCard: React.FC<WatchedMovieCardProps> = ({
 
           {/* Rating Badge */}
           {movie.voteAverage !== undefined && movie.voteAverage > 0 && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 6,
-                right: 6,
-                bgcolor: 'rgba(0, 0, 0, 0.8)',
-                borderRadius: 0.5,
-                px: 0.75,
-                py: 0.25,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 0.25,
-              }}
-            >
+            <RatingBadge>
               <AppIcon icon="mdi:star" size={14} color="#FFD700" />
               <Typography
                 variant="caption"
@@ -135,24 +109,11 @@ export const WatchedMovieCard: React.FC<WatchedMovieCardProps> = ({
               >
                 {movie.voteAverage.toFixed(1)}
               </Typography>
-            </Box>
+            </RatingBadge>
           )}
 
           {/* Watched Indicator */}
-          <Box
-            sx={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              bgcolor: 'rgba(76, 175, 80, 0.95)',
-              py: 0.5,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 0.5,
-            }}
-          >
+          <WatchedIndicator>
             <AppIcon icon="mdi:check-circle" size={16} color="white" />
             <Typography
               variant="caption"
@@ -160,40 +121,22 @@ export const WatchedMovieCard: React.FC<WatchedMovieCardProps> = ({
             >
               WATCHED
             </Typography>
-          </Box>
-        </Box>
+          </WatchedIndicator>
+        </PosterWrapper>
 
         {/* Content */}
         <CardContent sx={{ p: 1.5, pb: 1 }}>
-          <Typography
-            variant="body2"
-            component="h3"
-            sx={{
-              fontWeight: 600,
-              mb: 0.5,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              fontSize: '0.875rem',
-            }}
-          >
+          <MovieTitle variant="body2" component="h3">
             {movie.title}
-          </Typography>
+          </MovieTitle>
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
             {getYear(movie.releaseDate)}
           </Typography>
         </CardContent>
-      </Card>
+      </StyledMovieCard>
 
       {/* Watched Date Section */}
-      <Box
-        sx={{
-          mt: 0.75,
-          p: 0.75,
-          bgcolor: (theme) => (theme.palette.mode === 'dark' ? 'grey.900' : 'grey.100'),
-          borderRadius: 0.5,
-        }}
-      >
+      <WatchedDateSection>
         {isEditingDate ? (
           <LocalizationProvider dateAdapter={AdapterDayjs}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
@@ -216,43 +159,38 @@ export const WatchedMovieCard: React.FC<WatchedMovieCardProps> = ({
             </Box>
           </LocalizationProvider>
         ) : (
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <DateDisplay>
+            <div className="date-info">
               <AppIcon icon="mdi:calendar" size={14} color="text.secondary" />
               <Typography variant="caption" sx={{ fontSize: '0.7rem', fontWeight: 500 }}>
                 {dayjs(userMovie.watchedAt).format('MMM D, YYYY')}
               </Typography>
-            </Box>
-            <IconButton
+            </div>
+            <EditDateButton
               size="small"
               onClick={(e) => {
                 e.stopPropagation();
                 onEditDateClick();
               }}
-              sx={{
-                p: 0.25,
-                color: 'text.secondary',
-                '&:hover': { bgcolor: 'action.hover' },
-              }}
             >
               <AppIcon icon="mdi:pencil" size={12} />
-            </IconButton>
-          </Box>
+            </EditDateButton>
+          </DateDisplay>
         )}
-      </Box>
+      </WatchedDateSection>
 
       {/* User Rating */}
       {userMovie.rating && (
-        <Box sx={{ mt: 0.5, display: 'flex', alignItems: 'center', gap: 0.5, px: 0.75 }}>
+        <UserRatingSection>
           <AppIcon icon="mdi:star" size={14} color="warning.main" />
           <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem' }}>
             Your Rating: {userMovie.rating}/10
           </Typography>
-        </Box>
+        </UserRatingSection>
       )}
 
       {/* Action Buttons */}
-      <Box sx={{ mt: 0.75, display: 'flex', gap: 0.5 }}>
+      <ActionButtonsWrapper>
         <AppButton
           size="small"
           variant="outlined"
@@ -290,7 +228,7 @@ export const WatchedMovieCard: React.FC<WatchedMovieCardProps> = ({
         >
           Remove
         </AppButton>
-      </Box>
-    </Box>
+      </ActionButtonsWrapper>
+    </WatchedMovieCardWrapper>
   );
 };
