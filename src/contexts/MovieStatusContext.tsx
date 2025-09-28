@@ -15,13 +15,8 @@ interface MovieStatusContextType {
 
 const MovieStatusContext = createContext<MovieStatusContextType | undefined>(undefined);
 
-export const useMovieStatus = () => {
-  const context = useContext(MovieStatusContext);
-  if (!context) {
-    throw new Error('useMovieStatus must be used within a MovieStatusProvider');
-  }
-  return context;
-};
+// Note: useMovieStatus is defined in /src/hooks/useMovieStatus.tsx
+// This context provider is kept for backward compatibility
 
 interface MovieStatusProviderProps {
   children: ReactNode;

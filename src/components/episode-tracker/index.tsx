@@ -78,17 +78,18 @@ export const EpisodeTracker = ({
   useEffect(() => {
     const fetchEpisodeStatuses = async () => {
       try {
-        const response = await fetch(`/api/user/episodes/status?tvShowId=${tvShowId}`);
+        const response = await fetch(`/api/user/tv/episodes?tmdbId=${tvShowId}`);
         if (response.ok) {
           const data = await response.json();
           // Transform the data to our local format
           const transformedStatus: EpisodeStatus = {};
-          Object.entries(data).forEach(([,]: [string, unknown]) => {
-            // We'll need to map tmdbId to season-episode format
-            // This will be handled once we have the episodes loaded
+          data.forEach((userEpisode: any) => {
+            if (userEpisode.watched) {
+              const key = `${userEpisode.episode.seasonNumber}-${userEpisode.episode.episodeNumber}`;
+              transformedStatus[key] = 'watched';
+            }
           });
-          // For now, store the raw status data
-          setEpisodeStatus(data);
+          setEpisodeStatus(transformedStatus);
         }
       } catch (error) {
         console.error('Error fetching episode statuses:', error);
@@ -147,35 +148,42 @@ export const EpisodeTracker = ({
 
     setEpisodeStatus(newStatus);
 
-    // Find the episode to get its tmdbId
-    const episodes = seasonEpisodes[seasonNumber];
-    if (episodes) {
-      const episode = episodes.find((e) => e.episode_number === episodeNumber);
-      if (episode) {
-        try {
-          // Save to database via API
-          const apiStatus =
-            status === 'watched' ? 'WATCHED' : status === 'planned' ? 'PLANNED' : 'SKIPPED';
-          const response = await fetch(`/api/user/episodes/status`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              episodeTmdbId: episode.id, // Using the episode id as tmdbId
-              status: apiStatus,
-            }),
-          });
+    try {
+      if (status === 'watched' || status === 'planned') {
+        // Add or update episode status
+        const response = await fetch(`/api/user/tv/episodes`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tmdbId: tvShowId,
+            seasonNumber,
+            episodeNumber,
+            watched: status === 'watched',
+          }),
+        });
 
-          if (!response.ok) {
-            throw new Error('Failed to update episode status');
-          }
-        } catch (error) {
-          console.error('Error saving episode status:', error);
-          showToast('Failed to update episode status', 'error');
-          // Revert the status on error
-          setEpisodeStatus(episodeStatus);
-          return;
+        if (!response.ok) {
+          throw new Error('Failed to update episode status');
+        }
+      } else {
+        // Remove episode tracking
+        const response = await fetch(
+          `/api/user/tv/episodes?tmdbId=${tvShowId}&season=${seasonNumber}&episode=${episodeNumber}`,
+          {
+            method: 'DELETE',
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to remove episode status');
         }
       }
+    } catch (error) {
+      console.error('Error saving episode status:', error);
+      showToast('Failed to update episode status', 'error');
+      // Revert the status on error
+      setEpisodeStatus(episodeStatus);
+      return;
     }
 
     if (onEpisodeStatusChange) {
@@ -223,12 +231,14 @@ export const EpisodeTracker = ({
     try {
       // Save all episodes as watched via API
       const promises = episodes.map((episode) =>
-        fetch(`/api/user/episodes/status`, {
+        fetch(`/api/user/tv/episodes`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            episodeTmdbId: episode.id,
-            status: 'WATCHED',
+            tmdbId: tvShowId,
+            seasonNumber,
+            episodeNumber: episode.episode_number,
+            watched: true,
           }),
         }),
       );

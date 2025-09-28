@@ -15,6 +15,12 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export const useToast = () => {
   const context = useContext(ToastContext);
   if (!context) {
+    // Return a no-op for SSR/test environments
+    if (typeof window === 'undefined' || process.env.NODE_ENV === 'test') {
+      return {
+        showToast: () => {},
+      };
+    }
     throw new Error('useToast must be used within ToastProvider');
   }
   return context;

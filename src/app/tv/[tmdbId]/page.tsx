@@ -106,6 +106,7 @@ export default function TVShowDetailPage() {
   const [rating, setRating] = useState<number | null>(null);
   const [ratingDialogOpen, setRatingDialogOpen] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+  const [userStatus, setUserStatus] = useState<'WATCHLIST' | 'WATCHING' | 'COMPLETED' | null>(null);
   const [toast, setToast] = useState({
     open: false,
     message: '',
@@ -115,8 +116,11 @@ export default function TVShowDetailPage() {
   useEffect(() => {
     if (params.tmdbId) {
       fetchTVShowDetails(params.tmdbId as string);
+      if (session) {
+        fetchUserStatus(params.tmdbId as string);
+      }
     }
-  }, [params.tmdbId]);
+  }, [params.tmdbId, session]);
 
   const fetchTVShowDetails = async (tmdbId: string) => {
     try {
@@ -136,20 +140,81 @@ export default function TVShowDetailPage() {
     }
   };
 
+  const fetchUserStatus = async (tmdbId: string) => {
+    try {
+      const response = await fetch('/api/user/tv');
+      if (response.ok) {
+        const shows = await response.json();
+        const currentShow = shows.find((s: any) => s.tmdbId === parseInt(tmdbId));
+        if (currentShow) {
+          setUserStatus(currentShow.status);
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching user status:', error);
+    }
+  };
+
   const handleAddToWatchlist = async () => {
     if (!session) {
       setToast({ open: true, message: 'Please login to add to watchlist', severity: 'warning' });
       return;
     }
-    setToast({ open: true, message: 'TV show watchlist support coming soon!', severity: 'info' });
+
+    setActionLoading(true);
+    try {
+      const response = await fetch('/api/user/tv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tmdbId: tvShow?.id,
+          status: 'WATCHLIST',
+        }),
+      });
+
+      if (response.ok) {
+        setToast({ open: true, message: 'Added to watchlist!', severity: 'success' });
+        setUserStatus('WATCHLIST');
+      } else {
+        const error = await response.json();
+        setToast({ open: true, message: error.error || 'Failed to add to watchlist', severity: 'error' });
+      }
+    } catch (error) {
+      setToast({ open: true, message: 'Failed to add to watchlist', severity: 'error' });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
-  const handleMarkAsWatched = () => {
+  const handleMarkAsWatched = async () => {
     if (!session) {
       setToast({ open: true, message: 'Please login to mark as watched', severity: 'warning' });
       return;
     }
-    setToast({ open: true, message: 'TV show tracking support coming soon!', severity: 'info' });
+
+    setActionLoading(true);
+    try {
+      const response = await fetch('/api/user/tv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tmdbId: tvShow?.id,
+          status: 'COMPLETED',
+        }),
+      });
+
+      if (response.ok) {
+        setToast({ open: true, message: 'Marked as watched!', severity: 'success' });
+        setUserStatus('COMPLETED');
+      } else {
+        const error = await response.json();
+        setToast({ open: true, message: error.error || 'Failed to mark as watched', severity: 'error' });
+      }
+    } catch (error) {
+      setToast({ open: true, message: 'Failed to mark as watched', severity: 'error' });
+    } finally {
+      setActionLoading(false);
+    }
   };
 
   const formatDate = (dateString?: string) => {
@@ -293,20 +358,22 @@ export default function TVShowDetailPage() {
                 <Button
                   variant="contained"
                   fullWidth
-                  startIcon={<AppIcon icon="mdi:bookmark-plus" />}
+                  startIcon={<AppIcon icon={userStatus === 'WATCHLIST' ? "mdi:bookmark-check" : "mdi:bookmark-plus"} />}
                   onClick={handleAddToWatchlist}
-                  disabled={actionLoading}
+                  disabled={actionLoading || userStatus === 'WATCHLIST'}
+                  color={userStatus === 'WATCHLIST' ? "success" : "primary"}
                 >
-                  Add to Watchlist
+                  {userStatus === 'WATCHLIST' ? 'In Watchlist' : 'Add to Watchlist'}
                 </Button>
                 <Button
                   variant="outlined"
                   fullWidth
-                  startIcon={<AppIcon icon="mdi:check" />}
+                  startIcon={<AppIcon icon={userStatus === 'COMPLETED' ? "mdi:check-circle" : "mdi:check"} />}
                   onClick={handleMarkAsWatched}
-                  disabled={actionLoading}
+                  disabled={actionLoading || userStatus === 'COMPLETED'}
+                  color={userStatus === 'COMPLETED' ? "success" : "inherit"}
                 >
-                  Mark as Watched
+                  {userStatus === 'COMPLETED' ? 'Watched' : 'Mark as Watched'}
                 </Button>
                 {tvShow.homepage && (
                   <Button

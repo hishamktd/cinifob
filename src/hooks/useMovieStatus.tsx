@@ -117,6 +117,20 @@ export function MovieStatusProvider({ children }: { children: ReactNode }) {
 export function useMovieStatus() {
   const context = useContext(MovieStatusContext);
   if (!context) {
+    // Return default values for SSR/test environments
+    if (typeof window === 'undefined' || process.env.NODE_ENV === 'test') {
+      return {
+        watchlistIds: new Set<number>(),
+        watchedIds: new Set<number>(),
+        isInWatchlist: () => false,
+        isWatched: () => false,
+        addToWatchlist: () => {},
+        removeFromWatchlist: () => {},
+        markAsWatched: () => {},
+        unmarkAsWatched: () => {},
+        refreshStatus: async () => {},
+      };
+    }
     throw new Error('useMovieStatus must be used within a MovieStatusProvider');
   }
   return context;

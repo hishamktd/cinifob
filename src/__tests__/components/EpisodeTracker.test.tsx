@@ -3,18 +3,33 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { EpisodeTracker } from '@components/episode-tracker';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { SessionProvider } from 'next-auth/react';
+import { Provider } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import { ToastProvider } from '@/hooks/useToast';
+import { toastSlice } from '@core/store/slices/toast.slice';
 import axios from 'axios';
 
 vi.mock('axios');
 
 const theme = createTheme();
 
+const createTestStore = () => configureStore({
+  reducer: {
+    toast: toastSlice.reducer,
+  },
+});
+
 const renderWithProviders = (component: React.ReactElement) => {
+  const store = createTestStore();
   return render(
     <SessionProvider session={{ user: { id: 'user123' }, expires: '2025-01-01' }}>
-      <ThemeProvider theme={theme}>
-        {component}
-      </ThemeProvider>
+      <Provider store={store}>
+        <ThemeProvider theme={theme}>
+          <ToastProvider>
+            {component}
+          </ToastProvider>
+        </ThemeProvider>
+      </Provider>
     </SessionProvider>
   );
 };
