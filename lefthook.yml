@@ -16,7 +16,7 @@ pre-push:
       fail_text: '❌ TypeScript type checking failed. Please fix type errors before pushing.'
 
     unit-tests:
-      run: npm test -- --run || echo "⚠️  Unit tests failed (optional for now)"
+      run: pnpm test:all || echo "⚠️  Unit tests failed (optional for now)"
       fail_text: '⚠️  Unit tests failed (optional for now).'
 
     # E2E tests are commented out for now as they require the app to be running
