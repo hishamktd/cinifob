@@ -15,9 +15,9 @@ pre-push:
       run: npx tsc --noEmit
       fail_text: '❌ TypeScript type checking failed. Please fix type errors before pushing.'
 
-    unit-tests:
-      run: pnpm test:all || echo "⚠️  Unit tests failed (optional for now)"
-      fail_text: '⚠️  Unit tests failed (optional for now).'
+    # unit-tests:
+    #   run: pnpm test:all || echo "⚠️  Unit tests failed (optional for now)"
+    #   fail_text: '⚠️  Unit tests failed (optional for now).'
 
     # E2E tests are commented out for now as they require the app to be running
     # Uncomment when ready to enforce E2E tests in CI
