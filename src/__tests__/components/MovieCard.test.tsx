@@ -14,7 +14,10 @@ vi.mock('next/navigation', () => ({
 // Mock next/image
 vi.mock('next/image', () => ({
   __esModule: true,
-  default: (props: { alt: string; [key: string]: unknown }) => props,
+  default: ({ src, alt }: { src: string; alt: string }) => {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt={alt} />;
+  },
 }));
 
 // Mock the movie worker

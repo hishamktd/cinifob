@@ -27,8 +27,8 @@ describe('ContentLoading', () => {
       />,
     );
 
-    const skeletons = container.querySelectorAll('.MuiSkeleton-rectangular');
-    expect(skeletons.length).toBe(4);
+    const cards = container.querySelectorAll('.MuiCard-root');
+    expect(cards.length).toBe(4);
   });
 
   it('renders stats section when showStats is true', () => {
