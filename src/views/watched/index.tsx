@@ -42,6 +42,7 @@ interface WatchedPageViewProps {
   // onCancelEditDate: () => void; // Unused prop
   // onUpdateWatchedDate: (movieId: number, newDate: Dayjs | null) => void; // Unused prop
   onAddToWatchlist: (item: ContentItem) => void;
+  onRemoveFromWatched: (tmdbId: number, mediaType: 'movie' | 'tv') => void;
   formatRuntime: (minutes: number) => string;
 }
 
@@ -59,6 +60,7 @@ const WatchedPageView: React.FC<WatchedPageViewProps> = ({
   // onCancelEditDate, // Unused prop
   // onUpdateWatchedDate, // Unused prop
   onAddToWatchlist,
+  // onRemoveFromWatched,
   formatRuntime,
 }) => {
   const router = useRouter();
