@@ -165,7 +165,7 @@ export const PredictiveInsights: React.FC<PredictiveInsightsProps> = ({
         95,
       ),
     };
-  }, [hourlyPattern, monthlyPattern]);
+  }, [hourlyPattern]);
 
   // Generate recommendations based on patterns
   const recommendations = useMemo(() => {
@@ -241,14 +241,29 @@ export const PredictiveInsights: React.FC<PredictiveInsightsProps> = ({
     const recentGenres: Record<string, number> = {};
     const last10 = [...watchedMovies, ...watchedShows]
       .sort((a, b) => {
-        const dateA = 'watchedAt' in a ? a.watchedAt : a.completedAt;
-        const dateB = 'watchedAt' in b ? b.watchedAt : b.completedAt;
+        const dateA =
+          'watchedAt' in a
+            ? a.watchedAt
+            : 'completedAt' in a
+              ? (a as { completedAt?: string | Date | null }).completedAt
+              : null;
+        const dateB =
+          'watchedAt' in b
+            ? b.watchedAt
+            : 'completedAt' in b
+              ? (b as { completedAt?: string | Date | null }).completedAt
+              : null;
         return new Date(dateB || 0).getTime() - new Date(dateA || 0).getTime();
       })
       .slice(0, 10);
 
     last10.forEach((item) => {
-      const genres = 'movie' in item ? item.movie?.genres : item.tvShow?.genres;
+      const genres =
+        'movie' in item
+          ? item.movie?.genres
+          : 'tvShow' in item
+            ? (item as { tvShow?: { genres?: (string | { name: string })[] } }).tvShow?.genres
+            : undefined;
       if (genres && Array.isArray(genres)) {
         genres.forEach((g) => {
           const name = typeof g === 'string' ? g : g.name;

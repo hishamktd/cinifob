@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { Dayjs } from 'dayjs';
 
 import { MainLayout } from '@core/components';
 import WatchedPageView from '@/views/watched';
@@ -23,7 +22,6 @@ export default function WatchedPage() {
   const [loading, setLoading] = useState(true);
   const [contentType, setContentType] = useState<'all' | 'movies' | 'tv'>('all');
   const [sortBy, setSortBy] = useState<MovieSortBy>(MovieSortBy.RECENTLY_WATCHED);
-  const [editingDateId, setEditingDateId] = useState<number | null>(null);
   const [stats, setStats] = useState({
     totalWatched: 0,
     totalRuntime: 0,
@@ -109,43 +107,6 @@ export default function WatchedPage() {
       }
     },
     [movies, tvShows, calculateStats, showToast],
-  );
-
-  const handleUpdateWatchedDate = useCallback(
-    async (movieId: number, newDate: Dayjs | null) => {
-      if (!newDate) return;
-
-      try {
-        const response = await fetch(`/api/user/watched/${movieId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ watchedAt: newDate.toISOString() }),
-        });
-
-        if (response.ok) {
-          setMovies((prev) =>
-            prev.map((m) => (m.id === movieId ? { ...m, watchedAt: newDate.toDate() } : m)),
-          );
-          showToast('Watch date updated', 'success');
-          // Re-sort if sorted by date
-          if (sortBy === MovieSortBy.RECENTLY_WATCHED) {
-            setMovies((prev) =>
-              [...prev].sort((a, b) => {
-                const dateA = a.watchedAt ? new Date(a.watchedAt).getTime() : 0;
-                const dateB = b.watchedAt ? new Date(b.watchedAt).getTime() : 0;
-                return dateB - dateA;
-              }),
-            );
-          }
-        } else {
-          showToast('Failed to update watch date', 'error');
-        }
-      } catch {
-        showToast('Failed to update watch date', 'error');
-      }
-      setEditingDateId(null);
-    },
-    [showToast, sortBy],
   );
 
   const handleAddToWatchlist = useCallback(
@@ -288,13 +249,9 @@ export default function WatchedPage() {
         stats={stats}
         sortBy={sortBy}
         contentType={contentType}
-        editingDateId={editingDateId}
         sortedContent={sortedContent}
         onContentTypeChange={setContentType}
         onSortChange={setSortBy}
-        onEditDateClick={setEditingDateId}
-        onCancelEditDate={() => setEditingDateId(null)}
-        onUpdateWatchedDate={handleUpdateWatchedDate}
         onAddToWatchlist={handleAddToWatchlist}
         onRemoveFromWatched={handleRemoveFromWatched}
         formatRuntime={formatRuntime}

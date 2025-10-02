@@ -105,9 +105,6 @@ const TVWatchingPageView: React.FC<TVWatchingPageViewProps> = ({
                       voteAverage: userShow.tvShow?.voteAverage || undefined,
                       voteCount: userShow.tvShow?.voteCount || undefined,
                       popularity: userShow.tvShow?.popularity || undefined,
-                      numberOfSeasons: userShow.tvShow?.numberOfSeasons,
-                      numberOfEpisodes: userShow.tvShow?.numberOfEpisodes,
-                      genres: userShow.tvShow?.genres,
                     }}
                     isInWatchlist={false}
                     isWatched={false}

@@ -52,10 +52,11 @@ export function useTheme() {
 
   const applyThemeOverrides = useCallback(
     (overrides: { palette?: { primary?: { main?: string } } }) => {
-      if (overrides.palette?.primary?.main) {
+      const primaryMain = overrides.palette?.primary?.main;
+      if (primaryMain) {
         setCustomColors((prev) => ({
           ...prev,
-          primary: overrides.palette.primary.main,
+          primary: primaryMain,
         }));
       }
     },

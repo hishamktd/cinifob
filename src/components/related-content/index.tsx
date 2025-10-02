@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 import {
   Box,
@@ -57,11 +57,7 @@ export const RelatedContent = ({
   const [relationType, setRelationType] = useState<'both' | 'similar' | 'recommendations'>('both');
   const [showAll, setShowAll] = useState(false);
 
-  useEffect(() => {
-    fetchRelatedContent();
-  }, [contentId, contentType, relationType]);
-
-  const fetchRelatedContent = async () => {
+  const fetchRelatedContent = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(
@@ -77,7 +73,11 @@ export const RelatedContent = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [contentId, contentType, relationType]);
+
+  useEffect(() => {
+    fetchRelatedContent();
+  }, [fetchRelatedContent]);
 
   const handleContentAction = async (item: ContentItem, action: 'watchlist' | 'watched') => {
     // For now, only handle movies (until TV support is added)

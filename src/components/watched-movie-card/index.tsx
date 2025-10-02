@@ -137,7 +137,9 @@ export const WatchedMovieCard: React.FC<WatchedMovieCardProps> = ({
             <AppDatePicker
               label="Date"
               value={dayjs(userMovie.watchedAt)}
-              onChange={(newDate) => onUpdateDate(userMovie.id, newDate)}
+              onChange={(newDate: dayjs.Dayjs | null) =>
+                newDate && onUpdateDate(userMovie.id, newDate)
+              }
               maxDate={dayjs()}
               size="small"
               fullWidth

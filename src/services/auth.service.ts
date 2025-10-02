@@ -165,8 +165,12 @@ class AuthService {
         accessToken: response.data.accessToken,
         refreshToken: response.data.refreshToken,
       };
-    } catch (error) {
-      throw new Error(error.response?.data?.error || 'Failed to refresh token');
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { data?: { error?: string } } };
+        throw new Error(axiosError.response?.data?.error || 'Failed to refresh token');
+      }
+      throw new Error('Failed to refresh token');
     }
   }
 

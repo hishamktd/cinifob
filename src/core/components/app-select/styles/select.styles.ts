@@ -1,4 +1,4 @@
-import { StylesConfig, ThemeConfig } from 'react-select';
+import { StylesConfig, ThemeConfig, Theme as SelectTheme } from 'react-select';
 
 import { Theme } from '@mui/material';
 
@@ -97,33 +97,35 @@ export const getSelectStyles = (
   }),
 });
 
-export const getSelectTheme = (theme: Theme) => (selectTheme: ThemeConfig) => ({
-  ...selectTheme,
-  borderRadius: theme.shape.borderRadius,
-  colors: {
-    ...selectTheme.colors,
-    primary: theme.palette.primary.main,
-    primary75: theme.palette.primary.light,
-    primary50: theme.palette.primary.light,
-    primary25: theme.palette.action.hover,
-    danger: theme.palette.error.main,
-    dangerLight: theme.palette.error.light,
-    neutral0: theme.palette.background.paper,
-    neutral5: theme.palette.action.hover,
-    neutral10: theme.palette.divider,
-    neutral20: theme.palette.divider,
-    neutral30: theme.palette.divider,
-    neutral40: theme.palette.text.secondary,
-    neutral50: theme.palette.text.secondary,
-    neutral60: theme.palette.text.secondary,
-    neutral70: theme.palette.text.primary,
-    neutral80: theme.palette.text.primary,
-    neutral90: theme.palette.text.primary,
-  },
-  spacing: {
-    ...selectTheme.spacing,
-    baseUnit: 4,
-    controlHeight: 56,
-    menuGutter: 8,
-  },
-});
+export const getSelectTheme =
+  (theme: Theme): ThemeConfig =>
+  (selectTheme: SelectTheme) => ({
+    ...selectTheme,
+    borderRadius: Number(theme.shape.borderRadius),
+    colors: {
+      ...selectTheme.colors,
+      primary: theme.palette.primary.main,
+      primary75: theme.palette.primary.light,
+      primary50: theme.palette.primary.light,
+      primary25: theme.palette.action.hover,
+      danger: theme.palette.error.main,
+      dangerLight: theme.palette.error.light,
+      neutral0: theme.palette.background.paper,
+      neutral5: theme.palette.action.hover,
+      neutral10: theme.palette.divider,
+      neutral20: theme.palette.divider,
+      neutral30: theme.palette.divider,
+      neutral40: theme.palette.text.secondary,
+      neutral50: theme.palette.text.secondary,
+      neutral60: theme.palette.text.secondary,
+      neutral70: theme.palette.text.primary,
+      neutral80: theme.palette.text.primary,
+      neutral90: theme.palette.text.primary,
+    },
+    spacing: {
+      ...selectTheme.spacing,
+      baseUnit: 4,
+      controlHeight: 56,
+      menuGutter: 8,
+    },
+  });

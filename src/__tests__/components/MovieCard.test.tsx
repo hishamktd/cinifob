@@ -14,9 +14,7 @@ vi.mock('next/navigation', () => ({
 // Mock next/image
 vi.mock('next/image', () => ({
   __esModule: true,
-  default: ({ alt, ...props }: { alt: string; [key: string]: unknown }) => (
-    <img alt={alt} {...props} />
-  ),
+  default: (props: { alt: string; [key: string]: unknown }) => props,
 }));
 
 // Mock the movie worker

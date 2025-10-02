@@ -101,13 +101,6 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
               },
             ]}
             height={350}
-            slotProps={{
-              legend: {
-                direction: 'column',
-                position: { vertical: 'middle', horizontal: 'right' },
-                padding: 0,
-              },
-            }}
           />
         </Paper>
       </Grid>
@@ -398,7 +391,7 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
                   height={50}
                   showHighlight
                   showTooltip
-                  colors={[theme.palette.primary.main]}
+                  color={theme.palette.primary.main}
                 />
               </CardContent>
             </Card>
@@ -414,7 +407,7 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
                   height={50}
                   showHighlight
                   showTooltip
-                  colors={[theme.palette.success.main]}
+                  color={theme.palette.success.main}
                 />
               </CardContent>
             </Card>
@@ -430,7 +423,7 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
                   height={50}
                   showHighlight
                   showTooltip
-                  colors={[theme.palette.warning.main]}
+                  color={theme.palette.warning.main}
                 />
               </CardContent>
             </Card>
@@ -446,7 +439,7 @@ export const AdvancedCharts: React.FC<AdvancedChartsProps> = ({
                   height={50}
                   showHighlight
                   showTooltip
-                  colors={[theme.palette.info.main]}
+                  color={theme.palette.info.main}
                 />
               </CardContent>
             </Card>

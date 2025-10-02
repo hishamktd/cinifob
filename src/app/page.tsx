@@ -22,10 +22,6 @@ export default function Home() {
   const [popularMovies, setPopularMovies] = useState<Movie[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadPopularMovies();
-  }, []);
-
   const loadPopularMovies = useCallback(async () => {
     try {
       const response = await movieService.getPopularMovies(1);
@@ -39,6 +35,10 @@ export default function Home() {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    loadPopularMovies();
+  }, [loadPopularMovies]);
 
   return (
     <MainLayout>

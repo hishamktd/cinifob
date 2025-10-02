@@ -196,7 +196,7 @@ export default function TVShowDetailPage() {
           });
         }
       }
-    } catch (_error) {
+    } catch {
       setToast({ open: true, message: 'Failed to update watchlist', severity: 'error' });
     } finally {
       setActionLoading(false);
@@ -251,7 +251,7 @@ export default function TVShowDetailPage() {
           });
         }
       }
-    } catch (_error) {
+    } catch {
       setToast({ open: true, message: 'Failed to update watched status', severity: 'error' });
     } finally {
       setActionLoading(false);
@@ -551,15 +551,7 @@ export default function TVShowDetailPage() {
                 <Box sx={{ py: 3 }}>
                   <EpisodeTracker
                     tvShowId={tvShow.tmdbId}
-                    seasons={
-                      tvShow.seasons?.map((s) => ({
-                        ...s,
-                        season_number: s.seasonNumber || s.season_number,
-                        episode_count: s.episodeCount || s.episode_count,
-                        air_date: s.airDate || s.air_date,
-                        poster_path: s.posterPath || s.poster_path,
-                      })) || []
-                    }
+                    seasons={tvShow.seasons || []}
                     onEpisodeStatusChange={(season, episode, status) => {
                       console.log(`Episode ${season}x${episode} marked as ${status}`);
                     }}

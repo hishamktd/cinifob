@@ -362,8 +362,21 @@ export const DiscoveryRecommendations: React.FC<DiscoveryRecommendationsProps> =
               <Card
                 sx={{
                   height: '100%',
-                  background: `linear-gradient(135deg, ${alpha(theme.palette[challenge.color].main, 0.05)} 0%, transparent 100%)`,
-                  borderTop: `3px solid ${theme.palette[challenge.color].main}`,
+                  background: `linear-gradient(135deg, ${alpha(
+                    (
+                      theme.palette[challenge.color as keyof typeof theme.palette] as {
+                        main: string;
+                      }
+                    ).main,
+                    0.05,
+                  )} 0%, transparent 100%)`,
+                  borderTop: `3px solid ${
+                    (
+                      theme.palette[challenge.color as keyof typeof theme.palette] as {
+                        main: string;
+                      }
+                    ).main
+                  }`,
                 }}
               >
                 <CardContent>
@@ -442,7 +455,21 @@ export const DiscoveryRecommendations: React.FC<DiscoveryRecommendationsProps> =
               <Card
                 sx={{
                   height: '100%',
-                  background: `linear-gradient(135deg, ${alpha(theme.palette[collection.color].main, 0.1)} 0%, ${alpha(theme.palette[collection.color].main, 0.05)} 100%)`,
+                  background: `linear-gradient(135deg, ${alpha(
+                    (
+                      theme.palette[collection.color as keyof typeof theme.palette] as {
+                        main: string;
+                      }
+                    ).main,
+                    0.1,
+                  )} 0%, ${alpha(
+                    (
+                      theme.palette[collection.color as keyof typeof theme.palette] as {
+                        main: string;
+                      }
+                    ).main,
+                    0.05,
+                  )} 100%)`,
                 }}
               >
                 <CardContent>
@@ -465,7 +492,15 @@ export const DiscoveryRecommendations: React.FC<DiscoveryRecommendationsProps> =
                   <Button
                     fullWidth
                     variant="contained"
-                    color={collection.color}
+                    color={
+                      collection.color as
+                        | 'primary'
+                        | 'secondary'
+                        | 'error'
+                        | 'warning'
+                        | 'info'
+                        | 'success'
+                    }
                     startIcon={<AppIcon icon="mdi:play-circle" />}
                   >
                     Browse Collection

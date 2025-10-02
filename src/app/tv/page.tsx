@@ -112,12 +112,12 @@ export default function TVPage() {
             title: show.title || show.name,
             overview: show.overview,
             posterPath: show.posterPath,
-            backdropPath: show.backdropPath,
-            date: show.date,
-            voteAverage: show.voteAverage,
-            voteCount: show.voteCount,
-            popularity: show.popularity,
-            genreIds: show.genreIds,
+            backdropPath: undefined,
+            date: show.firstAirDate || show.first_air_date || undefined,
+            voteAverage: show.voteAverage || show.vote_average,
+            voteCount: undefined,
+            popularity: undefined,
+            genreIds: undefined,
           }),
         );
         setTvShows(transformedShows);

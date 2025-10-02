@@ -42,7 +42,6 @@ interface WatchedPageViewProps {
   // onCancelEditDate: () => void; // Unused prop
   // onUpdateWatchedDate: (movieId: number, newDate: Dayjs | null) => void; // Unused prop
   onAddToWatchlist: (item: ContentItem) => void;
-  onRemoveFromWatched: (tmdbId: number, mediaType: 'movie' | 'tv') => void;
   formatRuntime: (minutes: number) => string;
 }
 
@@ -60,7 +59,6 @@ const WatchedPageView: React.FC<WatchedPageViewProps> = ({
   // onCancelEditDate, // Unused prop
   // onUpdateWatchedDate, // Unused prop
   onAddToWatchlist,
-  onRemoveFromWatched,
   formatRuntime,
 }) => {
   const router = useRouter();
@@ -95,16 +93,28 @@ const WatchedPageView: React.FC<WatchedPageViewProps> = ({
             size="small"
           >
             <ToggleButton value="all">
-              <AppIcon icon="mdi:all-inclusive" size={20} sx={{ mr: 0.5 }} />
-              All ({movies.length + tvShows.length})
+              <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
+                <AppIcon icon="mdi:all-inclusive" size={20} />
+                <Box component="span" sx={{ ml: 0.5 }}>
+                  All ({movies.length + tvShows.length})
+                </Box>
+              </Box>
             </ToggleButton>
             <ToggleButton value="movies">
-              <AppIcon icon="mdi:movie" size={20} sx={{ mr: 0.5 }} />
-              Movies ({movies.length})
+              <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
+                <AppIcon icon="mdi:movie" size={20} />
+                <Box component="span" sx={{ ml: 0.5 }}>
+                  Movies ({movies.length})
+                </Box>
+              </Box>
             </ToggleButton>
             <ToggleButton value="tv">
-              <AppIcon icon="mdi:television-classic" size={20} sx={{ mr: 0.5 }} />
-              TV Shows ({tvShows.length})
+              <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
+                <AppIcon icon="mdi:television-classic" size={20} />
+                <Box component="span" sx={{ ml: 0.5 }}>
+                  TV Shows ({tvShows.length})
+                </Box>
+              </Box>
             </ToggleButton>
           </ToggleButtonGroup>
 
@@ -207,17 +217,22 @@ const WatchedPageView: React.FC<WatchedPageViewProps> = ({
           {sortedContent.length > 0 ? (
             <Grid container spacing={2}>
               {sortedContent.map((item) => (
-                <Grid item key={`${item.mediaType}-${item.tmdbId}`} xs={12} sm={6} md={4} lg={3}>
+                <Grid
+                  size={{ xs: 12, sm: 6, md: 4, lg: 3 }}
+                  key={`${item.mediaType}-${item.tmdbId}`}
+                >
                   <ContentCard
-                    item={item}
-                    onRemove={() => onRemoveFromWatched(item.tmdbId, item.mediaType)}
+                    item={{
+                      ...item,
+                      overview: item.overview ?? undefined,
+                      posterPath: item.posterPath ?? undefined,
+                      backdropPath: item.backdropPath ?? undefined,
+                      voteAverage: item.voteAverage ?? undefined,
+                      voteCount: item.voteCount ?? undefined,
+                      popularity: item.popularity ?? undefined,
+                    }}
                     onAddToWatchlist={() => onAddToWatchlist(item)}
-                    onNavigate={() =>
-                      router.push(`/${item.mediaType === 'movie' ? 'movies' : 'tv'}/${item.tmdbId}`)
-                    }
-                    showActions
-                    showRating={item._rating}
-                    showWatchedDate={item._completedAt}
+                    isWatched={true}
                   />
                 </Grid>
               ))}
@@ -233,10 +248,7 @@ const WatchedPageView: React.FC<WatchedPageViewProps> = ({
                     ? "You haven't completed any TV shows yet"
                     : "You haven't watched any content yet"
               }
-              action={{
-                label: 'Browse Content',
-                onClick: () => router.push('/browse'),
-              }}
+              onAction={() => router.push('/browse')}
             />
           )}
         </MoviesSection>

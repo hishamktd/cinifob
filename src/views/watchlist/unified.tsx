@@ -202,8 +202,13 @@ const UnifiedWatchlistPageView: React.FC<UnifiedWatchlistPageViewProps> = ({
                 key={`${item.mediaType}-${item.tmdbId}`}
                 item={{
                   ...item,
-                  overview: item.overview || undefined,
-                  date: item.date || undefined,
+                  overview: item.overview ?? undefined,
+                  date: item.date ?? undefined,
+                  posterPath: item.posterPath ?? undefined,
+                  backdropPath: item.backdropPath ?? undefined,
+                  voteAverage: item.voteAverage ?? undefined,
+                  voteCount: item.voteCount ?? undefined,
+                  popularity: item.popularity ?? undefined,
                 }}
                 isInWatchlist={true}
                 isWatched={false}
@@ -237,7 +242,6 @@ const UnifiedWatchlistPageView: React.FC<UnifiedWatchlistPageViewProps> = ({
                 onChange={onDateChange}
                 maxDate={dayjs()}
                 fullWidth
-                sx={{ mb: 3 }}
               />
               <Typography variant="body2" gutterBottom sx={{ mb: 1 }}>
                 How would you rate it?

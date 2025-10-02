@@ -132,7 +132,7 @@ export const MobileDrawer = React.memo(({ open, onClose }: MobileDrawerProps) =>
     watchedCount: 0,
     favoriteGenre: 'Unknown',
   });
-  // const [statsLoading, setStatsLoading] = useState(false); // Unused variable
+  // const [statsLoading, setStatsLoading] = useState(false); // Currently unused
 
   const handleSignOut = useCallback(async () => {
     await signOut({ redirect: true, callbackUrl: ROUTES.LOGIN });
@@ -142,7 +142,7 @@ export const MobileDrawer = React.memo(({ open, onClose }: MobileDrawerProps) =>
   // Fetch user stats when authenticated
   useEffect(() => {
     if (status === 'authenticated' && session?.user) {
-      setStatsLoading(true);
+      // setStatsLoading(true);
       // Simulate API calls - replace with actual API endpoints
       Promise.all([
         fetch('/api/user/watchlist')
@@ -159,7 +159,9 @@ export const MobileDrawer = React.memo(({ open, onClose }: MobileDrawerProps) =>
             favoriteGenre: 'Action', // This would come from user preferences
           });
         })
-        .finally(() => setStatsLoading(false));
+        .finally(() => {
+          /* setStatsLoading(false) */
+        });
     }
   }, [status, session]);
 

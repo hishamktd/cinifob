@@ -46,16 +46,22 @@ export const ContentLoading: React.FC<ContentLoadingProps> = ({
           <Box sx={{ mb: 2 }}>
             <ToggleButtonGroup value="all" exclusive disabled size="small">
               <ToggleButton value="all">
-                <AppIcon icon="mdi:view-grid" size={16} sx={{ mr: 0.5 }} />
-                <Skeleton width={25} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <AppIcon icon="mdi:view-grid" size={16} />
+                  <Skeleton width={25} />
+                </Box>
               </ToggleButton>
               <ToggleButton value="movies">
-                <AppIcon icon="mdi:movie" size={16} sx={{ mr: 0.5 }} />
-                <Skeleton width={60} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <AppIcon icon="mdi:movie" size={16} />
+                  <Skeleton width={60} />
+                </Box>
               </ToggleButton>
               <ToggleButton value="tv">
-                <AppIcon icon="mdi:television-classic" size={16} sx={{ mr: 0.5 }} />
-                <Skeleton width={75} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <AppIcon icon="mdi:television-classic" size={16} />
+                  <Skeleton width={75} />
+                </Box>
               </ToggleButton>
             </ToggleButtonGroup>
           </Box>

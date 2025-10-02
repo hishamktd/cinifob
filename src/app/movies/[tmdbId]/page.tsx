@@ -789,14 +789,15 @@ export default function MovieDetailPage() {
             <Typography gutterBottom sx={{ mb: 2 }}>
               When did you watch {movie.title}?
             </Typography>
-            <AppDatePicker
-              label="Watch Date"
-              value={watchedDate}
-              onChange={(newValue: dayjs.Dayjs | null) => newValue && setWatchedDate(newValue)}
-              maxDate={dayjs()}
-              fullWidth
-              sx={{ mb: 3 }}
-            />
+            <Box sx={{ mb: 3 }}>
+              <AppDatePicker
+                label="Watch Date"
+                value={watchedDate}
+                onChange={(newValue: dayjs.Dayjs | null) => newValue && setWatchedDate(newValue)}
+                maxDate={dayjs()}
+                fullWidth
+              />
+            </Box>
             <Typography gutterBottom sx={{ mb: 1 }}>
               How would you rate it?
             </Typography>
